@@ -197,4 +197,4 @@ Untuk informasi lebih lanjut mengenai proyek ini, silakan hubungi:
 
 ---
 
-*Dokumen ini dibuat berdasarkan Software Requirements Specification (SRS) yang diterbitkan pada 2025-09-03*
+*Readme ini dibuat berdasarkan Software Requirements Specification (SRS) yang diterbitkan pada 2025-09-03*
