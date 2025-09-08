@@ -1,70 +1,200 @@
-# Getting Started with Create React App
+# Camera Management System (CMS)
+## Perancangan dan Implementasi Sistem Pengelolaan dan Pemantauan Kamera Secara Terpusat di Rumah Sakit Citra Husada
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+### 📋 Deskripsi Proyek
+Camera Management System (CMS) adalah sistem berbasis web yang dirancang khusus untuk Rumah Sakit Citra Husada dalam mengelola dan memantau 102 kamera CCTV yang tersebar di 8 titik strategis rumah sakit secara terpusat, real-time, dan efisien.
 
-## Available Scripts
+### 🎯 Tujuan
+- Mempermudah pengelolaan dan pemantauan CCTV di Rumah Sakit Citra Husada
+- Meningkatkan keamanan di rumah sakit melalui sistem pemantauan terpusat
+- Mendukung efisiensi pengawasan CCTV melalui sistem yang terintegrasi dan real-time
+- Digitalisasi sistem manajemen CCTV di rumah sakit
 
-In the project directory, you can run:
+### 🌟 Fitur Utama
 
-### `npm start`
+#### Super Admin
+- ✅ Login/Logout sistem
+- 🎥 **Manajemen CCTV**: Lihat, tambah, update, hapus CCTV
+- 👥 **Manajemen Pengguna**: Menambah, lihat, update, hapus pengguna
+- 📊 **History**: Melihat seluruh rekaman kamera CCTV
+- ⚙️ **Setting**: Export/import data, backup data
+- 🚨 **Notifikasi**: Menerima notifikasi kamera error
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+#### Security
+- ✅ Login/Logout sistem  
+- 🎥 **Monitoring**: Melihat CCTV dan tambah kamera baru
+- 📊 **History**: Melihat history CCTV
+- 🚨 **Notifikasi**: Menerima notifikasi kamera error
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### 🏗️ Arsitektur Sistem
+- **Frontend**: Web-based interface (Desktop focus)
+- **Backend**: FastAPI dengan Python
+- **Database**: PostgreSQL
+- **Monitoring**: 102 kamera aktif di 8 titik lokasi
+- **Akses**: 24/7 melalui jaringan internet
 
-### `npm test`
+### 💻 Persyaratan Sistem
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+#### Hardware Requirements
+- **Perangkat**: Komputer pribadi, laptop
+- **RAM Minimum**: 4GB (optimal)
+- **Koneksi Internet**: Stabil untuk streaming real-time
+- **Penyimpanan**: Sesuai kebutuhan backup data
 
-### `npm run build`
+#### Software Requirements
+- **Operating System**: 
+  - Windows 7 (minimum)
+  - macOS
+  - Linux distributions
+- **Web Browser** (versi terbaru):
+  - Google Chrome ✅
+  - Mozilla Firefox ✅  
+  - Microsoft Edge ✅
+  - Safari (Mac/iOS) ✅
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+#### Development Tools
+- Visual Studio Code
+- Postman
+- PostgreSQL
+- Figma
+- Enterprise Architect
+- ProjectLibre
+- Data Modeler
+- Power Designer
+- Python
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 🚀 Instalasi & Setup
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+#### Prerequisites
+```bash
+# Pastikan Python terinstall
+python --version
 
-### `npm run eject`
+# Install PostgreSQL
+# Download dari https://www.postgresql.org/
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+#### Development Setup
+```bash
+# Clone repository
+git clone [repository-url]
+cd camera-management-system
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+# Install dependencies
+pip install -r requirements.txt
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+# Setup database
+# Configure PostgreSQL connection
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+# Run application
+python main.py
+```
 
-## Learn More
+### 👥 Tim Pengembang (Kelompok CSM Universitas Jember)
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+| Nama | NIM | Role | Kontak |
+|------|-----|------|--------|
+| Mega Yassinta Aulia | 232410101031 | Scrum Master, Tester | +6281615155476 |
+| Gresia Desvani Dharmawan | 232410102001 | System Analyst | +6287890432541 |
+| Muhammad Najmi Nafis Zuhair | 232410101066 | Front End Developer | +62895370000307 |
+| M. Satya Bintang Ramadhani | 232410102032 | Back End Developer | +6289685032961 |
+| Ahimsa Jenar Bramsaifstyo Kusuma | 232410101090 | UI/UX Designer | +6282132341102 |
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### 📁 Struktur Data
 
-### Code Splitting
+#### Input Data
+- **User Data**: Username, Password
+- **CCTV Data**: IP Address, Waktu, Lokasi
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+#### Output Data
+- **Rekaman CCTV**: Video hasil rekaman dengan timestamp dan lokasi
+- **Backup & Export**: Arsip rekaman dan log aktivitas
+- **Notifikasi**: Status kamera error real-time
+- **Laporan Aktivitas**: Riwayat login dan aktivitas pengguna
 
-### Analyzing the Bundle Size
+### 🔒 Keamanan
+- Autentikasi user dengan login sistem
+- Role-based access control (Super Admin vs Security)
+- Protokol komunikasi aman (HTTPS/SSL)
+- Perlindungan data rekaman CCTV
+- Akses terbatas hanya untuk user yang tervalidasi
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### ⚡ Performa
+- **Real-time Monitoring**: Streaming 102 kamera simultan
+- **24/7 Availability**: Sistem operasional sepanjang waktu
+- **Response Time**: Notifikasi error < 2 menit
+- **Kapasitas**: Mendukung 8 titik lokasi pemantauan
 
-### Making a Progressive Web App
+### 🧪 Testing & Quality Assurance
+- **Functional Testing**: Pengujian semua fitur sesuai spesifikasi
+- **Performance Testing**: Kecepatan akses dan stabilitas streaming
+- **Security Testing**: Keamanan data dan sistem autentikasi
+- **Usability Testing**: Kemudahan penggunaan interface
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### 📈 Metodologi Pengembangan
+Proyek ini menggunakan **Agile Scrum** methodology dengan tahapan:
 
-### Advanced Configuration
+1. **Sprint Planning**: Perencanaan fitur per sprint
+2. **Development**: Implementasi fitur
+3. **Testing**: Pengujian dan quality assurance  
+4. **Review**: Evaluasi berkala dengan stakeholder
+5. **Retrospective**: Perbaikan proses pengembangan
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### 🔄 Development Phases
 
-### Deployment
+#### 1. Analisis Sistem
+- Identifikasi kebutuhan bisnis
+- Pengumpulan data melalui wawancara dan observasi
+- Analisis proses pemantauan CCTV existing
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+#### 2. Perancangan
+- Desain arsitektur sistem
+- Database design
+- UI/UX design
+- System integration planning
 
-### `npm run build` fails to minify
+#### 3. Implementasi
+- Backend development (FastAPI + Python)
+- Frontend development (Web-based)
+- Database integration (PostgreSQL)
+- CCTV system integration
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+#### 4. Testing & Evaluasi
+- Unit testing
+- Integration testing
+- User acceptance testing
+- Performance optimization
+
+### 📋 Batasan Sistem
+- Sistem berbasis web (akses melalui desktop)
+- Membutuhkan koneksi internet stabil
+- Terbatas pada 2 jenis user (Super Admin & Security)
+- Fokus pada 102 kamera di 8 titik lokasi
+- Ketergantungan pada infrastruktur listrik dan jaringan rumah sakit
+
+### 📞 Support & Maintenance
+- **Pemeliharaan Berkala**: Update sistem dan hardware
+- **Technical Support**: Tim development tersedia untuk troubleshooting
+- **Documentation**: Panduan penggunaan dan maintenance tersedia
+- **Backup Strategy**: Sistem backup otomatis untuk data rekaman
+
+### 📄 Dokumentasi
+- Software Requirements Specification (SRS)
+- User Manual
+- Technical Documentation
+- API Documentation (FastAPI)
+
+### 🤝 Stakeholders
+- **Rumah Sakit Citra Husada**: End user dan client
+- **Kelompok CSM Universitas Jember**: Development team
+- **Staff IT Rumah Sakit**: Super Admin users
+- **Security Team**: Security users
+
+### 📧 Kontak
+Untuk informasi lebih lanjut mengenai proyek ini, silakan hubungi:
+- **Project Team**: Kelompok CSM Universitas Jember
+- **Institution**: Rumah Sakit Citra Husada, Jember
+
+---
+
+*Readme ini dibuat berdasarkan Software Requirements Specification (SRS) yang diterbitkan pada 2025-09-03*
