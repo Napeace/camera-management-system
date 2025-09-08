@@ -1,11 +1,56 @@
 import React, { useState } from 'react';
-import { loginUser } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
+// import { loginUser } from '../services/api'; // Uncomment when API is ready
 
-function LoginForm({ onLoginSuccess }) {
+function LoginForm() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  const { login } = useAuth();
+
+  // Mock login function - replace with actual API call
+  const mockLoginUser = async (username, password) => {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Mock credentials
+    const mockUsers = {
+      'admin': { 
+        username: 'admin', 
+        role: 'superadmin', 
+        fullName: 'Administrator',
+        password: 'admin123' 
+      },
+      'security': { 
+        username: 'security', 
+        role: 'security', 
+        fullName: 'Security Officer',
+        password: 'security123' 
+      }
+    };
+    
+    const user = mockUsers[username];
+    if (user && user.password === password) {
+      return {
+        success: true,
+        data: {
+          access_token: `mock-token-${Date.now()}`,
+          user: {
+            username: user.username,
+            role: user.role,
+            fullName: user.fullName
+          }
+        }
+      };
+    }
+    
+    return {
+      success: false,
+      message: 'Username atau password salah!'
+    };
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,14 +62,33 @@ function LoginForm({ onLoginSuccess }) {
     }
 
     setIsLoading(true);
-    const result = await loginUser(username, password);
-    setIsLoading(false);
     
-    if (result.success) {
-      localStorage.setItem('token', result.data.access_token);
-      onLoginSuccess(result.data);
+    try {
+      // Use mock function for now - replace with actual API call
+      const result = await mockLoginUser(username, password);
+      // const result = await loginUser(username, password); // Use this for actual API
+      
+      if (result.success) {
+        // Use AuthContext login function
+        login(result.data.user, result.data.access_token);
+      } else {
+        setError(result.message);
+      }
+    } catch (error) {
+      setError('Terjadi kesalahan saat login. Silakan coba lagi.');
+      console.error('Login error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleQuickLogin = (userType) => {
+    if (userType === 'admin') {
+      setUsername('admin');
+      setPassword('admin123');
     } else {
-      setError(result.message);
+      setUsername('security');
+      setPassword('security123');
     }
   };
 
@@ -59,7 +123,7 @@ function LoginForm({ onLoginSuccess }) {
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="input-field pl-10"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                   placeholder="Masukkan username"
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -78,7 +142,7 @@ function LoginForm({ onLoginSuccess }) {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="input-field pl-10"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                   placeholder="Masukkan password"
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -125,18 +189,26 @@ function LoginForm({ onLoginSuccess }) {
           {/* Test Credentials */}
           <div className="mt-8 pt-6 border-t border-gray-200">
             <div className="bg-gray-50 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">
-                Test Credentials:
+              <h4 className="text-sm font-medium text-gray-700 mb-3">
+                Quick Login:
               </h4>
-              <div className="text-xs text-gray-600 space-y-1">
-                <div className="flex justify-between">
-                  <span>Superadmin:</span>
-                  <code className="bg-gray-200 px-2 py-1 rounded">admin / admin123</code>
-                </div>
-                <div className="flex justify-between">
-                  <span>Security:</span>
-                  <code className="bg-gray-200 px-2 py-1 rounded">security / security123</code>
-                </div>
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => handleQuickLogin('admin')}
+                  className="w-full text-left flex justify-between items-center p-2 rounded hover:bg-gray-100 transition-colors"
+                >
+                  <span className="text-sm text-gray-600">Superadmin:</span>
+                  <code className="bg-gray-200 px-2 py-1 rounded text-xs">admin / admin123</code>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickLogin('security')}
+                  className="w-full text-left flex justify-between items-center p-2 rounded hover:bg-gray-100 transition-colors"
+                >
+                  <span className="text-sm text-gray-600">Security:</span>
+                  <code className="bg-gray-200 px-2 py-1 rounded text-xs">security / security123</code>
+                </button>
               </div>
             </div>
           </div>
