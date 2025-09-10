@@ -91,9 +91,11 @@ const DashboardPage = () => {
       case 'dashboard':
         navigate('/dashboard');
         break;
-      case 'view-users':
+      // #### PERUBAHAN DI SINI ####
+      case 'users': // Diubah dari 'view-users' menjadi 'users'
         navigate('/users');
         break;
+      // ###########################
       case 'add-user':
         navigate('/users/add');
         break;

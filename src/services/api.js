@@ -1,95 +1,126 @@
-import axios from 'axios';
+// services/api.js
+const API_BASE_URL = 'https://ad7198bc0dd6.ngrok-free.app'; // Sesuaikan jika URL berubah
 
-const BASE_URL = 'http://localhost:8000';
-
-// Mock data untuk testing (hapus kalau FastAPI sudah ready)
-const MOCK_USERS = [
-  { username: 'admin', password: 'admin123', role: 'superadmin' },
-  { username: 'security', password: 'security123', role: 'security' }
-];
-
-const MOCK_CAMERAS = [
-  { id: 1, name: 'ICU Camera 1', location: 'ICU Room 101', status: 'active' },
-  { id: 2, name: 'ER Camera 1', location: 'Emergency Room', status: 'active' },
-  { id: 3, name: 'Lobby Camera', location: 'Main Lobby', status: 'inactive' },
-  { id: 4, name: 'Parking Camera', location: 'Parking Area', status: 'active' }
-];
-
-// Function login (pakai mock dulu)
-export const loginUser = async (username, password) => {
-  try {
-    // Simulasi delay API
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Check credentials di mock data
-    const user = MOCK_USERS.find(u => 
-      u.username === username && u.password === password
-    );
-    
-    if (user) {
-      return {
-        success: true,
-        data: {
-          access_token: 'mock-jwt-token-' + Date.now(),
-          username: user.username,
-          role: user.role
+class AuthService {
+  // =================================================================
+  // === FUNGSI INI YANG DIPERBAIKI ===
+  // =================================================================
+  async handleResponse(response) {
+    if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        
+        // Cek jika 'detail' ada dan ubah menjadi string jika itu adalah objek
+        if (errorData.detail) {
+          if (typeof errorData.detail === 'string') {
+            errorMessage = errorData.detail;
+          } else {
+            // Jika 'detail' adalah objek, ubah menjadi teks JSON agar bisa dibaca
+            errorMessage = JSON.stringify(errorData.detail);
+          }
+        } else {
+          // Fallback jika tidak ada 'detail', tampilkan seluruh objek error
+          errorMessage = JSON.stringify(errorData);
         }
-      };
-    } else {
-      return {
-        success: false,
-        message: 'Username atau password salah!'
-      };
-    }
-    
-    // Uncomment ini kalau FastAPI sudah ready:
-    /*
-    const response = await axios.post(`${BASE_URL}/auth/login`, {
-      username,
-      password
-    });
-    
-    return {
-      success: true,
-      data: response.data
-    };
-    */
-  } catch (error) {
-    return {
-      success: false,
-      message: error.response?.data?.detail || 'Login gagal!'
-    };
-  }
-};
 
-// Function get cameras (pakai mock dulu)
-export const getCameras = async (token) => {
-  try {
-    // Simulasi delay API
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    return {
-      success: true,
-      data: MOCK_CAMERAS
-    };
-    
-    // Uncomment ini kalau FastAPI sudah ready:
-    /*
-    const response = await axios.get(`${BASE_URL}/cameras`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
+      } catch (e) {
+        errorMessage = await response.text();
       }
-    });
-    
-    return {
-      success: true,
-      data: response.data
-    };
-    */
-  } catch (error) {
-    return {
-      success: false,
-      message: error.response?.data?.detail || 'Gagal mengambil data camera!'
-    };
+      throw new Error(errorMessage);
+    }
+    return response.json();
   }
-};
+  // =================================================================
+
+  async login(credentials) {
+    try {
+      console.log('Workaround active: Attempting login for:', credentials.username);
+
+      const loginParams = new URLSearchParams({
+        username: credentials.username,
+        password: credentials.password,
+      });
+      const loginUrl = `${API_BASE_URL}/auth/login?${loginParams.toString()}`;
+
+      const loginResponse = await fetch(loginUrl, {
+        method: 'POST',
+        headers: { 'accept': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+      });
+
+      const loginData = await this.handleResponse(loginResponse);
+      if (!loginData.access_token) {
+        throw new Error("Login successful but no token was provided.");
+      }
+      const token = loginData.access_token;
+      localStorage.setItem('access_token', token);
+      console.log('Step 1 SUCCESS: Got token.');
+
+      const usersResponse = await fetch(`${API_BASE_URL}/users/`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'ngrok-skip-browser-warning': 'true',
+        },
+      });
+      const allUsers = await this.handleResponse(usersResponse);
+      console.log('Step 2 SUCCESS: Fetched all users.');
+
+      const currentUser = allUsers.find(user => user.username === credentials.username);
+
+      if (currentUser) {
+        console.log('Step 3 SUCCESS: Found current user in the list:', currentUser);
+        localStorage.setItem('user', JSON.stringify(currentUser));
+      } else {
+        throw new Error(`User '${credentials.username}' not found in the user list after login.`);
+      }
+      
+      return { success: true, data: loginData };
+
+    } catch (error) {
+      console.error('Login process with workaround failed:', error);
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('user');
+      return { success: false, message: error.message || 'Login process failed!' };
+    }
+  }
+
+  // Fungsi lain-lain di bawah ini tidak perlu diubah
+  async testConnection() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/docs`, {
+        headers: { 'ngrok-skip-browser-warning': 'true' },
+      });
+      return {
+        success: response.ok,
+        status: response.status,
+        message: response.ok ? 'Connection successful' : `Connection failed: HTTP ${response.status}`,
+      };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  async logout() {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user');
+    return { success: true };
+  }
+
+  getCurrentUser() {
+    try {
+      const userStr = localStorage.getItem('user');
+      return userStr ? JSON.parse(userStr) : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  isAuthenticated() {
+    const token = localStorage.getItem('access_token');
+    return !!token;
+  }
+}
+
+const authService = new AuthService();
+export default authService;

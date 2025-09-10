@@ -1,139 +1,207 @@
-// Mock data untuk users (sudah disesuaikan dengan skema baru)
-const mockUsers = [
-  {
-    id: 1,
-    nama: "Dr. Ahmad Sutanto",
-    nip: "198503152010011001",
-    username: "ahmad_admin",
-    role: { id: 1, name: "Super Admin" },
-    created_at: "2024-01-15T10:30:00",
-    status: "active"
-  },
-  {
-    id: 2,
-    nama: "Dr. Sarah Wijaya",
-    nip: "198807222012032002",
-    username: "sarah_admin",
-    role: { id: 1, name: "Super Admin" },
-    created_at: "2024-01-20T14:15:00",
-    status: "active"
-  },
-  {
-    id: 3,
-    nama: "Nurse Maria Santos",
-    nip: "199211302015052003",
-    username: "maria_security",
-    role: { id: 2, name: "Security" },
-    created_at: "2024-02-01T09:00:00",
-    status: "active"
-  },
-  {
-    id: 4,
-    nama: "Security Guard Budi",
-    nip: "199001012014021005",
-    username: "budi_security",
-    role: { id: 2, name: "Security" },
-    created_at: "2024-02-05T16:45:00",
-    status: "active"
-  },
-  {
-    id: 5,
-    nama: "Admin Siti",
-    nip: "199504182018092001",
-    username: "siti_admin",
-    role: { id: 1, name: "Super Admin" },
-    created_at: "2024-02-10T11:20:00",
-    status: "inactive"
-  },
-  {
-    id: 6,
-    nama: "Officer Joko",
-    nip: "198908172013111009",
-    username: "joko_security",
-    role: { id: 2, name: "Security" },
-    created_at: "2024-02-15T08:30:00",
-    status: "active"
-  }
-];
+// services/userService.js
+const API_BASE_URL = 'https://ad7198bc0dd6.ngrok-free.app/';
 
-// Simulasi delay API
-const simulateApiDelay = (ms = 800) => {
-  return new Promise(resolve => setTimeout(resolve, ms));
-};
+class UserService {
+  // Helper method untuk headers
+  getHeaders(includeAuth = true) {
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (includeAuth) {
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+    
+    return headers;
+  }
 
-// Mock API functions
-export const getAllUsers = async (filters = {}) => {
-  await simulateApiDelay();
-  
-  let filteredUsers = [...mockUsers];
-  
-  // Filter by search term (sudah diupdate ke 'nama')
-  if (filters.search) {
-    const searchLower = filters.search.toLowerCase();
-    filteredUsers = filteredUsers.filter(user => 
-      user.nama.toLowerCase().includes(searchLower) ||
-      user.username.toLowerCase().includes(searchLower)
-    );
+  // Helper method untuk handle response
+  async handleResponse(response) {
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(error || `HTTP error! status: ${response.status}`);
+    }
+    
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      return response.json();
+    }
+    return response.text();
   }
-  
-  // Filter by role
-  if (filters.role) {
-    filteredUsers = filteredUsers.filter(user => 
-      user.role.name === filters.role
-    );
-  }
-  
-  // Filter by status
-  if (filters.status) {
-    filteredUsers = filteredUsers.filter(user => 
-      user.status === filters.status
-    );
-  }
-  
-  return {
-    status: 'success',
-    data: filteredUsers,
-    total: filteredUsers.length
-  };
-};
 
-export const getUserById = async (id) => {
-  await simulateApiDelay();
-  
-  const user = mockUsers.find(user => user.id === parseInt(id));
-  
-  if (!user) {
-    throw new Error('User not found');
-  }
-  
-  return {
-    status: 'success',
-    data: user
-  };
-};
+  // Get all users with filters
+  async getAllUsers(filters = {}) {
+    try {
+      // Build query parameters
+      const queryParams = new URLSearchParams();
+      
+      if (filters.search) {
+        queryParams.append('search', filters.search);
+      }
+      if (filters.role) {
+        queryParams.append('role', filters.role);
+      }
+      if (filters.status) {
+        queryParams.append('status', filters.status);
+      }
 
-// Untuk development - nanti ganti dengan real API
-/*
-const API_BASE_URL = 'http://localhost:8000';
-
-export const getAllUsers = async (filters = {}) => {
-  const queryParams = new URLSearchParams(filters).toString();
-  const response = await fetch(`${API_BASE_URL}/api/users?${queryParams}`);
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch users');
+      const queryString = queryParams.toString();
+      const url = `${API_BASE_URL}/users/${queryString ? `?${queryString}` : ''}`;
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: this.getHeaders()
+      });
+      
+      const data = await this.handleResponse(response);
+      
+      // Transform data to match existing structure if needed
+      return {
+        status: 'success',
+        data: Array.isArray(data) ? data : data.users || [],
+        total: Array.isArray(data) ? data.length : data.total || 0
+      };
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      throw new Error(`Failed to fetch users: ${error.message}`);
+    }
   }
-  
-  return response.json();
-};
 
-export const getUserById = async (id) => {
-  const response = await fetch(`${API_BASE_URL}/api/users/${id}`);
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch user');
+  // Get user by ID
+  async getUserById(id) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+        method: 'GET',
+        headers: this.getHeaders()
+      });
+      
+      const data = await this.handleResponse(response);
+      
+      return {
+        status: 'success',
+        data: data
+      };
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      throw new Error(`Failed to fetch user: ${error.message}`);
+    }
   }
-  
-  return response.json();
-};
-*/
+
+  // Create new user
+  async createUser(userData) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/create`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify(userData)
+      });
+      
+      const data = await this.handleResponse(response);
+      
+      return {
+        status: 'success',
+        data: data
+      };
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw new Error(`Failed to create user: ${error.message}`);
+    }
+  }
+
+  // Update user
+  async updateUser(id, userData) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/update/${id}`, {
+        method: 'PUT',
+        headers: this.getHeaders(),
+        body: JSON.stringify(userData)
+      });
+      
+      const data = await this.handleResponse(response);
+      
+      return {
+        status: 'success',
+        data: data
+      };
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw new Error(`Failed to update user: ${error.message}`);
+    }
+  }
+
+  // Soft delete user
+  async softDeleteUser(id) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/soft/${id}`, {
+        method: 'DELETE',
+        headers: this.getHeaders()
+      });
+      
+      await this.handleResponse(response);
+      
+      return {
+        status: 'success',
+        message: 'User soft deleted successfully'
+      };
+    } catch (error) {
+      console.error('Error soft deleting user:', error);
+      throw new Error(`Failed to soft delete user: ${error.message}`);
+    }
+  }
+
+  // Hard delete user
+  async hardDeleteUser(id) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/hard/${id}`, {
+        method: 'DELETE',
+        headers: this.getHeaders()
+      });
+      
+      await this.handleResponse(response);
+      
+      return {
+        status: 'success',
+        message: 'User permanently deleted'
+      };
+    } catch (error) {
+      console.error('Error hard deleting user:', error);
+      throw new Error(`Failed to permanently delete user: ${error.message}`);
+    }
+  }
+
+  // Get user roles
+  async getRoles() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/role/`, {
+        method: 'GET',
+        headers: this.getHeaders()
+      });
+      
+      const data = await this.handleResponse(response);
+      
+      return {
+        status: 'success',
+        data: Array.isArray(data) ? data : data.roles || []
+      };
+    } catch (error) {
+      console.error('Error fetching roles:', error);
+      throw new Error(`Failed to fetch roles: ${error.message}`);
+    }
+  }
+}
+
+// Create and export singleton instance
+const userService = new UserService();
+export default userService;
+
+// Export specific functions for backward compatibility
+export const getAllUsers = (filters) => userService.getAllUsers(filters);
+export const getUserById = (id) => userService.getUserById(id);
+export const createUser = (userData) => userService.createUser(userData);
+export const updateUser = (id, userData) => userService.updateUser(id, userData);
+export const softDeleteUser = (id) => userService.softDeleteUser(id);
+export const hardDeleteUser = (id) => userService.hardDeleteUser(id);
+export const getRoles = () => userService.getRoles();

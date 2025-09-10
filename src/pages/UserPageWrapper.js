@@ -23,7 +23,7 @@ const UserPageWrapper = () => {
       case 'dashboard':
         navigate('/dashboard');
         break;
-      case 'view-users':
+      case 'users':
         navigate('/users');
         break;
       default:

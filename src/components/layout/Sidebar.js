@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom'; // Tambahkan useNavigate
 
 // Icons (using simple emojis for now, could be replaced with react-icons later)
 const icons = {
@@ -26,10 +26,10 @@ const Sidebar = ({
   activePage = 'dashboard', 
   onPageChange = () => {}, 
   onToggle = () => {},
-  isCollapsed // Menerima state dari MainLayout
+  isCollapsed 
 }) => {
   const location = useLocation();
-  // State internal untuk isCollapsed sudah dihapus dari sini.
+  const navigate = useNavigate(); // Tambahkan useNavigate hook
   
   const [expandedMenus, setExpandedMenus] = useState({
     cctv: false,
@@ -37,15 +37,12 @@ const Sidebar = ({
     settings: false
   });
 
-  // Auto-detect active page based on URL, fallback to prop
   const getCurrentActivePage = () => {
     const pathname = location.pathname;
     
+    // Logika ini disederhanakan karena submenu user dihapus
     if (pathname === '/dashboard') return 'dashboard';
-    if (pathname === '/users' || pathname === '/users/view') return 'view-users';
-    if (pathname === '/users/add') return 'add-user';
-    if (pathname === '/users/update' || pathname === '/users/edit') return 'update-user';
-    if (pathname === '/users/delete') return 'delete-user';
+    if (pathname.startsWith('/users')) return 'users'; // <-- Tandai 'users' aktif jika path diawali /users
     if (pathname === '/cctv/view') return 'view-cctv';
     if (pathname === '/cctv/add') return 'add-cctv';
     if (pathname === '/cctv/update') return 'update-cctv';
@@ -55,24 +52,21 @@ const Sidebar = ({
     if (pathname === '/settings/import') return 'import-data';
     if (pathname === '/settings/backup') return 'backup-data';
     
-    return activePage; // fallback to prop if no match
+    return activePage;
   };
 
   const currentActivePage = getCurrentActivePage();
 
-  // Auto-expand parent menus based on current route
   React.useEffect(() => {
     const pathname = location.pathname;
-    if (pathname.startsWith('/users/')) {
-      setExpandedMenus(prev => ({ ...prev, users: true }));
-    } else if (pathname.startsWith('/cctv/')) {
+    // Hapus auto-expand untuk 'users' karena sudah tidak ada submenu
+    if (pathname.startsWith('/cctv/')) {
       setExpandedMenus(prev => ({ ...prev, cctv: true }));
     } else if (pathname.startsWith('/settings/')) {
       setExpandedMenus(prev => ({ ...prev, settings: true }));
     }
   }, [location.pathname]);
 
-  // Function to check if a menu should be expanded
   const shouldExpandMenu = (menuKey) => {
     return expandedMenus[menuKey];
   };
@@ -85,7 +79,6 @@ const Sidebar = ({
   };
 
   const toggleSidebar = () => {
-    // Memberi tahu MainLayout untuk mengubah state
     onToggle(!isCollapsed);
   };
 
@@ -108,19 +101,16 @@ const Sidebar = ({
         { id: 'delete-cctv', label: 'Hapus CCTV', icon: icons.delete, path: '/cctv/delete' }
       ]
     },
+    // #### PERUBAHAN DI SINI ####
     {
       id: 'users',
       label: 'Manajemen User',
       icon: icons.users,
-      hasSubmenu: true,
       roleRequired: 'superadmin',
-      submenu: [
-        { id: 'add-user', label: 'Tambah User', icon: icons.add, path: '/users/add' },
-        { id: 'view-users', label: 'Lihat User', icon: icons.view, path: '/users/view' },
-        { id: 'update-user', label: 'Update User', icon: icons.edit, path: '/users/update' },
-        { id: 'delete-user', label: 'Hapus User', icon: icons.delete, path: '/users/delete' }
-      ]
+      path: '/users' // Tambahkan path agar jadi link langsung
+      // Properti 'hasSubmenu' dan 'submenu' dihapus
     },
+    // ###########################
     {
       id: 'history',
       label: 'History',
@@ -140,7 +130,6 @@ const Sidebar = ({
     }
   ];
 
-  // Filter menu berdasarkan role
   const filteredMenuItems = menuItems.filter(item => {
     if (item.roleRequired && user.role !== item.roleRequired) {
       return false;
@@ -149,6 +138,8 @@ const Sidebar = ({
   });
 
   const handleMenuClick = (item) => {
+    console.log('🔍 Sidebar: Menu clicked:', item); // Debug log
+
     if (isCollapsed) {
       onToggle(false); 
     }
@@ -156,19 +147,25 @@ const Sidebar = ({
     if (item.hasSubmenu) {
       toggleMenu(item.id);
     } else {
-      onPageChange(item.id, item.path);
+      // Gunakan navigate untuk routing langsung
+      console.log('🔍 Sidebar: Navigating to:', item.path); // Debug log
+      navigate(item.path);
+      onPageChange(item.id, item.path); // Tetap panggil callback jika ada
     }
   };
 
   const handleSubmenuClick = (parentId, subItem) => {
-    onPageChange(subItem.id, subItem.path);
+    console.log('🔍 Sidebar: Submenu clicked:', subItem); // Debug log
+    // Gunakan navigate untuk routing langsung
+    navigate(subItem.path);
+    onPageChange(subItem.id, subItem.path); // Tetap panggil callback jika ada
   };
 
   return (
     <div className={`bg-gray-800 text-white fixed left-0 top-0 h-screen transition-all duration-300 flex flex-col z-40 ${
       isCollapsed ? 'w-16' : 'w-64'
     }`}>
-      {/* Sidebar Header */}
+      {/* ... Sisa kode JSX di bawah ini tidak ada yang berubah ... */}
       <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} ${isCollapsed ? 'p-2' : 'p-4'} border-b border-gray-700 flex-shrink-0`}>
         {!isCollapsed && (
           <div className="flex items-center space-x-3 animate-fadeInFromLeft">
@@ -189,7 +186,6 @@ const Sidebar = ({
         </button>
       </div>
 
-      {/* User Info */}
       {!isCollapsed && (
         <div className="p-4 border-b border-gray-700 flex-shrink-0 animate-fadeInFromLeft">
           <div className="flex items-center space-x-3">
@@ -206,7 +202,6 @@ const Sidebar = ({
         </div>
       )}
 
-      {/* Navigation Menu - Scrollable Area */}
       <div 
         className="flex-1 overflow-y-auto"
         style={{
@@ -271,7 +266,6 @@ const Sidebar = ({
         <nav className={`${isCollapsed ? 'p-2' : 'p-4'} space-y-2`}>
           {filteredMenuItems.map((item) => (
             <div key={item.id}>
-              {/* Main Menu Item */}
               <button
                 onClick={() => handleMenuClick(item)}
                 className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} ${isCollapsed ? 'p-2' : 'p-3'} rounded-lg transition-colors group relative ${
@@ -295,7 +289,6 @@ const Sidebar = ({
                 )}
               </button>
 
-              {/* Submenu */}
               {!isCollapsed && item.hasSubmenu && shouldExpandMenu(item.id) && (
                 <div className="ml-4 mt-2 space-y-1 animate-fadeInFromLeft">
                   {item.submenu.map((subItem, index) => (
@@ -322,7 +315,6 @@ const Sidebar = ({
         </nav>
       </div>
 
-      {/* Logout Button */}
       <div className={`${isCollapsed ? 'p-2' : 'p-4'} border-t border-gray-700 flex-shrink-0`}>
         <button
           onClick={onLogout}
