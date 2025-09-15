@@ -9,30 +9,60 @@ const useUsers = () => {
   const [total, setTotal] = useState(0);
   const [filters, setFilters] = useState({});
 
-  const fetchUsers = useCallback(async (currentFilters = filters) => {
+  const fetchUsers = useCallback(async (currentFilters = {}) => {
     try {
       setLoading(true);
       setError(null);
+      
+      // Debug log untuk melihat filters yang dikirim
+      console.log('Fetching users with filters:', currentFilters);
+      
       const response = await userService.getAllUsers(currentFilters);
-      setUsers(response.data || []);
-      setTotal(response.total || 0);
+      
+      console.log('API Response:', response);
+      
+      let filteredUsers = response.data || [];
+      
+      // Apply local filtering jika API tidak support server-side filtering
+      if (currentFilters.search) {
+        const searchTerm = currentFilters.search.toLowerCase();
+        filteredUsers = filteredUsers.filter(user => 
+          (user.nama && user.nama.toLowerCase().includes(searchTerm)) ||
+          (user.username && user.username.toLowerCase().includes(searchTerm)) ||
+          (user.nip && String(user.nip).toLowerCase().includes(searchTerm))
+        );
+      }
+      
+      if (currentFilters.role) {
+        filteredUsers = filteredUsers.filter(user => 
+          user.user_role_name === currentFilters.role
+        );
+      }
+      
+      setUsers(filteredUsers);
+      setTotal(filteredUsers.length);
+      
     } catch (err) {
+      console.error('Fetch users error:', err);
       setError(err.message || 'Failed to fetch users');
+      setUsers([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, []);
 
+  // Initial load
   useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+    fetchUsers(filters);
+  }, []); // Remove filters dependency to prevent infinite loop
 
   const createUser = useCallback(async (userData) => {
     try {
       setLoading(true);
       setError(null);
       await userService.createUser(userData);
-      await fetchUsers(); // Refresh list
+      await fetchUsers(filters); // Refresh with current filters
     } catch (err) {
       console.error('Create user error in hook:', err);
       setError(err.message || 'Failed to create user');
@@ -40,14 +70,14 @@ const useUsers = () => {
     } finally {
       setLoading(false);
     }
-  }, [fetchUsers]);
+  }, [filters, fetchUsers]);
 
   const updateUser = useCallback(async (userId, userData) => {
     try {
       setLoading(true);
       setError(null);
       await userService.updateUser(userId, userData);
-      await fetchUsers(); // Refresh list
+      await fetchUsers(filters); // Refresh with current filters
     } catch (err) {
       console.error('Update user error in hook:', err);
       setError(err.message || 'Failed to update user');
@@ -55,14 +85,14 @@ const useUsers = () => {
     } finally {
       setLoading(false);
     }
-  }, [fetchUsers]);
+  }, [filters, fetchUsers]);
   
   const softDeleteUser = useCallback(async (userId) => {
     try {
       setLoading(true);
       setError(null);
       await userService.softDeleteUser(userId);
-      await fetchUsers(); // Refresh list
+      await fetchUsers(filters); // Refresh with current filters
     } catch (err) {
       console.error('Soft delete user error:', err);
       setError(err.message || 'Failed to soft delete user');
@@ -70,14 +100,14 @@ const useUsers = () => {
     } finally {
       setLoading(false);
     }
-  }, [fetchUsers]);
+  }, [filters, fetchUsers]);
 
   const hardDeleteUser = useCallback(async (userId) => {
     try {
       setLoading(true);
       setError(null);
       await userService.hardDeleteUser(userId);
-      await fetchUsers(); // Refresh list
+      await fetchUsers(filters); // Refresh with current filters
     } catch (err) {
       console.error('Hard delete user error:', err);
       setError(err.message || 'Failed to permanently delete user');
@@ -85,18 +115,34 @@ const useUsers = () => {
     } finally {
       setLoading(false);
     }
-  }, [fetchUsers]);
+  }, [filters, fetchUsers]);
 
   const updateFilters = useCallback((newFilterValues) => {
-    const newFilters = { ...filters, ...newFilterValues };
-    setFilters(newFilters);
-    fetchUsers(newFilters);
+    console.log('Updating filters:', newFilterValues);
+    
+    const updatedFilters = { ...filters, ...newFilterValues };
+    
+    // Remove undefined/null values
+    Object.keys(updatedFilters).forEach(key => {
+      if (updatedFilters[key] === undefined || updatedFilters[key] === null || updatedFilters[key] === '') {
+        delete updatedFilters[key];
+      }
+    });
+    
+    console.log('Final filters:', updatedFilters);
+    
+    setFilters(updatedFilters);
+    fetchUsers(updatedFilters);
   }, [filters, fetchUsers]);
 
   const clearFilters = useCallback(() => {
     setFilters({});
     fetchUsers({});
   }, [fetchUsers]);
+
+  const refresh = useCallback(() => {
+    fetchUsers(filters);
+  }, [filters, fetchUsers]);
   
   return {
     users,
@@ -104,14 +150,14 @@ const useUsers = () => {
     error,
     total,
     filters,
-    fetchUsers,
+    fetchUsers: refresh,
     createUser,
     updateUser,
     softDeleteUser,
     hardDeleteUser,
     updateFilters,
     clearFilters,
-    refresh: fetchUsers, // Alias refresh ke fetchUsers
+    refresh,
   };
 };
 

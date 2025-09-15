@@ -1,160 +1,105 @@
-// services/userService.js
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://ad7198bc0dd6.ngrok-free.app';
+// src/services/userService.js
+import apiClient from './api';
+import authService from './authService';
 
 class UserService {
-  getAccessToken() {
-    return localStorage.getItem('access_token');
+  // Helper untuk mendapatkan token, agar tidak berulang
+  _getAuthToken() {
+    const token = authService.getAccessToken();
+    if (!token) throw new Error("Token autentikasi tidak ditemukan.");
+    return token;
   }
 
-  async handleResponse(response) {
-    if (!response.ok) {
-      let errorMessage = `HTTP error! status: ${response.status}`;
-      try {
-        const errorData = await response.json();
-        if (Array.isArray(errorData.detail)) {
-            errorMessage = errorData.detail.map(err => `${err.loc.slice(-1)[0]}: ${err.msg}`).join(', ');
-        } else {
-            errorMessage = errorData.detail || JSON.stringify(errorData);
-        }
-      } catch (e) {
-        errorMessage = await response.text();
-      }
-      throw new Error(errorMessage);
+  // Helper untuk menangani respons dan error
+  _handleResponse(response) {
+    if (response.data && response.data.status === 'success') {
+      return response.data;
     }
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+    // Jika backend mengembalikan 200 OK tapi status logisnya 'error'
+    throw new Error(response.data.message || "Struktur respons API tidak valid.");
+  }
+
+  // Helper untuk menangani error dari Axios
+  _handleError(error) {
+    const errorMessage = error.response?.data?.detail || error.message;
+    console.error('API Error:', errorMessage);
+    throw new Error(errorMessage);
   }
 
   async getAllUsers(filters = {}) {
     try {
-      const token = this.getAccessToken();
-      if (!token) throw new Error("No authentication token found.");
-
-      const queryParams = new URLSearchParams();
-      if (filters.search) queryParams.append('search', filters.search);
-      // Backend sepertinya belum mendukung filter ini, tapi kita simpan untuk nanti
-      // if (filters.role) queryParams.append('role', filters.role);
+      const token = this._getAuthToken();
       
-      queryParams.append('token', token);
-
-      const url = `${API_BASE_URL}/users?${queryParams.toString()}`;
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: { 'ngrok-skip-browser-warning': 'true' }
+      // Build query parameters
+      const queryParams = new URLSearchParams({ 
+        token, 
+        skip: 0, 
+        limit: 1000 // Increase limit to get more users
       });
-      const data = await this.handleResponse(response);
+      
+      // Add search parameter if provided
+      if (filters.search && filters.search.trim()) {
+        queryParams.append('search', filters.search.trim());
+      }
+      
+      // Add role parameter if provided
+      if (filters.role && filters.role.trim()) {
+        queryParams.append('role', filters.role.trim());
+      }
+      
+      console.log('API Call URL:', `/users/?${queryParams.toString()}`);
+      
+      const response = await apiClient.get(`/users/?${queryParams.toString()}`);
+      const result = this._handleResponse(response);
+
       return {
-        data: Array.isArray(data) ? data : [],
-        total: Array.isArray(data) ? data.length : 0
+        data: Array.isArray(result.data) ? result.data : [],
+        total: Array.isArray(result.data) ? result.data.length : 0,
       };
     } catch (error) {
-      console.error('Error fetching users:', error);
-      throw error;
-    }
-  }
-  
-  async createUser(userData) {
-    try {
-      const token = this.getAccessToken();
-      if (!token) throw new Error("No authentication token found.");
-      
-      const url = `${API_BASE_URL}/users/create?token=${token}`;
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'ngrok-skip-browser-warning': 'true',
-        },
-        body: JSON.stringify(userData)
-      });
-      return await this.handleResponse(response);
-    } catch (error) {
-      console.error('Error creating user:', error);
-      throw error;
+      this._handleError(error);
     }
   }
 
-  // =======================================================
-  // === FUNGSI-FUNGSI YANG HILANG DITAMBAHKAN DI SINI ===
-  // =======================================================
+  async createUser(userData) {
+    try {
+      const token = this._getAuthToken();
+      console.log('Creating user with data:', userData);
+      const response = await apiClient.post(`/users/?token=${token}`, userData);
+      return this._handleResponse(response);
+    } catch (error) {
+      this._handleError(error);
+    }
+  }
 
   async updateUser(userId, userData) {
     try {
-      const token = this.getAccessToken();
-      if (!token) throw new Error("No authentication token found.");
-      
-      const url = `${API_BASE_URL}/users/update/${userId}?token=${token}`;
-      const response = await fetch(url, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'ngrok-skip-browser-warning': 'true',
-        },
-        body: JSON.stringify(userData)
-      });
-      return await this.handleResponse(response);
+      const token = this._getAuthToken();
+      console.log('Updating user:', userId, 'with data:', userData);
+      const response = await apiClient.put(`/users/${userId}?token=${token}`, userData);
+      return this._handleResponse(response);
     } catch (error) {
-      console.error('Error updating user:', error);
-      throw error;
+      this._handleError(error);
     }
   }
 
   async softDeleteUser(userId) {
     try {
-      const token = this.getAccessToken();
-      if (!token) throw new Error("No authentication token found.");
-
-      const url = `${API_BASE_URL}/users/soft/${userId}?token=${token}`;
-      const response = await fetch(url, {
-        method: 'DELETE',
-        headers: { 'ngrok-skip-browser-warning': 'true' }
-      });
-      return await this.handleResponse(response);
+      const token = this._getAuthToken();
+      const response = await apiClient.delete(`/users/soft/${userId}?token=${token}`);
+      return this._handleResponse(response);
     } catch (error) {
-      console.error('Error soft deleting user:', error);
-      throw error;
+      this._handleError(error);
     }
   }
-  
+
   async hardDeleteUser(userId) {
     try {
-      const token = this.getAccessToken();
-      if (!token) throw new Error("No authentication token found.");
-
-      const url = `${API_BASE_URL}/users/hard/${userId}?token=${token}`;
-      const response = await fetch(url, {
-        method: 'DELETE',
-        headers: { 'ngrok-skip-browser-warning': 'true' }
-      });
-      return await this.handleResponse(response);
+      const token = this._getAuthToken();
+      const response = await apiClient.delete(`/users/hard/${userId}?token=${token}`);
+      return this._handleResponse(response);
     } catch (error) {
-      console.error('Error hard deleting user:', error);
-      throw error;
-    }
-  }
-  
-  async updateUser(userId, userData) {
-    try {
-      const token = this.getAccessToken();
-      if (!token) throw new Error("No authentication token found.");
-      
-      // Endpoint untuk update user
-      const url = `${API_BASE_URL}/users/update/${userId}?token=${token}`;
-      console.log(`Updating user ${userId} with data:`, userData);
-      
-      const response = await fetch(url, {
-        method: 'PUT', // Gunakan method PUT untuk update
-        headers: {
-          'Content-Type': 'application/json',
-          'ngrok-skip-browser-warning': 'true',
-        },
-        body: JSON.stringify(userData)
-      });
-      
-      return await this.handleResponse(response);
-    } catch (error) {
-      console.error('Error updating user:', error);
-      throw error;
+      this._handleError(error);
     }
   }
 }

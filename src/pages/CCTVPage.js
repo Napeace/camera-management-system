@@ -4,8 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import MainLayout from '../components/layout/MainLayout';
 import Sidebar from '../components/layout/Sidebar';
 import cctvService from '../services/cctvService';
-import CCTVCreateModal from '../components/cctv/CCTVCreateModal';
-import CCTVEditModal from '../components/cctv/CCTVEditModal'; 
+import CCTVCreateModal from '../features/cctv/CCTVCreateModal';
+import CCTVEditModal from '../features/cctv/CCTVEditModal'; 
 
 const CCTVPage = () => {
   const { user, logout } = useAuth();

@@ -64,13 +64,16 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
         nip: formData.nip.trim(),
         username: formData.username.trim(),
         password: formData.password,
-        id_role: 2 // <-- PERUBAHAN UTAMA: Role di-hardcode menjadi 2 (Security)
+        id_role: 2 // Role di-hardcode menjadi 2 (Security)
       };
 
       await userService.createUser(userData);
+            
+      // Panggil onUserCreated untuk trigger refresh data di parent
+      if (onUserCreated) {
+        await onUserCreated(); // Tunggu sampai refresh selesai
+      }
       
-      alert('User created successfully with Security role!');
-      if (onUserCreated) onUserCreated();
       onClose();
       
     } catch (error) {

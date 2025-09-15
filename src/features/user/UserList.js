@@ -23,17 +23,14 @@ const UserList = ({ users, loading, error, onRefresh, onEdit, onDelete }) => {
   };
 
   const handleEdit = (user) => onEdit && onEdit(user);
-  const handleDelete = async (user, isHard = false) => {
-    const action = isHard ? 'permanently delete' : 'soft delete';
-    if (!window.confirm(`Are you sure you want to ${action} user "${user.nama}"?`)) return;
-
-    try {
-      setActionLoading(prev => ({ ...prev, [`${user.id_user}_${action}`]: true }));
-      if (onDelete) await onDelete(user.id_user, isHard);
-    } catch (err) {
-      alert(`Failed to ${action} user: ${err.message}`);
-    } finally {
-      setActionLoading(prev => ({ ...prev, [`${user.id_user}_${action}`]: false }));
+  
+  // FIXED: Remove window.confirm and pass user object instead of user ID
+  const handleDelete = (user, isHard = false) => {
+    console.log('UserList handleDelete called with:', user, isHard);
+    
+    // Langsung panggil onDelete tanpa confirmation (confirmation handled di parent)
+    if (onDelete) {
+      onDelete(user, isHard); // Pass user object, not user.id_user
     }
   };
 
@@ -116,8 +113,26 @@ const UserList = ({ users, loading, error, onRefresh, onEdit, onDelete }) => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                   <div className="flex justify-center items-center space-x-3">
-                    <button onClick={() => handleEdit(user)} className="text-indigo-600 hover:text-indigo-900" title="Edit"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
-                    <button onClick={() => handleDelete(user, true)} className="text-red-600 hover:text-red-900" title="Delete"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                    <button 
+                      onClick={() => handleEdit(user)} 
+                      className="text-indigo-600 hover:text-indigo-900" 
+                      title="Edit User"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                      </svg>
+                    </button>
+                    
+                    {/* Hard Delete Button */}
+                    <button 
+                      onClick={() => handleDelete(user, true)} 
+                      className="text-red-600 hover:text-red-900" 
+                      title="Permanently Delete User"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                      </svg>
+                    </button>
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
