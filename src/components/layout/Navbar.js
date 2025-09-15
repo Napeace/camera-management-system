@@ -90,7 +90,7 @@ const Navbar = ({ user, notifications = [] }) => {
         {/* Page Title */}
         <div>
           <h1 className="text-xl font-semibold text-gray-800">
-            CCTV Management Dashboard
+            Camera Management System
           </h1>
           <p className="text-sm text-gray-600">Monitor and manage security cameras</p>
         </div>

@@ -5,14 +5,13 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import UserPage from './pages/UserPage';
-import UserPageWrapper from './pages/UserPageWrapper';
-import CCTVPage from './pages/CCTVPage'; // Import CCTVPage
+import CCTVPage from './pages/CCTVPage'; // CCTV Management (List/Table)
+import LiveMonitoringPage from './pages/LiveMonitoringPage'; // New Live Monitoring Page
 
 const App = () => {
   return (
     <AuthProvider>
       <Router>
-        {/* Tambahkan debug info untuk memastikan tidak ada CSS conflict */}
         <div className="app-container" style={{ minHeight: '100vh' }}>
           <Routes>
             {/* Public Routes */}
@@ -28,37 +27,22 @@ const App = () => {
               } 
             />
             
-            {/* CCTV Management Routes */}
+            {/* CCTV Management Routes - Now shows table/list like UserPage */}
             <Route 
-              path="/cctv/view" 
+              path="/cctv" 
               element={
                 <ProtectedRoute>
                   <CCTVPage />
                 </ProtectedRoute>
               } 
             />
-            {/* Nanti bisa ditambahkan route lain untuk CCTV */}
+            
+            {/* Live Monitoring Routes - New feature for viewing live cameras */}
             <Route 
-              path="/cctv/add" 
+              path="/live-monitoring" 
               element={
                 <ProtectedRoute>
-                  <div>Tambah CCTV Page (Coming Soon)</div>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/cctv/update" 
-              element={
-                <ProtectedRoute>
-                  <div>Update CCTV Page (Coming Soon)</div>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/cctv/delete" 
-              element={
-                <ProtectedRoute>
-                  <div>Delete CCTV Page (Coming Soon)</div>
+                  <LiveMonitoringPage />
                 </ProtectedRoute>
               } 
             />
@@ -66,14 +50,6 @@ const App = () => {
             {/* User Management Routes - Only for Super Admin */}
             <Route 
               path="/users" 
-              element={
-                <ProtectedRoute requiredRole="superadmin">
-                  <UserPageWrapper />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/users/view" 
               element={
                 <ProtectedRoute requiredRole="superadmin">
                   <UserPage />

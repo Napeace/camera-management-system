@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom'; // Tambahkan useNavigate
+import { useLocation, useNavigate } from 'react-router-dom';
 
 // Icons (using simple emojis for now, could be replaced with react-icons later)
 const icons = {
   dashboard: '📊',
   camera: '📹',
+  live: '📺',
   users: '👥',
   history: '📚',
   settings: '⚙️',
@@ -29,24 +30,19 @@ const Sidebar = ({
   isCollapsed 
 }) => {
   const location = useLocation();
-  const navigate = useNavigate(); // Tambahkan useNavigate hook
+  const navigate = useNavigate();
   
   const [expandedMenus, setExpandedMenus] = useState({
-    cctv: false,
-    users: false,
     settings: false
   });
 
   const getCurrentActivePage = () => {
     const pathname = location.pathname;
     
-    // Logika ini disederhanakan karena submenu user dihapus
     if (pathname === '/dashboard') return 'dashboard';
-    if (pathname.startsWith('/users')) return 'users'; // <-- Tandai 'users' aktif jika path diawali /users
-    if (pathname === '/cctv/view') return 'view-cctv';
-    if (pathname === '/cctv/add') return 'add-cctv';
-    if (pathname === '/cctv/update') return 'update-cctv';
-    if (pathname === '/cctv/delete') return 'delete-cctv';
+    if (pathname.startsWith('/cctv')) return 'cctv';
+    if (pathname.startsWith('/live-monitoring')) return 'live-monitoring';
+    if (pathname.startsWith('/users')) return 'users';
     if (pathname === '/history') return 'history';
     if (pathname === '/settings/export') return 'export-data';
     if (pathname === '/settings/import') return 'import-data';
@@ -59,10 +55,7 @@ const Sidebar = ({
 
   React.useEffect(() => {
     const pathname = location.pathname;
-    // Hapus auto-expand untuk 'users' karena sudah tidak ada submenu
-    if (pathname.startsWith('/cctv/')) {
-      setExpandedMenus(prev => ({ ...prev, cctv: true }));
-    } else if (pathname.startsWith('/settings/')) {
+    if (pathname.startsWith('/settings/')) {
       setExpandedMenus(prev => ({ ...prev, settings: true }));
     }
   }, [location.pathname]);
@@ -93,24 +86,21 @@ const Sidebar = ({
       id: 'cctv',
       label: 'Manajemen CCTV',
       icon: icons.camera,
-      hasSubmenu: true,
-      submenu: [
-        { id: 'view-cctv', label: 'Lihat CCTV', icon: icons.view, path: '/cctv/view' },
-        { id: 'add-cctv', label: 'Tambah CCTV', icon: icons.add, path: '/cctv/add' },
-        { id: 'update-cctv', label: 'Update CCTV', icon: icons.edit, path: '/cctv/update' },
-        { id: 'delete-cctv', label: 'Hapus CCTV', icon: icons.delete, path: '/cctv/delete' }
-      ]
+      path: '/cctv'
     },
-    // #### PERUBAHAN DI SINI ####
+    {
+      id: 'live-monitoring',
+      label: 'Live Monitoring',
+      icon: icons.live,
+      path: '/live-monitoring'
+    },
     {
       id: 'users',
       label: 'Manajemen User',
       icon: icons.users,
       roleRequired: 'superadmin',
-      path: '/users' // Tambahkan path agar jadi link langsung
-      // Properti 'hasSubmenu' dan 'submenu' dihapus
+      path: '/users'
     },
-    // ###########################
     {
       id: 'history',
       label: 'History',
@@ -138,7 +128,7 @@ const Sidebar = ({
   });
 
   const handleMenuClick = (item) => {
-    console.log('🔍 Sidebar: Menu clicked:', item); // Debug log
+    console.log('🔍 Sidebar: Menu clicked:', item);
 
     if (isCollapsed) {
       onToggle(false); 
@@ -147,25 +137,22 @@ const Sidebar = ({
     if (item.hasSubmenu) {
       toggleMenu(item.id);
     } else {
-      // Gunakan navigate untuk routing langsung
-      console.log('🔍 Sidebar: Navigating to:', item.path); // Debug log
+      console.log('🔍 Sidebar: Navigating to:', item.path);
       navigate(item.path);
-      onPageChange(item.id, item.path); // Tetap panggil callback jika ada
+      onPageChange(item.id, item.path);
     }
   };
 
   const handleSubmenuClick = (parentId, subItem) => {
-    console.log('🔍 Sidebar: Submenu clicked:', subItem); // Debug log
-    // Gunakan navigate untuk routing langsung
+    console.log('🔍 Sidebar: Submenu clicked:', subItem);
     navigate(subItem.path);
-    onPageChange(subItem.id, subItem.path); // Tetap panggil callback jika ada
+    onPageChange(subItem.id, subItem.path);
   };
 
   return (
     <div className={`bg-gray-800 text-white fixed left-0 top-0 h-screen transition-all duration-300 flex flex-col z-40 ${
       isCollapsed ? 'w-16' : 'w-64'
     }`}>
-      {/* ... Sisa kode JSX di bawah ini tidak ada yang berubah ... */}
       <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} ${isCollapsed ? 'p-2' : 'p-4'} border-b border-gray-700 flex-shrink-0`}>
         {!isCollapsed && (
           <div className="flex items-center space-x-3 animate-fadeInFromLeft">
@@ -193,7 +180,7 @@ const Sidebar = ({
               <span className="text-lg">👤</span>
             </div>
             <div>
-              <p className="font-medium text-sm">{user.username}</p>
+              <p className="font-medium text-sm">{user.nama}</p>
               <p className="text-xs text-gray-400">
                 {user.role === 'superadmin' ? 'Super Admin' : 'Security'}
               </p>
