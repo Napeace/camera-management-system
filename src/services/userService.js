@@ -21,8 +21,29 @@ class UserService {
 
   // Helper untuk menangani error dari Axios
   _handleError(error) {
-    const errorMessage = error.response?.data?.detail || error.message;
-    console.error('API Error:', errorMessage);
+    console.error('API Error Details:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message,
+      url: error.config?.url
+    });
+    
+    let errorMessage = 'An error occurred';
+    
+    if (error.response?.data) {
+      if (typeof error.response.data === 'string') {
+        errorMessage = error.response.data;
+      } else if (error.response.data.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.response.data.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response.status) {
+        errorMessage = `Server error: ${error.response.status}`;
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
     throw new Error(errorMessage);
   }
 
@@ -97,6 +118,46 @@ class UserService {
     try {
       const token = this._getAuthToken();
       const response = await apiClient.delete(`/users/hard/${userId}?token=${token}`);
+      return this._handleResponse(response);
+    } catch (error) {
+      this._handleError(error);
+    }
+  }
+
+  // Export Users to Excel/CSV
+  async exportUsers(format = 'xlsx') {
+    try {
+      const token = this._getAuthToken();
+      console.log('Exporting users with format:', format);
+      
+      const response = await apiClient.get(`/users/export?token=${token}&format=${format}`, {
+        responseType: 'blob', // Important for file download
+        timeout: 60000, // 60 seconds timeout for export operations
+      });
+      
+      // For blob responses, we don't use _handleResponse since it's different format
+      return response;
+    } catch (error) {
+      this._handleError(error);
+    }
+  }
+
+  // Import Users from Excel/CSV file
+  async importUsers(formData) {
+    try {
+      const token = this._getAuthToken();
+      console.log('Importing users from file');
+      
+      // Append token to formData
+      formData.append('token', token);
+      
+      const response = await apiClient.post(`/users/import`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        timeout: 120000, // 2 minutes timeout for import operations
+      });
+      
       return this._handleResponse(response);
     } catch (error) {
       this._handleError(error);

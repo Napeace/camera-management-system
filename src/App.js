@@ -7,7 +7,9 @@ import DashboardPage from './pages/DashboardPage';
 import UserPage from './pages/UserPage';
 import CCTVPage from './pages/CCTVPage';
 import LiveMonitoringPage from './pages/LiveMonitoringPage';
+import HistoryPage from './pages/HistoryPage';
 import { ToastProvider } from './contexts/ToastContext';
+
 
 
 
@@ -66,14 +68,14 @@ const App = () => {
                 path="/history" 
                 element={
                   <ProtectedRoute>
-                    <div>History Page (Coming Soon)</div>
+                    <HistoryPage />
                   </ProtectedRoute>
                 } 
               />
               
               {/* Settings Routes */}
               <Route 
-                path="/settings/export" 
+                path="/backup/export" 
                 element={
                   <ProtectedRoute>
                     <div>Export Data Page (Coming Soon)</div>
@@ -81,7 +83,7 @@ const App = () => {
                 } 
               />
               <Route 
-                path="/settings/import" 
+                path="/backup/import" 
                 element={
                   <ProtectedRoute>
                     <div>Import Data Page (Coming Soon)</div>

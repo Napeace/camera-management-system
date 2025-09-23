@@ -1,5 +1,5 @@
-// pages/UserPage.js
-import React, { useState, useCallback, useMemo } from 'react';
+// pages/UserPage.js - Fixed version with better error handling
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
@@ -10,6 +10,7 @@ import UserCreateModal from '../features/user/UserCreateModal';
 import UserEditModal from '../features/user/UserEditModal';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 import useUsers from '../hooks/useUsers';
+import userService from '../services/userService';
 
 // Isolated components to prevent re-renders
 const SearchInput = React.memo(({ value, onChange, placeholder }) => (
@@ -36,8 +37,9 @@ const RoleSelect = React.memo(({ value, onChange }) => (
 
 const UserPage = () => {
   const { user, logout } = useAuth();
-  const { showSuccess, showError, showWarning, showInfo } = useToast();
+  const { showSuccess, showError, showInfo } = useToast();
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
   
   // Local UI states
   const [searchTerm, setSearchTerm] = useState('');
@@ -45,6 +47,8 @@ const UserPage = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   
   // Confirm dialog states
   const [confirmDialog, setConfirmDialog] = useState({
@@ -86,6 +90,190 @@ const UserPage = () => {
 
     return filtered;
   }, [users, searchTerm, roleFilter]);
+
+  // Helper function to extract error message
+  const extractErrorMessage = (error) => {
+    console.log('Extracting error from:', error);
+    
+    // If error has response data with message
+    if (error?.response?.data?.message) {
+      return error.response.data.message;
+    }
+    
+    // If error has response data with detail
+    if (error?.response?.data?.detail) {
+      return error.response.data.detail;
+    }
+    
+    // If error has response data as string
+    if (typeof error?.response?.data === 'string') {
+      return error.response.data;
+    }
+    
+    // If error has message property
+    if (error?.message) {
+      return error.message;
+    }
+    
+    // If error is a string
+    if (typeof error === 'string') {
+      return error;
+    }
+    
+    // Handle validation errors (422 status)
+    if (error?.response?.status === 422) {
+      if (error?.response?.data?.errors) {
+        // Format validation errors
+        const errors = error.response.data.errors;
+        if (Array.isArray(errors)) {
+          return errors.map(err => err.message || err).join(', ');
+        } else if (typeof errors === 'object') {
+          return Object.values(errors).flat().join(', ');
+        }
+      }
+      return 'Validation failed. Please check your file format and data.';
+    }
+    
+    // Default fallback
+    return 'An unexpected error occurred. Please try again.';
+  };
+
+  // Export Users
+  const handleExportUsers = useCallback(async () => {
+    setIsExporting(true);
+    try {
+      const response = await userService.exportUsers();
+      
+      // Create blob and download
+      const blob = new Blob([response.data], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
+      
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Generate filename with timestamp
+      const timestamp = new Date().toISOString().split('T')[0];
+      link.download = `users_export_${timestamp}.xlsx`;
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      showSuccess('Export Successful', 'User data has been exported successfully');
+    } catch (error) {
+      console.error('Export error:', error);
+      const errorMessage = extractErrorMessage(error);
+      showError('Export Failed', errorMessage);
+    } finally {
+      setIsExporting(false);
+    }
+  }, [showSuccess, showError]);
+
+  // Import Users
+  const handleImportUsers = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleFileChange = useCallback(async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    console.log('Selected file:', {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      lastModified: new Date(file.lastModified).toISOString()
+    });
+
+    // Validate file type
+    const allowedTypes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+      'application/vnd.ms-excel', // .xls
+      'text/csv' // .csv
+    ];
+    
+    const allowedExtensions = ['.xlsx', '.xls', '.csv'];
+    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+    
+    if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
+      showError(
+        'Invalid File Type', 
+        'Please select a valid Excel file (.xlsx, .xls) or CSV file (.csv)'
+      );
+      event.target.value = ''; // Reset file input
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size > maxSize) {
+      showError(
+        'File Too Large', 
+        `File size is ${(file.size / (1024 * 1024)).toFixed(2)}MB. Maximum allowed size is 5MB.`
+      );
+      event.target.value = ''; // Reset file input
+      return;
+    }
+
+    // Check if file is empty
+    if (file.size === 0) {
+      showError('Empty File', 'The selected file is empty. Please choose a valid file with data.');
+      event.target.value = ''; // Reset file input
+      return;
+    }
+
+    setIsImporting(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      // Log formData for debugging
+      console.log('FormData created with file:', file.name);
+      
+      const response = await userService.importUsers(formData);
+      console.log('Import response:', response);
+      
+      // Refresh user list
+      await fetchUsers();
+      
+      const importedCount = response?.data?.imported_count || response?.imported_count || 0;
+      const skippedCount = response?.data?.skipped_count || response?.skipped_count || 0;
+      
+      let successMessage = `Successfully imported ${importedCount} user(s)`;
+      if (skippedCount > 0) {
+        successMessage += ` (${skippedCount} duplicate(s) skipped)`;
+      }
+      
+      showSuccess('Import Successful', successMessage);
+      
+    } catch (error) {
+      console.error('Import error details:', error);
+      
+      const errorMessage = extractErrorMessage(error);
+      
+      // Show more specific error messages based on status
+      let title = 'Import Failed';
+      if (error?.response?.status === 422) {
+        title = 'File Validation Error';
+      } else if (error?.response?.status === 413) {
+        title = 'File Too Large';
+      } else if (error?.response?.status === 415) {
+        title = 'Unsupported File Type';
+      }
+      
+      showError(title, errorMessage);
+    } finally {
+      setIsImporting(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  }, [showSuccess, showError, fetchUsers]);
 
   // Stable event handlers
   const handleLogout = useCallback(() => {
@@ -155,11 +343,8 @@ const UserPage = () => {
     try {
       switch (action) {
         case 'logout':
-          showWarning('Logging out...', 'You will be redirected to login page');
-          setTimeout(() => {
-            logout();
-            window.location.href = '/login';
-          }, 1000);
+          logout();
+          window.location.href = '/login';
           break;
           
         case 'soft-delete':
@@ -182,9 +367,10 @@ const UserPage = () => {
     } catch (err) {
       console.error('Action failed:', err);
       setConfirmDialog(prev => ({ ...prev, loading: false }));
-      showError('Action Failed', err.message || 'An error occurred while processing your request');
+      const errorMessage = extractErrorMessage(err);
+      showError('Action Failed', errorMessage);
     }
-  }, [confirmDialog, logout, softDeleteUser, hardDeleteUser, showSuccess, showError, showWarning]);
+  }, [confirmDialog, logout, softDeleteUser, hardDeleteUser, showSuccess, showError]);
 
   const handleCloseConfirmDialog = useCallback(() => {
     if (!confirmDialog.loading) {
@@ -215,7 +401,8 @@ const UserPage = () => {
       );
     } catch (error) {
       console.error('Error refreshing data:', error);
-      showError('Refresh Failed', 'Failed to refresh user list');
+      const errorMessage = extractErrorMessage(error);
+      showError('Refresh Failed', errorMessage);
     }
   }, [fetchUsers, showSuccess, showError]);
 
@@ -225,7 +412,8 @@ const UserPage = () => {
       showSuccess('User Updated', `${updatedUser?.nama || 'User'} has been successfully updated`);
     } catch (error) {
       console.error('Error refreshing data:', error);
-      showError('Refresh Failed', 'Failed to refresh user list');
+      const errorMessage = extractErrorMessage(error);
+      showError('Refresh Failed', errorMessage);
     }
   }, [fetchUsers, showSuccess, showError]);
 
@@ -272,10 +460,62 @@ const UserPage = () => {
               <p className="text-gray-600 mt-1">Manage system users and their roles</p>
             </div>
             <div className="flex items-center space-x-3">
+              {/* Import Button */}
+              <button 
+                onClick={handleImportUsers}
+                disabled={isImporting}
+                className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              >
+                {isImporting ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Importing...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                    </svg>
+                    Import
+                  </>
+                )}
+              </button>
+
+              {/* Export Button */}
+              <button 
+                onClick={handleExportUsers}
+                disabled={isExporting}
+                className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              >
+                {isExporting ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Exporting...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    Export
+                  </>
+                )}
+              </button>
+
+              {/* Add User Button */}
               <button 
                 onClick={handleAddUser} 
-                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
+                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-all duration-200"
               >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
                 Tambah User
               </button>
             </div>
@@ -284,16 +524,16 @@ const UserPage = () => {
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="bg-white p-4 rounded-lg shadow-sm border">
-              <p className="text-sm">Total Users</p>
-              <p className="text-2xl font-bold">{stats.total}</p>
+              <p className="text-sm text-gray-600">Total Users</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow-sm border">
-              <p className="text-sm">Super Admins</p>
-              <p className="text-2xl font-bold">{stats.superAdmins}</p>
+              <p className="text-sm text-gray-600">Super Admins</p>
+              <p className="text-2xl font-bold text-blue-600">{stats.superAdmins}</p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow-sm border">
-              <p className="text-sm">Security Staff</p>
-              <p className="text-2xl font-bold">{stats.security}</p>
+              <p className="text-sm text-gray-600">Security Staff</p>
+              <p className="text-2xl font-bold text-green-600">{stats.security}</p>
             </div>
           </div>
           
@@ -319,7 +559,7 @@ const UserPage = () => {
                 <div className="sm:w-32 flex items-end">
                   <button 
                     onClick={handleClearFilters} 
-                    className="w-full px-4 py-2 text-gray-600 border rounded-lg hover:bg-gray-50"
+                    className="w-full px-4 py-2 text-gray-600 border rounded-lg hover:bg-gray-50 transition-colors duration-200"
                   >
                     Clear
                   </button>
@@ -338,6 +578,15 @@ const UserPage = () => {
           />
         </div>
       </MainLayout>
+
+      {/* Hidden File Input for Import */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".xlsx,.xls,.csv"
+        onChange={handleFileChange}
+        style={{ display: 'none' }}
+      />
 
       {/* Modals */}
       <UserCreateModal 
