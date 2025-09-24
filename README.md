@@ -92,13 +92,13 @@ python main.py
 
 ### 👥 Tim Pengembang (Kelompok CSM Universitas Jember)
 
-| Nama | NIM | Role | Kontak |
-|------|-----|------|--------|
-| Mega Yassinta Aulia | 232410101031 | Scrum Master, Tester | +6281615155476 |
-| Gresia Desvani Dharmawan | 232410102001 | System Analyst | +6287890432541 |
-| Muhammad Najmi Nafis Zuhair | 232410101066 | Front End Developer | +62895370000307 |
-| M. Satya Bintang Ramadhani | 232410102032 | Back End Developer | +6289685032961 |
-| Ahimsa Jenar Bramsaifstyo Kusuma | 232410101090 | UI/UX Designer | +6282132341102 |
+| Nama | NIM | Role |
+|------|-----|------|
+| Mega Yassinta Aulia | 232410101031 | Scrum Master, Tester |
+| Gresia Desvani Dharmawan | 232410102001 | System Analyst |
+| Muhammad Najmi Nafis Zuhair | 232410101066 | Front End Developer |
+| M. Satya Bintang Ramadhani | 232410102032 | Back End Developer |
+| Ahimsa Jenar Bramsaifstyo Kusuma | 232410101090 | UI/UX Designer |
 
 ### 📁 Struktur Data
 
