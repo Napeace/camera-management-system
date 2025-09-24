@@ -36,7 +36,7 @@ const RoleSelect = React.memo(({ value, onChange }) => (
 ));
 
 const UserPage = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { showSuccess, showError, showInfo } = useToast();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
@@ -57,7 +57,7 @@ const UserPage = () => {
     title: '',
     message: '',
     user: null,
-    action: null, // 'soft-delete', 'hard-delete', 'logout'
+    action: null,
     loading: false
   });
   
@@ -275,19 +275,6 @@ const UserPage = () => {
     }
   }, [showSuccess, showError, fetchUsers]);
 
-  // Stable event handlers
-  const handleLogout = useCallback(() => {
-    setConfirmDialog({
-      isOpen: true,
-      type: 'warning',
-      title: 'Confirm Logout',
-      message: 'Are you sure you want to logout? You will need to login again to access the system.',
-      user: null,
-      action: 'logout',
-      loading: false
-    });
-  }, []);
-
   const handlePageChange = useCallback((pageId, path) => {
     navigate(path);
   }, [navigate]);
@@ -336,32 +323,24 @@ const UserPage = () => {
   // Handle confirm dialog actions
   const handleConfirmAction = useCallback(async () => {
     const { action, user } = confirmDialog;
-    console.log('Confirm action triggered:', action, user);
-    
     setConfirmDialog(prev => ({ ...prev, loading: true }));
     
     try {
       switch (action) {
-        case 'logout':
-          logout();
-          window.location.href = '/login';
-          break;
-          
         case 'soft-delete':
           await softDeleteUser(user.id_user);
-          setConfirmDialog({ isOpen: false, type: 'danger', title: '', message: '', user: null, action: null, loading: false });
+          setConfirmDialog({ isOpen: false });
           showSuccess('User Deleted', `${user.nama} has been successfully deactivated`);
           break;
           
         case 'hard-delete':
           await hardDeleteUser(user.id_user);
-          setConfirmDialog({ isOpen: false, type: 'danger', title: '', message: '', user: null, action: null, loading: false });
+          setConfirmDialog({ isOpen: false });
           showSuccess('User Permanently Deleted', `${user.nama} has been permanently removed from the system`);
           break;
           
         default:
-          console.log('Unknown action:', action);
-          setConfirmDialog({ isOpen: false, type: 'danger', title: '', message: '', user: null, action: null, loading: false });
+          setConfirmDialog({ isOpen: false });
           break;
       }
     } catch (err) {
@@ -370,7 +349,7 @@ const UserPage = () => {
       const errorMessage = extractErrorMessage(err);
       showError('Action Failed', errorMessage);
     }
-  }, [confirmDialog, logout, softDeleteUser, hardDeleteUser, showSuccess, showError]);
+  }, [confirmDialog, softDeleteUser, hardDeleteUser, showSuccess, showError]);
 
   const handleCloseConfirmDialog = useCallback(() => {
     if (!confirmDialog.loading) {
@@ -428,8 +407,6 @@ const UserPage = () => {
   // Get confirm button text based on action
   const getConfirmButtonText = () => {
     switch (confirmDialog.action) {
-      case 'logout':
-        return 'Logout';
       case 'soft-delete':
         return 'Delete';
       case 'hard-delete':
@@ -442,12 +419,9 @@ const UserPage = () => {
   return (
     <>
       <MainLayout 
-        user={user} 
         Sidebar={(props) => (
           <Sidebar 
             {...props}
-            user={user}
-            onLogout={handleLogout}
             onPageChange={handlePageChange}
           />
         )}

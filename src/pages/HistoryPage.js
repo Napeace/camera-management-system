@@ -35,7 +35,7 @@ const DateRangeFilter = React.memo(({ startDate, endDate, onStartDateChange, onE
 ));
 
 const HistoryPage = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { showSuccess, showError, showInfo } = useToast();
   const navigate = useNavigate();
   
@@ -50,10 +50,9 @@ const HistoryPage = () => {
   // Confirm dialog states
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
-    type: 'danger',
+    type: 'danger', 
     title: '',
     message: '',
-    user: null,
     action: null,
     loading: false
   });
@@ -119,20 +118,7 @@ const HistoryPage = () => {
       yesterday: filteredHistory.filter(item => new Date(item.error_time).toDateString() === yesterdayStr).length
     };
   }, [filteredHistory]);
-
-  // Event handlers
-  const handleLogout = useCallback(() => {
-    setConfirmDialog({
-      isOpen: true,
-      type: 'warning', 
-      title: 'Confirm Logout',
-      message: 'Are you sure you want to logout? You will need to login again to access the system.',
-      user: null,
-      action: 'logout',
-      loading: false
-    });
-  }, []);
-
+  
   const handlePageChange = useCallback((pageId, path) => {
     navigate(path);
   }, [navigate]);
@@ -189,31 +175,22 @@ const HistoryPage = () => {
     setConfirmDialog(prev => ({ ...prev, loading: true }));
     
     try {
-      switch (action) {
-        case 'logout':
-          logout();
-          navigate('/login');
-          break;
-          
-        default:
-          console.log('Unknown action:', action);
-          setConfirmDialog({ 
-            isOpen: false, 
-            type: 'danger', 
-            title: '', 
-            message: '', 
-            user: null, 
-            action: null, 
-            loading: false 
-          });
-          break;
-      }
+      // Tidak ada action yang perlu dihandle untuk saat ini
+      setConfirmDialog({ 
+        isOpen: false, 
+        type: 'danger', 
+        title: '', 
+        message: '', 
+        user: null, 
+        action: null, 
+        loading: false 
+      });
     } catch (err) {
       console.error('Action failed:', err);
       setConfirmDialog(prev => ({ ...prev, loading: false }));
       showError('Action Failed', 'An error occurred while processing your request');
     }
-  }, [confirmDialog, logout, navigate, showError]);
+  }, [confirmDialog, showError]);
 
   const handleCloseConfirmDialog = useCallback(() => {
     if (!confirmDialog.loading) {
@@ -231,12 +208,7 @@ const HistoryPage = () => {
 
   // Get confirm button text based on action
   const getConfirmButtonText = () => {
-    switch (confirmDialog.action) {
-      case 'logout':
-        return 'Logout';
-      default:
-        return 'Confirm';
-    }
+    return 'Confirm';
   };
 
   const hasActiveFilters = searchTerm || startDate || endDate;
@@ -244,12 +216,9 @@ const HistoryPage = () => {
   return (
     <>
       <MainLayout 
-        user={user} 
         Sidebar={(props) => (
           <Sidebar 
             {...props}
-            user={user}
-            onLogout={handleLogout}
             onPageChange={handlePageChange}
           />
         )}

@@ -3,7 +3,7 @@ import { Dialog, Transition } from '@headlessui/react'
 import { ExclamationTriangleIcon, TrashIcon } from '@heroicons/react/24/outline'
 
 export default function ConfirmDialog({
-  isOpen,
+  isOpen = false, // Default value untuk mencegah undefined
   onClose,
   onConfirm,
   title = "Confirm Action",
@@ -19,25 +19,25 @@ export default function ConfirmDialog({
       case 'danger':
         return {
           icon: TrashIcon,
-          iconBg: 'bg-red-100',
-          iconColor: 'text-red-600',
-          confirmBtn: 'bg-red-600 hover:bg-red-700 focus:ring-red-500',
+          iconBg: 'bg-red-100 dark:bg-red-900/20',
+          iconColor: 'text-red-600 dark:text-red-400',
+          confirmBtn: 'bg-red-600 hover:bg-red-700 focus:ring-red-500 dark:bg-red-700 dark:hover:bg-red-800',
           ring: 'focus:ring-red-500'
         }
       case 'warning':
         return {
           icon: ExclamationTriangleIcon,
-          iconBg: 'bg-yellow-100',
-          iconColor: 'text-yellow-600',
-          confirmBtn: 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500',
+          iconBg: 'bg-yellow-100 dark:bg-yellow-900/20',
+          iconColor: 'text-yellow-600 dark:text-yellow-400',
+          confirmBtn: 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500 dark:bg-yellow-700 dark:hover:bg-yellow-800',
           ring: 'focus:ring-yellow-500'
         }
       default:
         return {
           icon: ExclamationTriangleIcon,
-          iconBg: 'bg-blue-100',
-          iconColor: 'text-blue-600',
-          confirmBtn: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500',
+          iconBg: 'bg-blue-100 dark:bg-blue-900/20',
+          iconColor: 'text-blue-600 dark:text-blue-400',
+          confirmBtn: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 dark:bg-blue-700 dark:hover:bg-blue-800',
           ring: 'focus:ring-blue-500'
         }
     }
@@ -46,9 +46,22 @@ export default function ConfirmDialog({
   const styles = getTypeStyles()
   const IconComponent = styles.icon
 
+  // Pastikan onClose adalah function
+  const handleClose = () => {
+    if (typeof onClose === 'function') {
+      onClose()
+    }
+  }
+
+  const handleConfirm = () => {
+    if (typeof onConfirm === 'function') {
+      onConfirm()
+    }
+  }
+
   return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
+    <Transition appear show={Boolean(isOpen)} as={Fragment}>
+      <Dialog as="div" className="relative z-50" onClose={handleClose}>
         {/* Backdrop */}
         <Transition.Child
           as={Fragment}
@@ -106,7 +119,7 @@ export default function ConfirmDialog({
                     type="button"
                     disabled={loading}
                     className={`inline-flex w-full justify-center rounded-lg px-4 py-2.5 text-sm font-semibold text-white shadow-sm ${styles.confirmBtn} disabled:opacity-50 disabled:cursor-not-allowed sm:w-auto transition-all duration-200`}
-                    onClick={onConfirm}
+                    onClick={handleConfirm}
                   >
                     {loading ? (
                       <div className="flex items-center">
@@ -125,7 +138,7 @@ export default function ConfirmDialog({
                     type="button"
                     disabled={loading}
                     className="mt-3 inline-flex w-full justify-center rounded-lg bg-white dark:bg-gray-700 px-4 py-2.5 text-sm font-semibold text-gray-900 dark:text-gray-200 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed sm:mt-0 sm:w-auto transition-all duration-200"
-                    onClick={onClose}
+                    onClick={handleClose}
                   >
                     {cancelText}
                   </button>

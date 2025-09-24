@@ -6,7 +6,7 @@ import Sidebar from '../components/layout/Sidebar';
 import cctvService from '../services/cctvService';
 
 const LiveMonitoringPage = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
@@ -109,14 +109,6 @@ const LiveMonitoringPage = () => {
   }, [selectedDVR, loadingGroups]);
 
   // --- Handlers ---
-
-  const handleLogout = () => {
-    if (window.confirm('Are you sure you want to logout?')) {
-      logout();
-      window.location.href = '/login';
-    }
-  };
-
   const handlePageChange = (pageId, path) => {
     navigate(path);
   };
@@ -350,12 +342,9 @@ const LiveMonitoringPage = () => {
   return (
     <>
       <MainLayout 
-        user={user} 
         Sidebar={(props) => (
           <Sidebar 
             {...props}
-            user={user}
-            onLogout={handleLogout}
             onPageChange={handlePageChange}
           />
         )}

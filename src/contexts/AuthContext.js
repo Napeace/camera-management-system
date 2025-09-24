@@ -47,12 +47,28 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('user', JSON.stringify(userData));
   };
 
-  // Fungsi untuk menangani logout
-  const logout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('user');
+  // Fungsi untuk menangani logout - return Promise untuk async handling
+  const logout = async () => {
+    try {
+      console.log('AuthContext: Starting logout process');
+      
+      // Clear state
+      setUser(null);
+      setToken(null);
+      
+      // Clear localStorage
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('user');
+      
+      console.log('AuthContext: Logout completed successfully');
+      
+      // Return success
+      return Promise.resolve();
+      
+    } catch (error) {
+      console.error('AuthContext: Logout error:', error);
+      return Promise.reject(error);
+    }
   };
 
   // Fungsi untuk mengecek apakah user sudah login

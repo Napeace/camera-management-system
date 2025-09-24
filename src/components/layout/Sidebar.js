@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import ConfirmDialog from '../common/ConfirmDialog'; // Import ConfirmDialog
 import {
   HomeIcon,
   ComputerDesktopIcon,
@@ -27,6 +28,10 @@ const Sidebar = ({
     backup: false
   });
   const [isMobile, setIsMobile] = useState(false);
+  
+  // State untuk logout confirmation dialog
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Check if mobile device
   useEffect(() => {
@@ -76,6 +81,29 @@ const Sidebar = ({
 
   const toggleSidebar = () => {
     onToggle(!isCollapsed);
+  };
+
+  // Handle logout button click - show confirmation dialog
+  const handleLogoutClick = () => {
+    setShowLogoutDialog(true);
+  };
+
+  // Handle confirmed logout
+  const handleConfirmLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await onLogout(); // Call the actual logout function
+      setShowLogoutDialog(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
+  // Handle cancel logout
+  const handleCancelLogout = () => {
+    setShowLogoutDialog(false);
   };
 
   // Menu configuration dengan Heroicons
@@ -356,9 +384,9 @@ const Sidebar = ({
 
         {/* Footer Section */}
         <footer className="p-4 space-y-4">
-          {/* Logout Button */}
+          {/* Logout Button - Updated to show confirmation */}
           <button
-            onClick={onLogout}
+            onClick={handleLogoutClick}
             className={`
               w-full flex items-center rounded-xl
               hover:bg-red-600/20 text-red-400 hover:text-red-300 
@@ -422,6 +450,19 @@ const Sidebar = ({
           </svg>
         </button>
       )}
+
+      {/* Logout Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showLogoutDialog}
+        onClose={handleCancelLogout}
+        onConfirm={handleConfirmLogout}
+        title="Konfirmasi Logout"
+        message="Apakah Anda yakin ingin keluar dari sistem?"
+        confirmText="Ya, Logout"
+        cancelText="Batal"
+        type="warning"
+        loading={isLoggingOut}
+      />
     </>
   );
 };

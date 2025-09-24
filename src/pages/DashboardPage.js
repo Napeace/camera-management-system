@@ -1,10 +1,9 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import MainLayout from '../components/layout/MainLayout';
 import Sidebar from '../components/layout/Sidebar';
-import ConfirmDialog from '../components/common/ConfirmDialog';
 
 // Import Heroicons yang akan digunakan, termasuk ChevronDownIcon
 import {
@@ -188,84 +187,32 @@ const DashboardContent = ({ showSuccess, showInfo, showError, showWarning, navig
 };
 
 const DashboardPage = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { showSuccess, showError, showWarning, showInfo } = useToast();
   const navigate = useNavigate();
-  
-  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, type: 'warning', title: '', message: '', action: null, loading: false });
-
-  const handleLogout = useCallback(() => {
-    setConfirmDialog({ isOpen: true, type: 'warning', title: 'Confirm Logout', message: 'Are you sure you want to logout? You will need to login again to access the system.', action: 'logout', loading: false });
-  }, []);
 
   const handlePageChange = useCallback((pageId, path) => {
     console.log(`Navigating to: ${pageId} (${path})`);
     navigate(path);
   }, [navigate]);
 
-  const handleConfirmAction = useCallback(async () => {
-    const { action } = confirmDialog;
-    setConfirmDialog(prev => ({ ...prev, loading: true }));
-    
-    try {
-      if (action === 'logout') {
-        logout();
-        window.location.href = '/login';
-      } else {
-        setConfirmDialog({ isOpen: false, type: 'warning', title: '', message: '', action: null, loading: false });
-      }
-    } catch (err) {
-      console.error('Action failed:', err);
-      setConfirmDialog(prev => ({ ...prev, loading: false }));
-      showError('Action Failed', err.message || 'An error occurred while processing your request');
-    }
-  }, [confirmDialog, logout, showError]);
-
-  const handleCloseConfirmDialog = useCallback(() => {
-    if (!confirmDialog.loading) {
-      setConfirmDialog({ isOpen: false, type: 'warning', title: '', message: '', action: null, loading: false });
-    }
-  }, [confirmDialog.loading]);
-
-  const getConfirmButtonText = () => {
-    if (confirmDialog.action === 'logout') return 'Logout';
-    return 'Confirm';
-  };
-
   return (
-    <>
-      <MainLayout 
-        user={user} 
-        Sidebar={(props) => (
-          <Sidebar 
-            {...props}
-            user={user}
-            onLogout={handleLogout}
-            onPageChange={handlePageChange}
-          />
-        )}
-      >
-        <DashboardContent 
-          showSuccess={showSuccess}
-          showError={showError}
-          showWarning={showWarning}
-          showInfo={showInfo}
-          navigate={navigate}
+    <MainLayout 
+      Sidebar={(props) => (
+        <Sidebar 
+          {...props}
+          onPageChange={handlePageChange}
         />
-      </MainLayout>
-
-      <ConfirmDialog
-        isOpen={confirmDialog.isOpen}
-        onClose={handleCloseConfirmDialog}
-        onConfirm={handleConfirmAction}
-        title={confirmDialog.title}
-        message={confirmDialog.message}
-        confirmText={getConfirmButtonText()}
-        cancelText="Cancel"
-        type={confirmDialog.type}
-        loading={confirmDialog.loading}
+      )}
+    >
+      <DashboardContent 
+        showSuccess={showSuccess}
+        showError={showError}
+        showWarning={showWarning}
+        showInfo={showInfo}
+        navigate={navigate}
       />
-    </>
+    </MainLayout>
   );
 };
 

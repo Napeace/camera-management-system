@@ -56,7 +56,8 @@ const StatCard = ({ label, value, icon, colorClass }) => (
 );
 
 const CCTVPage = () => {
-    const { user, logout } = useAuth();
+    // HAPUS: const { user, logout } = useAuth(); - tidak perlu lagi
+    const { user } = useAuth(); // Hanya ambil user
     const { showSuccess, showError, showInfo } = useToast();
     const navigate = useNavigate();
 
@@ -76,7 +77,7 @@ const CCTVPage = () => {
     const [statusFilter, setStatusFilter] = useState('');
     const [locationFilter, setLocationFilter] = useState('');
 
-    // Confirm dialog states
+    // Confirm dialog states - HAPUS action 'logout' dari sini
     const [confirmDialog, setConfirmDialog] = useState({
         isOpen: false,
         type: 'danger',
@@ -144,9 +145,10 @@ const CCTVPage = () => {
         return { total, online, offline };
     }, [allCctvData]);
 
-    const handleLogout = useCallback(() => {
-        setConfirmDialog({ action: 'logout' /* ...lainnya */ });
-    }, []);
+    // HAPUS: handleLogout function - tidak perlu lagi
+    // const handleLogout = useCallback(() => {
+    //     setConfirmDialog({ action: 'logout' /* ...lainnya */ });
+    // }, []);
 
     const handlePageChange = useCallback((pageId, path) => navigate(path), [navigate]);
     const handleSearch = useCallback((e) => setSearchTerm(e.target.value), []);
@@ -183,15 +185,12 @@ const CCTVPage = () => {
         showInfo('Refreshing', 'Reloading CCTV data...');
     }, [fetchAllData, showInfo]);
 
+    // UPDATE: handleConfirmAction - hapus case 'logout'
     const handleConfirmAction = useCallback(async () => {
         const { action, cctv } = confirmDialog;
         setConfirmDialog(prev => ({ ...prev, loading: true }));
         try {
             switch (action) {
-                case 'logout':
-                    logout();
-                    window.location.href = '/login';
-                    break;
                 case 'delete':
                     await cctvService.deleteCCTV(cctv.id_cctv);
                     setConfirmDialog({ isOpen: false });
@@ -208,7 +207,7 @@ const CCTVPage = () => {
             const errorMessage = extractErrorMessage(err);
             showError('Action Failed', errorMessage);
         }
-    }, [confirmDialog, logout, fetchAllData, showSuccess, showError]);
+    }, [confirmDialog, fetchAllData, showSuccess, showError]); // HAPUS: logout dari dependencies
 
     const handleCloseConfirmDialog = useCallback(() => {
         if (!confirmDialog.loading) {
@@ -236,15 +235,23 @@ const CCTVPage = () => {
 
     const hasActiveFilters = searchTerm || statusFilter || locationFilter;
 
+    // UPDATE: getConfirmButtonText - hapus case 'logout'
     const getConfirmButtonText = () => {
         if (confirmDialog.action === 'delete') return 'Delete';
-        if (confirmDialog.action === 'logout') return 'Logout';
         return 'Confirm';
     };
 
     return (
         <>
-            <MainLayout user={user} Sidebar={(props) => (<Sidebar {...props} user={user} onLogout={handleLogout} onPageChange={handlePageChange} />)}>
+            {/* UPDATE: MainLayout - hapus user prop dan onLogout dari Sidebar */}
+            <MainLayout 
+                Sidebar={(props) => (
+                    <Sidebar 
+                        {...props}
+                        onPageChange={handlePageChange}
+                    />
+                )}
+            >
                 <div className="space-y-6">
                     {/* Header */}
                     <div className="flex items-center justify-between">
