@@ -45,7 +45,6 @@ const Sidebar = ({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // ✅ Updated: Get current active page from real location
   const getCurrentActivePage = () => {
     const pathname = location.pathname;
     
@@ -63,7 +62,6 @@ const Sidebar = ({
 
   const currentActivePage = getCurrentActivePage();
 
-  // ✅ Updated: Auto expand backup menu if on backup pages
   useEffect(() => {
     const pathname = location.pathname;
     if (pathname.startsWith('/backup/')) {
@@ -160,7 +158,6 @@ const Sidebar = ({
   const [hoveredItem, setHoveredItem] = useState(null);
   const [hoveredSubItem, setHoveredSubItem] = useState(null);
 
-  // ✅ Updated: Handle menu clicks with real navigation
   const handleMenuClick = (item) => {
     console.log('Menu clicked:', item);
 
@@ -172,7 +169,7 @@ const Sidebar = ({
       toggleMenu(item.id);
     } else {
       console.log('Navigating to:', item.path);
-      navigate(item.path); // ✅ Real navigation
+      navigate(item.path); 
       onPageChange(item.id, item.path);
       
       // Auto close sidebar on mobile after navigation
@@ -182,10 +179,9 @@ const Sidebar = ({
     }
   };
 
-  // ✅ Updated: Handle submenu clicks with real navigation
   const handleSubmenuClick = (parentId, subItem) => {
     console.log('Submenu clicked:', subItem);
-    navigate(subItem.path); // ✅ Real navigation
+    navigate(subItem.path); 
     onPageChange(subItem.id, subItem.path);
     
     // Auto close sidebar on mobile after navigation
@@ -245,7 +241,7 @@ const Sidebar = ({
       <div className={`
         fixed left-2 top-2 bottom-2 z-sidebar
         transition-all duration-500 ease-in-out flex flex-col
-        bg-slate-800 text-white rounded-xl shadow-floating
+        bg-slate-900 text-white rounded-xl shadow-floating
         ${sidebarWidth()}
         ${isMobile && isCollapsed ? '-translate-x-full' : 'translate-x-0'}
         border border-slate-600/30
@@ -457,9 +453,9 @@ const Sidebar = ({
         onClose={handleCancelLogout}
         onConfirm={handleConfirmLogout}
         title="Konfirmasi Logout"
-        message="Apakah Anda yakin ingin keluar dari sistem?"
-        confirmText="Ya, Logout"
-        cancelText="Batal"
+        message="Apakah Anda yakin untuk keluar ?"
+        confirmText="Iya"
+        cancelText="Tidak"
         type="warning"
         loading={isLoggingOut}
       />

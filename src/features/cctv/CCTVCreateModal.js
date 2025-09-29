@@ -26,10 +26,10 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
     }, [isOpen]);
 
     const handleInputChange = (e) => {
-        const { name, value, type, checked } = e.target;
+        const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: type === 'checkbox' ? checked : value
+            [name]: value
         }));
         if (error) setError('');
     };
@@ -103,96 +103,129 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-slate-800 rounded-xl shadow-xl max-w-md w-full max-h-[90vh] flex flex-col border border-slate-600/50">
-                <div className="flex items-center justify-between p-6 border-b border-slate-600/50 flex-shrink-0">
-                    <h2 className="text-xl font-semibold text-white">Tambah CCTV Baru</h2>
-                    <button onClick={handleClose} disabled={loading} className="text-gray-400 hover:text-white disabled:opacity-50">
-                        <XMarkIcon className="w-6 h-6" />
+            <div className="bg-gradient-to-b from-slate-950 via-indigo-950 to-indigo-800 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-6 mx-4">
+                    <h2 className="text-2xl text-white">Tambah CCTV Baru</h2>
+                    <button 
+                        onClick={handleClose} 
+                        disabled={loading} 
+                        className="text-white/70 hover:text-white disabled:opacity-50 transition-colors"
+                    >
+                        <XMarkIcon className="w-7 h-7" />
                     </button>
                 </div>
+                
+                {/* Border persegi panjang setelah header */}
+                <div className="mx-6 h-1 bg-white/10"></div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
+                {/* Form */}
+                <form onSubmit={handleSubmit} className="p-6 space-y-5">
                     {error && (
-                        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+                        <div className="bg-red-500/20 border border-red-400/40 rounded-xl p-4 backdrop-blur-sm">
                             <div className="flex items-center">
-                                <ExclamationCircleIcon className="w-5 h-5 text-red-400 mr-2 flex-shrink-0" />
-                                <p className="text-sm text-red-300">{error}</p>
+                                <ExclamationCircleIcon className="w-5 h-5 text-red-300 mr-2 flex-shrink-0" />
+                                <p className="text-sm text-red-200">{error}</p>
                             </div>
                         </div>
                     )}
 
+                    {/* Titik Letak */}
                     <div>
-                        <label htmlFor="titik_letak" className="block text-sm font-medium text-gray-300 mb-1">Titik Letak *</label>
+                        <label htmlFor="titik_letak" className="block text-sm font-medium text-white mb-2">
+                            Titik letak
+                        </label>
                         <input
-                            type="text" id="titik_letak" name="titik_letak" required
-                            value={formData.titik_letak} onChange={handleInputChange} disabled={loading}
-                            className="block w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:bg-slate-900"
-                            placeholder="Contoh: Pintu Masuk Utama" minLength="5"
+                            type="text" 
+                            id="titik_letak" 
+                            name="titik_letak" 
+                            required
+                            value={formData.titik_letak} 
+                            onChange={handleInputChange} 
+                            disabled={loading}
+                            className="block w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-white/50 focus:ring-2 focus:ring-white/30 focus:border-white/30 disabled:opacity-50 transition-all"
+                            placeholder="Pos Satpam 2"
                         />
-                        <p className="text-xs text-gray-400 mt-1">Minimal 5 karakter</p>
                     </div>
 
+                    {/* IP Address */}
                     <div>
-                        <label htmlFor="ip_address" className="block text-sm font-medium text-gray-300 mb-1">IP Address *</label>
+                        <label htmlFor="ip_address" className="block text-sm font-medium text-white mb-2">
+                            IP Address
+                        </label>
                         <input
-                            type="text" id="ip_address" name="ip_address" required
-                            value={formData.ip_address} onChange={handleInputChange} disabled={loading}
-                            className="block w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:bg-slate-900"
-                            placeholder="192.168.1.100"
-                            pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+                            type="text" 
+                            id="ip_address" 
+                            name="ip_address" 
+                            required
+                            value={formData.ip_address} 
+                            onChange={handleInputChange} 
+                            disabled={loading}
+                            className="block w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-white/50 focus:ring-2 focus:ring-white/30 focus:border-white/30 disabled:opacity-50 transition-all"
+                            placeholder="192.168.10.202"
                         />
-                        <p className="text-xs text-gray-400 mt-1">Format: 192.168.1.1</p>
                     </div>
 
+                    {/* Lokasi */}
                     <div>
-                        <label htmlFor="id_location" className="block text-sm font-medium text-gray-300 mb-1">Lokasi *</label>
+                        <label htmlFor="id_location" className="block text-sm font-medium text-white mb-2">
+                            Lokasi DVR
+                        </label>
                         <select
-                            id="id_location" name="id_location" required
-                            value={formData.id_location} onChange={handleInputChange} disabled={loading}
-                            className="block w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:bg-slate-900"
+                            id="id_location" 
+                            name="id_location" 
+                            required
+                            value={formData.id_location} 
+                            onChange={handleInputChange} 
+                            disabled={loading}
+                            className="block w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-white/30 focus:border-white/30 disabled:opacity-50 transition-all appearance-none"
+                            style={{
+                                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                                backgroundRepeat: 'no-repeat',
+                                backgroundPosition: 'right 0.75rem center',
+                                backgroundSize: '1.5em 1.5em',
+                                paddingRight: '2.5rem'
+                            }}
                         >
-                            <option value="">-- Pilih Lokasi --</option>
+                            <option value="" className="bg-slate-800">Pos Satpam Depan</option>
                             {locationGroups.map((location) => (
-                                <option key={location.id_location} value={location.id_location}>
+                                <option key={location.id_location} value={location.id_location} className="bg-slate-800">
                                     {location.nama_lokasi}
                                 </option>
                             ))}
                         </select>
                     </div>
 
-                    <div>
-                        <div className="flex items-center">
-                            <input
-                                type="checkbox" id="status" name="status"
-                                checked={formData.status} onChange={handleInputChange} disabled={loading}
-                                className="h-4 w-4 text-blue-500 focus:ring-blue-500 bg-slate-700 border-slate-600 rounded disabled:opacity-50"
-                            />
-                            <label htmlFor="status" className="ml-2 block text-sm text-gray-300">CCTV aktif/online</label>
+                    {/* Border persegi panjang sebelum button */}
+                    <div className="h-1 bg-white/10 mb-6"></div>
+                    
+                    {/* Buttons */}
+                    <div className="pb-6">
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                type="button" 
+                                onClick={handleClose} 
+                                disabled={loading}
+                                className="w-28 px-1 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white font-medium hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                type="submit" 
+                                disabled={loading}
+                                className="w-48 px-1 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white font-medium hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                            >
+                                {loading && (
+                                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                )}
+                                {loading ? 'Menyimpan...' : 'Simpan'}
+                            </button>
                         </div>
-                        <p className="text-xs text-gray-400 mt-1">Centang jika CCTV sedang aktif</p>
                     </div>
                 </form>
-
-                <div className="flex justify-end space-x-3 p-6 border-t border-slate-600/50 flex-shrink-0">
-                    <button
-                        type="button" onClick={handleClose} disabled={loading}
-                        className="px-4 py-2 border border-slate-600 rounded-lg text-gray-300 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        Batal
-                    </button>
-                    <button
-                        type="submit" disabled={loading} onClick={handleSubmit}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                        {loading && (
-                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                        )}
-                        {loading ? 'Menyimpan...' : 'Simpan CCTV'}
-                    </button>
-                </div>
             </div>
         </div>
     );

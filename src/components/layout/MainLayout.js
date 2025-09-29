@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import Navbar from './Navbar';
 
 const MainLayout = ({ 
@@ -13,6 +14,9 @@ const MainLayout = ({
   
   // Gunakan AuthContext untuk mendapatkan user dan logout function
   const { user, logout: authLogout, isLoading } = useAuth();
+  
+  // Gunakan ThemeContext untuk mendapatkan tema
+  const { isDarkMode } = useTheme();
 
   const handleSidebarToggle = (collapsed) => {
     setSidebarCollapsed(collapsed);
@@ -39,17 +43,21 @@ const MainLayout = ({
   // Show loading state if auth is still loading
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-blue-500 to-[#0a1628] flex items-center justify-center">
         <div className="text-white text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
           <p>Loading...</p>
         </div>
       </div>
     );
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900">
+    <div className={`min-h-screen transition-all duration-300 ${
+      isDarkMode 
+        ? 'bg-gradient-to-b from-[#0a1628] via-blue-500 to-[#0a1628]' 
+        : 'bg-gradient-to-b from-blue-50 via-blue-100 to-blue-200'
+    }`}>
       <div className="flex">        
         {Sidebar && (
           <Sidebar
@@ -66,7 +74,11 @@ const MainLayout = ({
           }`}
         >
           <div className="p-4 pb-0">
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-600/30 shadow-lg overflow-visible">
+            <div className={`backdrop-blur-sm rounded-xl border shadow-lg overflow-visible transition-all duration-300 ${
+              isDarkMode
+                ? 'bg-slate-900/50 border-slate-600/30'
+                : 'bg-white/60 border-gray-200/50'
+            }`}>
               <Navbar user={user} />
             </div>
           </div>

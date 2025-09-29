@@ -5,7 +5,6 @@ import { useToast } from '../contexts/ToastContext';
 import MainLayout from '../components/layout/MainLayout';
 import Sidebar from '../components/layout/Sidebar';
 
-// Import Heroicons yang akan digunakan, termasuk ChevronDownIcon
 import {
   VideoCameraIcon,
   UserGroupIcon,
@@ -18,7 +17,6 @@ import {
 } from '@heroicons/react/24/outline';
 
 const DashboardContent = ({ showSuccess, showInfo, showError, showWarning, navigate }) => {
-  // Data untuk card statistik, sekarang menggunakan referensi komponen Ikon
   const stats = [
     { label: 'Total Kamera', value: '108', Icon: VideoCameraIcon, color: 'blue' },
     { label: 'Total Pengguna', value: '14', Icon: UserGroupIcon, color: 'blue' },
@@ -80,12 +78,12 @@ const DashboardContent = ({ showSuccess, showInfo, showError, showWarning, navig
                 <div
                   key={index}
                   onClick={() => handleStatCardClick(stat)}
-                  className="bg-slate-800/50 backdrop-blur-sm p-4 rounded-xl border border-slate-600/30 cursor-pointer hover:bg-slate-700/50 transition-all duration-200 hover:scale-105 flex items-center"
+                  className="bg-white dark:bg-slate-950/60 backdrop-blur-sm p-4 rounded-xl border border-gray-200 dark:border-slate-600/30 cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-all duration-200 hover:scale-105 flex items-center shadow-sm"
                 >
                   <div className="flex items-center justify-between w-full">
                     <div className="flex-1">
-                      <h3 className="text-2xl font-bold text-white mb-1">{stat.value}</h3>
-                      <p className="text-gray-400 text-xs">{stat.label}</p>
+                      <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">{stat.value}</h3>
+                      <p className="text-gray-600 dark:text-gray-400 text-xs">{stat.label}</p>
                     </div>
                     <div className="flex-shrink-0 ml-3">
                       <StatIcon className={`w-6 h-6 text-${stat.color}-400`} />
@@ -98,40 +96,36 @@ const DashboardContent = ({ showSuccess, showInfo, showError, showWarning, navig
         </div>
 
         <div className="lg:col-span-1">
-          <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-600/30 p-4 flex flex-col h-full">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-white dark:bg-slate-950/50 rounded-xl border border-gray-200 dark:border-slate-600/30 p-4 flex flex-col h-full shadow-sm">
+            <div className="flex items-center justify-between mb-1">
               <div className="flex items-center space-x-2">
                 <EyeIcon className="w-5 h-5 text-blue-400" />
-                <h3 className="text-base font-semibold text-white">Last Login</h3>
+                <h3 className="text-base font-semibold text-slate-900 dark:text-white">Last Login</h3>
               </div>
             </div>
-            <p className="text-gray-400 text-xs mb-3">Aktivitas 3 bulan terakhir akan tercatat</p>
+            <p className="text-slate-700 dark:text-white text-xs mb-3">Aktivitas 3 bulan terakhir akan tercatat</p>
             
-            {/* BAGIAN YANG DIUBAH */}
             <div className="flex-grow">
               {lastLogin.map((login, i) => (
                 <div key={i} className="flex items-start">
-                  {/* Kolom Ikon dan Garis Vertikal */}
                   <div className="flex flex-col items-center mr-4">
                     <div className="bg-orange-400/20 p-1.5 rounded-full text-orange-400">
                       <UserIcon className="w-4 h-4" />
                     </div>
-                    {/* Garis vertikal, tidak ditampilkan untuk item terakhir */}
                     {i < lastLogin.length - 1 && (
-                      <div className="w-px h-6 bg-slate-600 my-1"></div>
+                      <div className="w-px h-6 bg-gray-300 dark:bg-slate-600 my-1"></div>
                     )}
                   </div>
-                  {/* Kolom Teks dan Tanggal */}
                   <div className="flex-grow flex items-center justify-between pt-1">
-                     <p className="font-medium text-white text-xs">{login.action}</p>
-                     <p className="text-xs text-gray-400">{login.date}</p>
+                     <p className="font-medium text-slate-900 dark:text-white text-xs">{login.action}</p>
+                     <p className="text-xs text-gray-500 dark:text-gray-400">{login.date}</p>
                   </div>
                 </div>
               ))}
             </div>
             
             <div className="pt-3">
-              <button onClick={() => navigate('/history')} className="flex items-center justify-center w-full text-xs text-gray-400 hover:text-white transition-colors duration-200">
+              <button onClick={() => navigate('/history')} className="flex items-center justify-center w-full text-xs text-gray-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors duration-200">
                 Selengkapnya
                 <ChevronDownIcon className="w-3 h-3 ml-1" />
               </button>
@@ -140,31 +134,31 @@ const DashboardContent = ({ showSuccess, showInfo, showError, showWarning, navig
         </div>
       </div>
 
-      <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-600/30">
-        <div className="p-6 border-b border-slate-600/30">
+      <div className="bg-white dark:bg-slate-950/50 backdrop-blur-sm rounded-xl border border-gray-200 dark:border-slate-600/30 shadow-sm">
+        <div className="p-6 border-b border-gray-200 dark:border-slate-600/30">
           <div className="flex items-center space-x-2">
             <ClipboardDocumentListIcon className="w-6 h-6 text-blue-400" />
-            <h3 className="text-lg font-semibold text-white">Recent History</h3>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Recent History</h3>
           </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-slate-700/50">
+            <thead className="bg-gray-50 dark:bg-slate-900/20">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">ID CCTV</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Location</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">IP Address</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Error Time</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">ID CCTV</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Location</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">IP Address</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Error Time</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-600/30">
+            <tbody className="divide-y divide-gray-200 dark:divide-slate-600/30">
               {staticHistoryData.map((item) => (
-                <tr key={item.id_history} className="hover:bg-slate-700/30 transition-colors duration-150">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white font-medium">#{item.id_cctv}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{item.location_name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{item.ip_address}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{formatDate(item.error_time)}</td>
+                <tr key={item.id_history} className="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors duration-150">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-white font-medium">#{item.id_cctv}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">{item.location_name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">{item.ip_address}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">{formatDate(item.error_time)}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${ item.status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }`}>
                       {item.status ? 'Online' : 'Offline'}
@@ -175,8 +169,8 @@ const DashboardContent = ({ showSuccess, showInfo, showError, showWarning, navig
             </tbody>
           </table>
         </div>
-        <div className="p-4 border-t border-slate-600/30">
-            <button onClick={() => navigate('/history')} className="flex items-center justify-center w-full text-xs text-gray-400 hover:text-white transition-colors duration-200">
+        <div className="p-4 border-t border-gray-200 dark:border-slate-600/30">
+            <button onClick={() => navigate('/history')} className="flex items-center justify-center w-full text-xs text-gray-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors duration-200">
                 Selengkapnya
                 <ChevronDownIcon className="w-3 h-3 ml-1" />
             </button>

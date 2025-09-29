@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
@@ -223,8 +224,8 @@ module.exports = {
         'sidebar': '40',
         'sidebar-overlay': '30',
         'sidebar-toggle': '50',
-        'notification': '9999',  // Tambah ini untuk notification
-        'notification-overlay': '9998'  // Dan ini untuk overlay
+        'notification': '9999',
+        'notification-overlay': '9998'
       },
       // Background gradients
       backgroundImage: {
@@ -242,25 +243,9 @@ module.exports = {
     },
   },
   plugins: [
-    // Custom plugin for sidebar utilities
-    function({ addUtilities, theme }) {
-      const sidebarUtilities = {
-        '.sidebar-scrollbar': {
-          '&::-webkit-scrollbar': {
-            width: '4px',
-          },
-          '&::-webkit-scrollbar-track': {
-            background: 'transparent',
-          },
-          '&::-webkit-scrollbar-thumb': {
-            background: theme('colors.slate.600'),
-            'border-radius': '2px',
-          },
-          '&::-webkit-scrollbar-thumb:hover': {
-            background: theme('colors.slate.500'),
-          },
-        },
-        // Glassmorphism utilities
+    // Plugin untuk glassmorphism utilities
+    function({ addUtilities }) {
+      const glassUtilities = {
         '.glass-card': {
           background: 'rgba(255, 255, 255, 0.1)',
           'backdrop-filter': 'blur(12px)',
@@ -271,15 +256,14 @@ module.exports = {
           'backdrop-filter': 'blur(16px)',
           'border': '1px solid rgba(255, 255, 255, 0.3)',
         },
-        // Eye icon utilities
         '.eye-transition': {
           'transition-property': 'opacity, transform',
-          'transition-timing-function': theme('transitionTimingFunction.eye-smooth'),
+          'transition-timing-function': 'cubic-bezier(0.4, 0, 0.2, 1)',
           'transition-duration': '300ms',
         }
       }
       
-      addUtilities(sidebarUtilities)
+      addUtilities(glassUtilities)
     }
   ],
 }

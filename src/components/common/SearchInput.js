@@ -13,7 +13,7 @@ const SearchInput = memo(({ value, onChange, placeholder = "Search...", disabled
         value={value} 
         onChange={onChange}
         disabled={disabled}
-        className="block w-full p-2 pl-10 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50" 
+        className="block w-full p-2 pl-10 bg-slate-800/70 border border-slate-700 rounded-lg text-white placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50" 
       />
     </div>
   );

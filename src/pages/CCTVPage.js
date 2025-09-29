@@ -10,21 +10,39 @@ import CCTVCreateModal from '../features/cctv/CCTVCreateModal';
 import CCTVEditModal from '../features/cctv/CCTVEditModal';
 import CCTVList from '../features/cctv/CCTVList';
 import ConfirmDialog from '../components/common/ConfirmDialog';
-import { PlusIcon, VideoCameraIcon, SignalIcon, SignalSlashIcon } from '@heroicons/react/24/outline';
+import { 
+    PlusIcon, 
+    VideoCameraIcon, 
+    SignalIcon, 
+    SignalSlashIcon,
+    ChevronDownIcon 
+} from '@heroicons/react/24/outline';
 
-
-// Komponen Select dengan tema gelap
-const ThemedSelect = React.memo(({ children, ...props }) => (
-    <select 
-        {...props}
-        className="block w-full p-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
-    >
-        {children}
-    </select>
+// Komponen Select dengan tema gelap dan icon
+const ThemedSelect = React.memo(({ children, icon, ...props }) => (
+    <div className="relative">
+        <select 
+            {...props}
+            className="block w-full p-2 pl-10 bg-slate-800/70 border border-slate-700 rounded-lg text-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 appearance-none pr-8"
+        >
+            {children}
+        </select>
+        {icon && (
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                {icon}
+            </div>
+        )}
+        <ChevronDownIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+    </div>
 ));
 
 const StatusSelect = React.memo(({ value, onChange, disabled }) => (
-    <ThemedSelect value={value} onChange={onChange} disabled={disabled}>
+    <ThemedSelect 
+        value={value} 
+        onChange={onChange} 
+        disabled={disabled}
+        icon={<SignalIcon className="w-4 h-4" />}
+    >
         <option value="">Semua Status</option>
         <option value="online">Online</option>
         <option value="offline">Offline</option>
@@ -32,7 +50,12 @@ const StatusSelect = React.memo(({ value, onChange, disabled }) => (
 ));
 
 const LocationSelect = React.memo(({ value, onChange, disabled, locations }) => (
-    <ThemedSelect value={value} onChange={onChange} disabled={disabled}>
+    <ThemedSelect 
+        value={value} 
+        onChange={onChange} 
+        disabled={disabled}
+        icon={<VideoCameraIcon className="w-4 h-4" />}
+    >
         <option value="">Semua Lokasi</option>
         {locations.map((location) => (
             <option key={location.id_location} value={location.id_location}>
@@ -42,22 +65,54 @@ const LocationSelect = React.memo(({ value, onChange, disabled, locations }) => 
     </ThemedSelect>
 ));
 
-// Kartu Statistik dengan tema gelap
-const StatCard = ({ label, value, icon, colorClass }) => (
-    <div className="bg-slate-800/50 backdrop-blur-sm p-4 rounded-xl border border-slate-600/30 flex items-center justify-between">
-      <div>
-        <p className="text-sm text-gray-400">{label}</p>
-        <p className={`text-2xl font-bold ${colorClass}`}>{value}</p>
-      </div>
-      <div className={`text-2xl ${colorClass}`}>
-        {icon}
-      </div>
+// Kartu Statistik dengan tema gelap dan gradient
+const StatCard = ({ label, value, icon, colorClass, bgClass, borderColor, gradientColor }) => (
+    <div className={`${bgClass} backdrop-blur-sm p-4 rounded-xl border-2 ${borderColor} relative overflow-hidden`}>
+        {/* Gradient Background - dari kanan ke kiri, tidak sampai pojok kiri */}
+        <div className={`absolute inset-y-0 right-0 w-2/3 ${gradientColor}`}></div>
+        
+        {/* Content */}
+        <div className="relative z-10">
+            <p className="text-sm text-white mb-3 font-medium">{label}</p>
+            <div className="flex items-center justify-between">
+                <p className="text-6xl font-bold text-white">{value}</p>
+                <div className={`text-6xl ${colorClass}`}>
+                    {icon}
+                </div>
+            </div>
+        </div>
+    </div>
+);
+
+// Kartu Total dengan Button dan gradient
+const TotalStatCard = ({ label, value, onAddClick, loading }) => (
+    <div className="bg-slate-800/70 backdrop-blur-sm p-4 rounded-xl border-2 border-indigo-900 relative overflow-hidden">
+        {/* Gradient Background - dari kanan ke kiri */}
+        <div className="absolute inset-y-0 right-0 w-2/3 bg-gradient-to-l from-indigo-950/60 via-indigo-950/50 to-transparent"></div>
+        
+        {/* Content */}
+        <div className="relative z-10">
+            <div className="flex items-center justify-between">
+                <p className="text-sm text-white font-medium">{label}</p>
+                <button
+                    onClick={onAddClick}
+                    disabled={loading}
+                    className="relative overflow-hidden bg-gradient-to-l from-indigo-900 via-indigo-700 to-indigo-500 hover:from-indigo-800 hover:via-indigo-600 hover:to-indigo-400 disabled:from-indigo-950 disabled:via-indigo-900 disabled:to-indigo-800 text-white px-4 py-1.5 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 text-sm"
+                >
+                    Tambah Kamera
+                    <PlusIcon className="w-4 h-4" />
+                </button>
+            </div>
+            <div className="flex items-center justify-between mt-2">
+                <p className="text-6xl font-bold text-white">{value}</p>
+                <VideoCameraIcon className="w-12 h-12 text-indigo-500" />
+            </div>
+        </div>
     </div>
 );
 
 const CCTVPage = () => {
-    // HAPUS: const { user, logout } = useAuth(); - tidak perlu lagi
-    const { user } = useAuth(); // Hanya ambil user
+    const { user } = useAuth();
     const { showSuccess, showError, showInfo } = useToast();
     const navigate = useNavigate();
 
@@ -77,12 +132,14 @@ const CCTVPage = () => {
     const [statusFilter, setStatusFilter] = useState('');
     const [locationFilter, setLocationFilter] = useState('');
 
-    // Confirm dialog states - HAPUS action 'logout' dari sini
+    // Confirm dialog states
     const [confirmDialog, setConfirmDialog] = useState({
         isOpen: false,
         type: 'danger',
         title: '',
         message: '',
+        confirmText: 'Iya',
+        cancelText: 'Tidak',
         cctv: null,
         action: null,
         loading: false
@@ -145,11 +202,6 @@ const CCTVPage = () => {
         return { total, online, offline };
     }, [allCctvData]);
 
-    // HAPUS: handleLogout function - tidak perlu lagi
-    // const handleLogout = useCallback(() => {
-    //     setConfirmDialog({ action: 'logout' /* ...lainnya */ });
-    // }, []);
-
     const handlePageChange = useCallback((pageId, path) => navigate(path), [navigate]);
     const handleSearch = useCallback((e) => setSearchTerm(e.target.value), []);
     const handleStatusFilter = useCallback((e) => setStatusFilter(e.target.value), []);
@@ -172,8 +224,10 @@ const CCTVPage = () => {
         setConfirmDialog({
             isOpen: true,
             type: 'danger',
-            title: 'Delete CCTV',
-            message: 'This CCTV will be permanently removed. This action cannot be undone.',
+            title: 'Hapus CCTV',
+            message: 'Apakah anda yakin untuk menghapus CCTV ini ?',
+            confirmText: 'Iya',
+            cancelText: 'Tidak',
             cctv: cctv,
             action: 'delete',
             loading: false
@@ -185,7 +239,6 @@ const CCTVPage = () => {
         showInfo('Refreshing', 'Reloading CCTV data...');
     }, [fetchAllData, showInfo]);
 
-    // UPDATE: handleConfirmAction - hapus case 'logout'
     const handleConfirmAction = useCallback(async () => {
         const { action, cctv } = confirmDialog;
         setConfirmDialog(prev => ({ ...prev, loading: true }));
@@ -207,7 +260,7 @@ const CCTVPage = () => {
             const errorMessage = extractErrorMessage(err);
             showError('Action Failed', errorMessage);
         }
-    }, [confirmDialog, fetchAllData, showSuccess, showError]); // HAPUS: logout dari dependencies
+    }, [confirmDialog, fetchAllData, showSuccess, showError]);
 
     const handleCloseConfirmDialog = useCallback(() => {
         if (!confirmDialog.loading) {
@@ -235,7 +288,6 @@ const CCTVPage = () => {
 
     const hasActiveFilters = searchTerm || statusFilter || locationFilter;
 
-    // UPDATE: getConfirmButtonText - hapus case 'logout'
     const getConfirmButtonText = () => {
         if (confirmDialog.action === 'delete') return 'Delete';
         return 'Confirm';
@@ -243,7 +295,6 @@ const CCTVPage = () => {
 
     return (
         <>
-            {/* UPDATE: MainLayout - hapus user prop dan onLogout dari Sidebar */}
             <MainLayout 
                 Sidebar={(props) => (
                     <Sidebar 
@@ -253,44 +304,63 @@ const CCTVPage = () => {
                 )}
             >
                 <div className="space-y-6">
-                    {/* Header */}
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-2xl font-bold text-white">Manajemen CCTV</h1>
-                            <p className="text-gray-400 mt-1">Kelola data kamera keamanan rumah sakit</p>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                            <button
-                                onClick={handleAddCCTV}
-                                disabled={loading}
-                                className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2">
-                                <PlusIcon className="w-5 h-5" />
-                                Tambah CCTV
-                            </button>
-                        </div>
-                    </div>
-
                     {/* Statistics Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <StatCard label="Total CCTV" value={statistics.total} colorClass="text-white" icon={<VideoCameraIcon className="w-6 h-6"/>} />
-                        <StatCard label="Online" value={statistics.online} colorClass="text-green-400" icon={<SignalIcon className="w-6 h-6"/>} />
-                        <StatCard label="Offline" value={statistics.offline} colorClass="text-red-400" icon={<SignalSlashIcon className="w-6 h-6"/>} />
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <StatCard 
+                            label="Online Kamera" 
+                            value={statistics.online} 
+                            colorClass="text-green-600" 
+                            bgClass="bg-slate-800/70" 
+                            borderColor="border-green-800"
+                            gradientColor="bg-gradient-to-l from-green-950/60 via-green-950/30 to-transparent"
+                            icon={<SignalIcon className="w-12 h-12"/>} 
+                        />
+                        <StatCard 
+                            label="Offline Kamera" 
+                            value={statistics.offline} 
+                            colorClass="text-red-600" 
+                            bgClass="bg-slate-800/70"
+                            borderColor="border-red-800"
+                            gradientColor="bg-gradient-to-l from-red-950/60 via-red-950/30 to-transparent"
+                            icon={<SignalSlashIcon className="w-12 h-12"/>} 
+                        />
+                        <div className="md:col-span-2">
+                            <TotalStatCard 
+                                label="Total Kamera" 
+                                value={statistics.total}
+                                onAddClick={handleAddCCTV}
+                                loading={loading}
+                            />
+                        </div>
                     </div>
 
                     {/* Filters */}
-                    <div className="bg-slate-800/50 backdrop-blur-sm p-6 rounded-xl border border-slate-600/30">
+                    <div className="bg-slate-900/70 backdrop-blur-sm p-6 rounded-xl border border-slate-700/50">
                         <div className="flex flex-col lg:flex-row gap-4 items-end">
                             <div className="flex-1">
                                 <label className="block text-sm font-medium mb-2 text-gray-300">Cari CCTV</label>
-                                <SearchInput value={searchTerm} onChange={handleSearch} placeholder="Cari berdasarkan titik letak atau IP..." />
+                                <SearchInput 
+                                    value={searchTerm} 
+                                    onChange={handleSearch} 
+                                    placeholder="Cari berdasarkan titik letak atau IP..." 
+                                />
                             </div>
                             <div className="w-full lg:w-48">
                                 <label className="block text-sm font-medium mb-2 text-gray-300">Status</label>
-                                <StatusSelect value={statusFilter} onChange={handleStatusFilter} disabled={loading} />
+                                <StatusSelect 
+                                    value={statusFilter} 
+                                    onChange={handleStatusFilter} 
+                                    disabled={loading} 
+                                />
                             </div>
                             <div className="w-full lg:w-48">
                                 <label className="block text-sm font-medium mb-2 text-gray-300">Lokasi</label>
-                                <LocationSelect value={locationFilter} onChange={handleLocationFilter} disabled={loading} locations={locationGroups} />
+                                <LocationSelect 
+                                    value={locationFilter} 
+                                    onChange={handleLocationFilter} 
+                                    disabled={loading} 
+                                    locations={locationGroups} 
+                                />
                             </div>
                             {hasActiveFilters && (
                                 <div className="w-full lg:w-auto">
@@ -326,16 +396,27 @@ const CCTVPage = () => {
             </MainLayout>
 
             {/* Modals and Dialogs */}
-            <CCTVCreateModal isOpen={showCreateModal} onClose={handleModalClose} onCCTVCreated={handleCCTVCreated} locationGroups={locationGroups} />
-            <CCTVEditModal isOpen={showEditModal} onClose={handleModalClose} cctvToEdit={editingCCTV} onCCTVUpdated={handleCCTVUpdated} locationGroups={locationGroups} />
+            <CCTVCreateModal 
+                isOpen={showCreateModal} 
+                onClose={handleModalClose} 
+                onCCTVCreated={handleCCTVCreated} 
+                locationGroups={locationGroups} 
+            />
+            <CCTVEditModal 
+                isOpen={showEditModal} 
+                onClose={handleModalClose} 
+                cctvToEdit={editingCCTV} 
+                onCCTVUpdated={handleCCTVUpdated} 
+                locationGroups={locationGroups} 
+            />
             <ConfirmDialog 
                 isOpen={confirmDialog.isOpen} 
                 onClose={handleCloseConfirmDialog} 
                 onConfirm={handleConfirmAction} 
                 title={confirmDialog.title}
                 message={confirmDialog.message}
-                confirmText={getConfirmButtonText()}
-                cancelText="Cancel"
+                confirmText={confirmDialog.confirmText || 'Iya'}
+                cancelText={confirmDialog.cancelText || 'Tidak'}
                 type={confirmDialog.type}
                 loading={confirmDialog.loading}
             />

@@ -143,6 +143,109 @@ class CCTVService {
     }
   }
 
+  // Get stream URLs for a specific CCTV
+  async getStreamUrls(cctvId) {
+    try {
+      console.log('Fetching stream URLs for CCTV:', cctvId);
+      
+      const token = localStorage.getItem('access_token');
+      const params = new URLSearchParams();
+      if (token) {
+        params.append('token', token);
+      }
+      
+      const response = await apiClient.get(`/cctv/${cctvId}/stream?${params.toString()}`);
+      console.log('Stream URLs Response:', response.data);
+      
+      // Extract data from response
+      const streamData = response.data.data || response.data;
+      
+      return {
+        success: true,
+        data: streamData
+      };
+    } catch (error) {
+      console.error('Error fetching stream URLs:', error);
+      console.error('Error response:', error.response);
+      
+      let errorMessage = 'Gagal mengambil stream URLs';
+      
+      if (error.response) {
+        const errorData = error.response.data;
+        if (typeof errorData === 'string') {
+          errorMessage = errorData;
+        } else if (errorData?.detail) {
+          errorMessage = errorData.detail;
+        } else if (errorData?.message) {
+          errorMessage = errorData.message;
+        } else if (error.response.status === 404) {
+          errorMessage = 'CCTV tidak ditemukan';
+        } else if (error.response.status === 401) {
+          errorMessage = 'Tidak memiliki akses untuk melihat stream';
+        }
+      } else if (error.request) {
+        errorMessage = 'Koneksi bermasalah - tidak dapat terhubung ke server';
+      }
+      
+      return {
+        success: false,
+        error: errorMessage
+      };
+    }
+  }
+  
+async getStreamsByLocation(locationId) {
+    try {
+      console.log(`Fetching streams for location: ${locationId}`);
+      const token = localStorage.getItem('access_token');
+      const params = new URLSearchParams();
+      if (token) {
+        params.append('token', token);
+      }
+      
+      const response = await apiClient.get(`/cctv/location/${locationId}/streams?${params.toString()}`);
+      
+      if (response.data && response.data.status === 'success') {
+        return response.data.data;
+      } else {
+        return response.data;
+      }
+
+    } catch (error) {
+      console.error('Error fetching streams by location:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Gagal terhubung ke server';
+      throw new Error(errorMessage);
+    }
+  }
+
+  // Test CCTV connection
+  async testCCTVConnection(cctvId) {
+    try {
+      console.log('Testing CCTV connection:', cctvId);
+      
+      const token = localStorage.getItem('access_token');
+      const params = new URLSearchParams();
+      if (token) {
+        params.append('token', token);
+      }
+      
+      const response = await apiClient.get(`/cctv/${cctvId}/test?${params.toString()}`);
+      console.log('Connection test response:', response.data);
+      
+      return {
+        success: true,
+        data: response.data.data || response.data
+      };
+    } catch (error) {
+      console.error('Error testing CCTV connection:', error);
+      
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Gagal test koneksi CCTV'
+      };
+    }
+  }
+
   // Test API connection
   async testConnection() {
     try {
@@ -168,7 +271,6 @@ class CCTVService {
       
       const token = localStorage.getItem('access_token');
       
-      // Try POST with token in query params (consistent with GET requests)
       const params = new URLSearchParams();
       if (token) {
         params.append('token', token);
@@ -192,7 +294,6 @@ class CCTVService {
       console.error('Error creating CCTV:', error);
       console.error('Error response:', error.response);
       
-      // IMPROVED ERROR MESSAGE PARSING
       let errorMessage = 'Gagal membuat CCTV';
       
       if (error.response) {
@@ -202,7 +303,6 @@ class CCTVService {
         if (typeof errorData === 'string') {
           errorMessage = errorData;
         } else if (errorData?.detail) {
-          // Use the new formatValidationError method
           errorMessage = this.formatValidationError(errorData.detail);
         } else if (errorData?.message) {
           errorMessage = errorData.message;
@@ -243,7 +343,6 @@ class CCTVService {
       console.error('Error updating CCTV:', error);
       console.error('Update error response:', error.response);
       
-      // IMPROVED ERROR HANDLING
       let errorMessage = 'Gagal mengupdate CCTV';
       
       if (error.response) {

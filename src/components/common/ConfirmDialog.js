@@ -1,54 +1,21 @@
 import { Fragment } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
-import { ExclamationTriangleIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { XMarkIcon } from '@heroicons/react/24/outline'
 
 export default function ConfirmDialog({
-  isOpen = false, // Default value untuk mencegah undefined
+  isOpen = false,
   onClose,
   onConfirm,
   title = "Confirm Action",
   message = "Are you sure you want to proceed?",
-  confirmText = "Confirm",
-  cancelText = "Cancel",
-  type = "danger", // danger, warning, info
+  confirmText = "Iya",
+  cancelText = "Tidak",
+  type = "danger",
   loading = false,
-  itemName = null // untuk highlight nama item yang akan dihapus
+  itemName = null
 }) {
-  const getTypeStyles = () => {
-    switch (type) {
-      case 'danger':
-        return {
-          icon: TrashIcon,
-          iconBg: 'bg-red-100 dark:bg-red-900/20',
-          iconColor: 'text-red-600 dark:text-red-400',
-          confirmBtn: 'bg-red-600 hover:bg-red-700 focus:ring-red-500 dark:bg-red-700 dark:hover:bg-red-800',
-          ring: 'focus:ring-red-500'
-        }
-      case 'warning':
-        return {
-          icon: ExclamationTriangleIcon,
-          iconBg: 'bg-yellow-100 dark:bg-yellow-900/20',
-          iconColor: 'text-yellow-600 dark:text-yellow-400',
-          confirmBtn: 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500 dark:bg-yellow-700 dark:hover:bg-yellow-800',
-          ring: 'focus:ring-yellow-500'
-        }
-      default:
-        return {
-          icon: ExclamationTriangleIcon,
-          iconBg: 'bg-blue-100 dark:bg-blue-900/20',
-          iconColor: 'text-blue-600 dark:text-blue-400',
-          confirmBtn: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 dark:bg-blue-700 dark:hover:bg-blue-800',
-          ring: 'focus:ring-blue-500'
-        }
-    }
-  }
-
-  const styles = getTypeStyles()
-  const IconComponent = styles.icon
-
-  // Pastikan onClose adalah function
   const handleClose = () => {
-    if (typeof onClose === 'function') {
+    if (!loading && typeof onClose === 'function') {
       onClose()
     }
   }
@@ -72,12 +39,12 @@ export default function ConfirmDialog({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" />
         </Transition.Child>
 
         {/* Modal */}
         <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
+          <div className="flex min-h-full items-center justify-center p-4 text-left">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
@@ -87,61 +54,66 @@ export default function ConfirmDialog({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
-                <div className="flex items-start">
-                  {/* Icon */}
-                  <div className={`mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full ${styles.iconBg} sm:mx-0 sm:h-10 sm:w-10`}>
-                    <IconComponent className={`h-6 w-6 ${styles.iconColor}`} aria-hidden="true" />
-                  </div>
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-gradient-to-b from-slate-950 via-indigo-950 to-indigo-800 shadow-2xl transition-all">
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-6 mx-4">
+                  <Dialog.Title as="h2" className="text-2xl text-white">
+                    {title}
+                  </Dialog.Title>
+                  <button 
+                    onClick={handleClose} 
+                    disabled={loading} 
+                    className="text-white/70 hover:text-white disabled:opacity-50 transition-colors"
+                  >
+                    <XMarkIcon className="w-7 h-7" />
+                  </button>
+                </div>
+                
+                {/* Border persegi panjang setelah header */}
+                <div className="mx-6 h-1 bg-white/10"></div>
 
-                  {/* Content */}
-                  <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left flex-1">
-                    <Dialog.Title as="h3" className="text-lg font-semibold leading-6 text-gray-900 dark:text-white">
-                      {title}
-                    </Dialog.Title>
-                    
-                    <div className="mt-2">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {message}
-                        {itemName && (
-                          <span className="block mt-2 font-medium text-gray-900 dark:text-white">
-                            "{itemName}"
-                          </span>
+                {/* Content */}
+                <div className="p-6">
+                  <p className="text-white text-lg leading-relaxed">
+                    {message}
+                  </p>
+                  {itemName && (
+                    <p className="mt-3 text-white/90 font-medium">
+                      "{itemName}"
+                    </p>
+                  )}
+                  
+                  {/* Buttons */}
+                  <div className="mt-9 pb-2">
+                    <div className="flex gap-3 justify-end">
+                      <button
+                        type="button" 
+                        onClick={handleClose} 
+                        disabled={loading}
+                        className="w-28 px-1 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white font-medium hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                      >
+                        {cancelText}
+                      </button>
+                      <button
+                        type="button" 
+                        onClick={handleConfirm}
+                        disabled={loading}
+                        className="w-28 px-1 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white font-medium hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                      >
+                        {loading ? (
+                          <>
+                            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Processing...
+                          </>
+                        ) : (
+                          confirmText
                         )}
-                      </p>
+                      </button>
                     </div>
                   </div>
-                </div>
-
-                {/* Actions */}
-                <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-3">
-                  <button
-                    type="button"
-                    disabled={loading}
-                    className={`inline-flex w-full justify-center rounded-lg px-4 py-2.5 text-sm font-semibold text-white shadow-sm ${styles.confirmBtn} disabled:opacity-50 disabled:cursor-not-allowed sm:w-auto transition-all duration-200`}
-                    onClick={handleConfirm}
-                  >
-                    {loading ? (
-                      <div className="flex items-center">
-                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Processing...
-                      </div>
-                    ) : (
-                      confirmText
-                    )}
-                  </button>
-                  
-                  <button
-                    type="button"
-                    disabled={loading}
-                    className="mt-3 inline-flex w-full justify-center rounded-lg bg-white dark:bg-gray-700 px-4 py-2.5 text-sm font-semibold text-gray-900 dark:text-gray-200 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed sm:mt-0 sm:w-auto transition-all duration-200"
-                    onClick={handleClose}
-                  >
-                    {cancelText}
-                  </button>
                 </div>
               </Dialog.Panel>
             </Transition.Child>
