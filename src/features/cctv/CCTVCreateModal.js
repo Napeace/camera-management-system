@@ -5,6 +5,8 @@ import { XMarkIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [isAnimating, setIsAnimating] = useState(false);
+    const [shouldShow, setShouldShow] = useState(false);
     const [formData, setFormData] = useState({
         titik_letak: '',
         ip_address: '',
@@ -12,9 +14,10 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
         status: true,
     });
 
-    // Reset form saat modal terbuka
+    // Handle animation
     useEffect(() => {
         if (isOpen) {
+            setIsAnimating(true);
             setFormData({
                 titik_letak: '',
                 ip_address: '',
@@ -22,6 +25,13 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
                 status: true,
             });
             setError('');
+            // Small delay to trigger enter animation
+            setTimeout(() => setShouldShow(true), 10);
+        } else {
+            setShouldShow(false);
+            // Delay cleanup to allow exit animation
+            const timer = setTimeout(() => setIsAnimating(false), 300);
+            return () => clearTimeout(timer);
         }
     }, [isOpen]);
 
@@ -34,7 +44,6 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
         if (error) setError('');
     };
 
-    // CLIENT-SIDE VALIDATION with proper Indonesian messages
     const validateForm = () => {
         const { titik_letak, ip_address, id_location } = formData;
         if (!titik_letak.trim()) {
@@ -99,40 +108,48 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
 
     const handleClose = () => !loading && onClose();
 
-    if (!isOpen) return null;
+    if (!isOpen && !isAnimating) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-gradient-to-b from-slate-950 via-indigo-950 to-indigo-800 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+        <div 
+            className={`fixed inset-0 bg-black/70 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity duration-300 ${
+                shouldShow ? 'opacity-100' : 'opacity-0'
+            }`}
+        >
+            <div 
+                className={`bg-gradient-to-b from-slate-50 via-blue-50 to-blue-100 dark:from-slate-950 dark:via-indigo-950 dark:to-indigo-800 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all duration-300 ${
+                    shouldShow ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+                }`}
+            >
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-6 mx-4">
-                    <h2 className="text-2xl text-white">Tambah CCTV Baru</h2>
+                    <h2 className="text-2xl text-gray-900 dark:text-white font-semibold">Tambah CCTV Baru</h2>
                     <button 
                         onClick={handleClose} 
                         disabled={loading} 
-                        className="text-white/70 hover:text-white disabled:opacity-50 transition-colors"
+                        className="text-gray-600 hover:text-gray-900 dark:text-white/70 dark:hover:text-white disabled:opacity-50 transition-colors"
                     >
                         <XMarkIcon className="w-7 h-7" />
                     </button>
                 </div>
                 
                 {/* Border persegi panjang setelah header */}
-                <div className="mx-6 h-1 bg-white/10"></div>
+                <div className="mx-6 h-1 bg-gray-300 dark:bg-white/10"></div>
 
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="p-6 space-y-5">
                     {error && (
-                        <div className="bg-red-500/20 border border-red-400/40 rounded-xl p-4 backdrop-blur-sm">
+                        <div className="bg-red-100 dark:bg-red-500/20 border border-red-300 dark:border-red-400/40 rounded-xl p-4 backdrop-blur-sm">
                             <div className="flex items-center">
-                                <ExclamationCircleIcon className="w-5 h-5 text-red-300 mr-2 flex-shrink-0" />
-                                <p className="text-sm text-red-200">{error}</p>
+                                <ExclamationCircleIcon className="w-5 h-5 text-red-600 dark:text-red-300 mr-2 flex-shrink-0" />
+                                <p className="text-sm text-red-700 dark:text-red-200">{error}</p>
                             </div>
                         </div>
                     )}
 
                     {/* Titik Letak */}
                     <div>
-                        <label htmlFor="titik_letak" className="block text-sm font-medium text-white mb-2">
+                        <label htmlFor="titik_letak" className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
                             Titik letak
                         </label>
                         <input
@@ -143,14 +160,14 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
                             value={formData.titik_letak} 
                             onChange={handleInputChange} 
                             disabled={loading}
-                            className="block w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-white/50 focus:ring-2 focus:ring-white/30 focus:border-white/30 disabled:opacity-50 transition-all"
+                            className="block w-full px-4 py-3 bg-white dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-white/30 focus:border-blue-500 dark:focus:border-white/30 disabled:opacity-50 transition-all"
                             placeholder="Pos Satpam 2"
                         />
                     </div>
 
                     {/* IP Address */}
                     <div>
-                        <label htmlFor="ip_address" className="block text-sm font-medium text-white mb-2">
+                        <label htmlFor="ip_address" className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
                             IP Address
                         </label>
                         <input
@@ -161,14 +178,14 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
                             value={formData.ip_address} 
                             onChange={handleInputChange} 
                             disabled={loading}
-                            className="block w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-white/50 focus:ring-2 focus:ring-white/30 focus:border-white/30 disabled:opacity-50 transition-all"
+                            className="block w-full px-4 py-3 bg-white dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-white/30 focus:border-blue-500 dark:focus:border-white/30 disabled:opacity-50 transition-all"
                             placeholder="192.168.10.202"
                         />
                     </div>
 
                     {/* Lokasi */}
                     <div>
-                        <label htmlFor="id_location" className="block text-sm font-medium text-white mb-2">
+                        <label htmlFor="id_location" className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
                             Lokasi DVR
                         </label>
                         <select
@@ -178,18 +195,18 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
                             value={formData.id_location} 
                             onChange={handleInputChange} 
                             disabled={loading}
-                            className="block w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-white/30 focus:border-white/30 disabled:opacity-50 transition-all appearance-none"
+                            className="block w-full px-4 py-3 bg-white dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-white/30 focus:border-blue-500 dark:focus:border-white/30 disabled:opacity-50 transition-all appearance-none"
                             style={{
-                                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor' %3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
                                 backgroundRepeat: 'no-repeat',
                                 backgroundPosition: 'right 0.75rem center',
                                 backgroundSize: '1.5em 1.5em',
                                 paddingRight: '2.5rem'
                             }}
                         >
-                            <option value="" className="bg-slate-800">Pos Satpam Depan</option>
+                            <option value="" className="bg-white dark:bg-slate-800">Pilih Lokasi</option>
                             {locationGroups.map((location) => (
-                                <option key={location.id_location} value={location.id_location} className="bg-slate-800">
+                                <option key={location.id_location} value={location.id_location} className="bg-white dark:bg-slate-800">
                                     {location.nama_lokasi}
                                 </option>
                             ))}
@@ -197,7 +214,7 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
                     </div>
 
                     {/* Border persegi panjang sebelum button */}
-                    <div className="h-1 bg-white/10 mb-6"></div>
+                    <div className="h-1 bg-gray-300 dark:bg-white/10 mb-6"></div>
                     
                     {/* Buttons */}
                     <div className="pb-6">
@@ -206,14 +223,14 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
                                 type="button" 
                                 onClick={handleClose} 
                                 disabled={loading}
-                                className="w-28 px-1 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white font-medium hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                className="w-28 px-1 py-3 bg-gray-200 dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-700 dark:text-white font-medium hover:bg-gray-300 dark:hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                             >
                                 Batal
                             </button>
                             <button
                                 type="submit" 
                                 disabled={loading}
-                                className="w-48 px-1 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white font-medium hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                                className="w-48 px-1 py-3 bg-blue-600 dark:bg-white/10 backdrop-blur-sm border border-blue-600 dark:border-white/20 rounded-xl text-white font-medium hover:bg-blue-700 dark:hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
                             >
                                 {loading && (
                                     <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

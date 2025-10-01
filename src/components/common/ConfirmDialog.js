@@ -54,31 +54,31 @@ export default function ConfirmDialog({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-gradient-to-b from-slate-950 via-indigo-950 to-indigo-800 shadow-2xl transition-all">
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-gradient-to-b from-blue-50 via-blue-100 to-blue-200 dark:from-slate-950 dark:via-indigo-950 dark:to-indigo-800 shadow-2xl transition-all">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-6 mx-4">
-                  <Dialog.Title as="h2" className="text-2xl text-white">
+                  <Dialog.Title as="h2" className="text-2xl text-gray-900 dark:text-white font-semibold">
                     {title}
                   </Dialog.Title>
                   <button 
                     onClick={handleClose} 
                     disabled={loading} 
-                    className="text-white/70 hover:text-white disabled:opacity-50 transition-colors"
+                    className="text-gray-600 hover:text-gray-900 dark:text-white/70 dark:hover:text-white disabled:opacity-50 transition-colors"
                   >
                     <XMarkIcon className="w-7 h-7" />
                   </button>
                 </div>
                 
                 {/* Border persegi panjang setelah header */}
-                <div className="mx-6 h-1 bg-white/10"></div>
+                <div className="mx-6 h-1 bg-gray-300 dark:bg-white/10"></div>
 
                 {/* Content */}
                 <div className="p-6">
-                  <p className="text-white text-lg leading-relaxed">
+                  <p className="text-gray-800 dark:text-white text-lg leading-relaxed">
                     {message}
                   </p>
                   {itemName && (
-                    <p className="mt-3 text-white/90 font-medium">
+                    <p className="mt-3 text-gray-700 dark:text-white/90 font-medium">
                       "{itemName}"
                     </p>
                   )}
@@ -90,7 +90,7 @@ export default function ConfirmDialog({
                         type="button" 
                         onClick={handleClose} 
                         disabled={loading}
-                        className="w-28 px-1 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white font-medium hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        className="w-28 px-1 py-3 bg-white/60 dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white font-medium hover:bg-white/80 dark:hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                       >
                         {cancelText}
                       </button>
@@ -98,7 +98,7 @@ export default function ConfirmDialog({
                         type="button" 
                         onClick={handleConfirm}
                         disabled={loading}
-                        className="w-28 px-1 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white font-medium hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                        className="w-28 px-1 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-sm border border-blue-700 dark:border-white/20 rounded-xl text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
                       >
                         {loading ? (
                           <>

@@ -1,10 +1,14 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+// CCTVPage.jsx
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import MainLayout from '../components/layout/MainLayout';
 import Sidebar from '../components/layout/Sidebar';
 import SearchInput from '../components/common/SearchInput';
+import StatCard, { StatCardWithAction } from '../components/common/StatCard';
+import CustomStatusSelect from '../components/common/CustomStatusSelect';
+import CustomLocationSelect from '../components/common/CustomLocationSelect';
 import cctvService from '../services/cctvService';
 import CCTVCreateModal from '../features/cctv/CCTVCreateModal';
 import CCTVEditModal from '../features/cctv/CCTVEditModal';
@@ -14,102 +18,8 @@ import {
     PlusIcon, 
     VideoCameraIcon, 
     SignalIcon, 
-    SignalSlashIcon,
-    ChevronDownIcon 
+    SignalSlashIcon
 } from '@heroicons/react/24/outline';
-
-// Komponen Select dengan tema gelap dan icon
-const ThemedSelect = React.memo(({ children, icon, ...props }) => (
-    <div className="relative">
-        <select 
-            {...props}
-            className="block w-full p-2 pl-10 bg-slate-800/70 border border-slate-700 rounded-lg text-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 appearance-none pr-8"
-        >
-            {children}
-        </select>
-        {icon && (
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                {icon}
-            </div>
-        )}
-        <ChevronDownIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-    </div>
-));
-
-const StatusSelect = React.memo(({ value, onChange, disabled }) => (
-    <ThemedSelect 
-        value={value} 
-        onChange={onChange} 
-        disabled={disabled}
-        icon={<SignalIcon className="w-4 h-4" />}
-    >
-        <option value="">Semua Status</option>
-        <option value="online">Online</option>
-        <option value="offline">Offline</option>
-    </ThemedSelect>
-));
-
-const LocationSelect = React.memo(({ value, onChange, disabled, locations }) => (
-    <ThemedSelect 
-        value={value} 
-        onChange={onChange} 
-        disabled={disabled}
-        icon={<VideoCameraIcon className="w-4 h-4" />}
-    >
-        <option value="">Semua Lokasi</option>
-        {locations.map((location) => (
-            <option key={location.id_location} value={location.id_location}>
-                {location.nama_lokasi}
-            </option>
-        ))}
-    </ThemedSelect>
-));
-
-// Kartu Statistik dengan tema gelap dan gradient
-const StatCard = ({ label, value, icon, colorClass, bgClass, borderColor, gradientColor }) => (
-    <div className={`${bgClass} backdrop-blur-sm p-4 rounded-xl border-2 ${borderColor} relative overflow-hidden`}>
-        {/* Gradient Background - dari kanan ke kiri, tidak sampai pojok kiri */}
-        <div className={`absolute inset-y-0 right-0 w-2/3 ${gradientColor}`}></div>
-        
-        {/* Content */}
-        <div className="relative z-10">
-            <p className="text-sm text-white mb-3 font-medium">{label}</p>
-            <div className="flex items-center justify-between">
-                <p className="text-6xl font-bold text-white">{value}</p>
-                <div className={`text-6xl ${colorClass}`}>
-                    {icon}
-                </div>
-            </div>
-        </div>
-    </div>
-);
-
-// Kartu Total dengan Button dan gradient
-const TotalStatCard = ({ label, value, onAddClick, loading }) => (
-    <div className="bg-slate-800/70 backdrop-blur-sm p-4 rounded-xl border-2 border-indigo-900 relative overflow-hidden">
-        {/* Gradient Background - dari kanan ke kiri */}
-        <div className="absolute inset-y-0 right-0 w-2/3 bg-gradient-to-l from-indigo-950/60 via-indigo-950/50 to-transparent"></div>
-        
-        {/* Content */}
-        <div className="relative z-10">
-            <div className="flex items-center justify-between">
-                <p className="text-sm text-white font-medium">{label}</p>
-                <button
-                    onClick={onAddClick}
-                    disabled={loading}
-                    className="relative overflow-hidden bg-gradient-to-l from-indigo-900 via-indigo-700 to-indigo-500 hover:from-indigo-800 hover:via-indigo-600 hover:to-indigo-400 disabled:from-indigo-950 disabled:via-indigo-900 disabled:to-indigo-800 text-white px-4 py-1.5 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 text-sm"
-                >
-                    Tambah Kamera
-                    <PlusIcon className="w-4 h-4" />
-                </button>
-            </div>
-            <div className="flex items-center justify-between mt-2">
-                <p className="text-6xl font-bold text-white">{value}</p>
-                <VideoCameraIcon className="w-12 h-12 text-indigo-500" />
-            </div>
-        </div>
-    </div>
-);
 
 const CCTVPage = () => {
     const { user } = useAuth();
@@ -121,6 +31,7 @@ const CCTVPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [locationGroups, setLocationGroups] = useState([]);
+    const hasShownErrorRef = useRef(false);
 
     // State for modals
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -131,6 +42,10 @@ const CCTVPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [locationFilter, setLocationFilter] = useState('');
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
 
     // Confirm dialog states
     const [confirmDialog, setConfirmDialog] = useState({
@@ -156,6 +71,8 @@ const CCTVPage = () => {
         try {
             setLoading(true);
             setError(null);
+            hasShownErrorRef.current = false;
+            
             const [locations, cctvResult] = await Promise.all([
                 cctvService.getLocationGroups(),
                 cctvService.getAllCCTV()
@@ -166,7 +83,11 @@ const CCTVPage = () => {
             console.error('Error fetching initial data:', err);
             const errorMessage = extractErrorMessage(err);
             setError(errorMessage);
-            showError('Load Failed', errorMessage);
+            
+            if (!hasShownErrorRef.current) {
+                showError('Load Failed', errorMessage);
+                hasShownErrorRef.current = true;
+            }
         } finally {
             setLoading(false);
         }
@@ -187,7 +108,7 @@ const CCTVPage = () => {
         }
         if (statusFilter) {
             const isOnline = statusFilter === 'online';
-            filtered = filtered.filter(cctv => cctv.status === isOnline);
+            filtered = filtered.filter(cctv => cctv.is_streaming === isOnline);
         }
         if (locationFilter) {
             filtered = filtered.filter(cctv => cctv.id_location == locationFilter);
@@ -195,22 +116,39 @@ const CCTVPage = () => {
         return filtered;
     }, [allCctvData, searchTerm, statusFilter, locationFilter]);
 
+    const totalPages = Math.ceil(filteredCctvData.length / itemsPerPage);
+    const paginatedCctvData = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        return filteredCctvData.slice(startIndex, endIndex);
+    }, [filteredCctvData, currentPage, itemsPerPage]);
+
     const statistics = useMemo(() => {
         const total = allCctvData.length;
-        const online = allCctvData.filter(cctv => cctv.status === true).length;
+        const online = allCctvData.filter(cctv => cctv.is_streaming === true).length;
         const offline = total - online;
         return { total, online, offline };
     }, [allCctvData]);
 
     const handlePageChange = useCallback((pageId, path) => navigate(path), [navigate]);
-    const handleSearch = useCallback((e) => setSearchTerm(e.target.value), []);
-    const handleStatusFilter = useCallback((e) => setStatusFilter(e.target.value), []);
-    const handleLocationFilter = useCallback((e) => setLocationFilter(e.target.value), []);
+    const handleSearch = useCallback((e) => {
+        setSearchTerm(e.target.value);
+        setCurrentPage(1);
+    }, []);
+    const handleStatusFilter = useCallback((e) => {
+        setStatusFilter(e.target.value);
+        setCurrentPage(1);
+    }, []);
+    const handleLocationFilter = useCallback((e) => {
+        setLocationFilter(e.target.value);
+        setCurrentPage(1);
+    }, []);
     
     const handleClearFilters = useCallback(() => {
         setSearchTerm('');
         setStatusFilter('');
         setLocationFilter('');
+        setCurrentPage(1);
         showInfo('Filters Cleared', 'All filters have been reset');
     }, [showInfo]);
 
@@ -288,11 +226,6 @@ const CCTVPage = () => {
 
     const hasActiveFilters = searchTerm || statusFilter || locationFilter;
 
-    const getConfirmButtonText = () => {
-        if (confirmDialog.action === 'delete') return 'Delete';
-        return 'Confirm';
-    };
-
     return (
         <>
             <MainLayout 
@@ -308,37 +241,37 @@ const CCTVPage = () => {
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <StatCard 
                             label="Online Kamera" 
-                            value={statistics.online} 
-                            colorClass="text-green-600" 
-                            bgClass="bg-slate-800/70" 
-                            borderColor="border-green-800"
-                            gradientColor="bg-gradient-to-l from-green-950/60 via-green-950/30 to-transparent"
-                            icon={<SignalIcon className="w-12 h-12"/>} 
+                            value={String(statistics.online)}
+                            icon={SignalIcon}
+                            color="green"
+                            loading={loading}
                         />
                         <StatCard 
                             label="Offline Kamera" 
-                            value={statistics.offline} 
-                            colorClass="text-red-600" 
-                            bgClass="bg-slate-800/70"
-                            borderColor="border-red-800"
-                            gradientColor="bg-gradient-to-l from-red-950/60 via-red-950/30 to-transparent"
-                            icon={<SignalSlashIcon className="w-12 h-12"/>} 
+                            value={String(statistics.offline)}
+                            icon={SignalSlashIcon}
+                            color="red"
+                            loading={loading}
                         />
                         <div className="md:col-span-2">
-                            <TotalStatCard 
+                            <StatCardWithAction 
                                 label="Total Kamera" 
-                                value={statistics.total}
-                                onAddClick={handleAddCCTV}
+                                value={String(statistics.total)}
+                                icon={VideoCameraIcon}
+                                buttonText="Tambah Kamera"
+                                buttonIcon={PlusIcon}
+                                onButtonClick={handleAddCCTV}
                                 loading={loading}
+                                color="blue"
                             />
                         </div>
                     </div>
 
                     {/* Filters */}
-                    <div className="bg-slate-900/70 backdrop-blur-sm p-6 rounded-xl border border-slate-700/50">
+                    <div className="bg-white dark:bg-slate-900/70 backdrop-blur-sm p-6 rounded-xl border border-gray-300 dark:border-slate-700/50">
                         <div className="flex flex-col lg:flex-row gap-4 items-end">
                             <div className="flex-1">
-                                <label className="block text-sm font-medium mb-2 text-gray-300">Cari CCTV</label>
+                                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Cari CCTV</label>
                                 <SearchInput 
                                     value={searchTerm} 
                                     onChange={handleSearch} 
@@ -346,16 +279,16 @@ const CCTVPage = () => {
                                 />
                             </div>
                             <div className="w-full lg:w-48">
-                                <label className="block text-sm font-medium mb-2 text-gray-300">Status</label>
-                                <StatusSelect 
+                                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Status</label>
+                                <CustomStatusSelect 
                                     value={statusFilter} 
                                     onChange={handleStatusFilter} 
                                     disabled={loading} 
                                 />
                             </div>
                             <div className="w-full lg:w-48">
-                                <label className="block text-sm font-medium mb-2 text-gray-300">Lokasi</label>
-                                <LocationSelect 
+                                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Lokasi</label>
+                                <CustomLocationSelect 
                                     value={locationFilter} 
                                     onChange={handleLocationFilter} 
                                     disabled={loading} 
@@ -367,7 +300,7 @@ const CCTVPage = () => {
                                     <button
                                         onClick={handleClearFilters}
                                         disabled={loading}
-                                        className="w-full bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-sm">
+                                        className="w-full bg-gray-300 hover:bg-gray-400 dark:bg-slate-700 dark:hover:bg-slate-600 disabled:bg-gray-200 dark:disabled:bg-slate-800 text-gray-800 dark:text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-sm">
                                         Clear
                                     </button>
                                 </div>
@@ -377,19 +310,23 @@ const CCTVPage = () => {
 
                     {/* CCTV List Component */}
                     <CCTVList
-                        cctvData={filteredCctvData}
+                        cctvData={paginatedCctvData}
                         loading={loading}
                         error={error}
                         onRefresh={handleRefresh}
                         onEdit={handleEditCCTV}
                         onDelete={handleDeleteCCTV}
                         locationGroups={locationGroups}
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={setCurrentPage}
+                        totalItems={filteredCctvData.length}
                     />
 
                     {/* Results Count */}
                     {!loading && allCctvData.length > 0 && (
-                        <div className="text-sm text-gray-400 text-center">
-                            Menampilkan {filteredCctvData.length} dari {allCctvData.length} total CCTV.
+                        <div className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                            Menampilkan {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, filteredCctvData.length)} dari {filteredCctvData.length} CCTV yang difilter ({allCctvData.length} total).
                         </div>
                     )}
                 </div>

@@ -7,8 +7,8 @@ class CCTVService {
     'ip_address': 'IP Address', 
     'status': 'Status',
     'id_location': 'Lokasi',
-    'string': 'Titik Letak', // Common server validation error
-    'str': 'Titik Letak'     // Alternative validation error
+    'string': 'Titik Letak', 
+    'str': 'Titik Letak'    
   };
 
   // Helper method to format validation errors with proper field names

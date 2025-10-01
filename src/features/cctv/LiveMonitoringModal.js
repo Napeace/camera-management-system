@@ -18,10 +18,7 @@ const LiveMonitoringModal = ({ camera, onClose }) => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-        
-        {/* ================================================================= */}
-        {/* == PERUBAHAN DI SINI: Area Video dibuat 80% dari tinggi modal == */}
-        {/* ================================================================= */}
+
         <div className="h-4/5 bg-black relative">
           {camera.streamUrls ? (
             <HLSVideoPlayer
@@ -41,10 +38,7 @@ const LiveMonitoringModal = ({ camera, onClose }) => {
             </div>
           )}
         </div>
-        
-        {/* ================================================================= */}
-        {/* == PERUBAHAN DI SINI: Area Info dibuat 20% dari tinggi modal  == */}
-        {/* ================================================================= */}
+
         <div className="h-1/5 bg-gray-800 p-4 rounded-b-lg flex items-center">
           <div className="w-full flex justify-between items-center">
             {/* Kolom Kiri: Detail Teks */}

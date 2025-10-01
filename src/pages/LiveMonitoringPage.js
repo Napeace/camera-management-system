@@ -1,10 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import MainLayout from '../components/layout/MainLayout';
 import Sidebar from '../components/layout/Sidebar';
 import cctvService from '../services/cctvService';
 import HLSVideoPlayer from '../components/common/HLSVideoPlayer'; 
-import LiveMonitoringModal from '../features/cctv/LiveMonitoringModal'; // 1. Import komponen modal baru
+import LiveMonitoringModal from '../features/cctv/LiveMonitoringModal';
+import { 
+  VideoCameraIcon, 
+  Squares2X2Icon,
+  ChevronDownIcon 
+} from '@heroicons/react/24/outline';
 
 const LiveMonitoringPage = () => {
   const navigate = useNavigate();
@@ -15,6 +20,7 @@ const LiveMonitoringPage = () => {
   const [cctvCameras, setCctvCameras] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingGroups, setLoadingGroups] = useState(true);
+  const hasShownErrorRef = useRef(false);
 
   const [fullscreenCamera, setFullscreenCamera] = useState(null);
   const [gridLayout, setGridLayout] = useState('4x4');
@@ -24,6 +30,7 @@ const LiveMonitoringPage = () => {
     const loadInitialData = async () => {
       try {
         setLoadingGroups(true);
+        hasShownErrorRef.current = false;
         const groups = await cctvService.getDVRGroups();
         setDvrGroups(groups);
 
@@ -88,26 +95,17 @@ const LiveMonitoringPage = () => {
     loadStreamsForDVR();
   }, [selectedDVR, loadingGroups]);
 
-
-  // =================================================================
-  // == PERBAIKAN SCROLL: Mengunci scroll background saat modal terbuka ==
-  // =================================================================
+  // Lock scroll when modal open
   useEffect(() => {
     if (fullscreenCamera) {
-      // Saat modal terbuka, tambahkan class ke body untuk mencegah scroll
       document.body.classList.add('overflow-hidden');
     } else {
-      // Saat modal tertutup, hapus class tersebut
       document.body.classList.remove('overflow-hidden');
     }
-
-    // Cleanup function untuk memastikan class dihapus saat komponen unmount
     return () => {
       document.body.classList.remove('overflow-hidden');
     };
   }, [fullscreenCamera]);
-  // =================================================================
-
 
   // --- Handlers ---
   const handlePageChange = (pageId, path) => navigate(path);
@@ -126,38 +124,57 @@ const LiveMonitoringPage = () => {
   const handleGridLayoutChange = (layout) => setGridLayout(layout);
 
   // --- Helper Functions ---
-  const getGridClass = () => ({ '2x2': 'grid-cols-2', '3x3': 'grid-cols-3', '4x4': 'grid-cols-4' }[gridLayout] || 'grid-cols-4');
+  const getGridClass = () => ({ 
+    '2x2': 'grid-cols-1 md:grid-cols-2', 
+    '3x3': 'grid-cols-2 md:grid-cols-3', 
+    '4x4': 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4' 
+  }[gridLayout] || 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4');
+  
   const getMaxCameras = () => ({ '2x2': 4, '3x3': 9, '4x4': 16 }[gridLayout] || 16);
 
   // --- Sub-Components ---
   const CameraFeedPlaceholder = ({ camera, onClick, isSmall = false }) => (
     <div 
-      className="bg-gray-900 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all aspect-video"
+      className="bg-gray-100 dark:bg-gray-900 rounded-xl overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 dark:hover:ring-blue-400 transition-all aspect-video shadow-sm hover:shadow-md"
       onClick={() => onClick(camera)}
     >
       <div className="h-full flex flex-col">
         <div className="flex-1 bg-black relative">
           {camera.status && camera.streamUrls ? (
-            <HLSVideoPlayer streamUrls={camera.streamUrls} cameraName={camera.name} className="w-full h-full" controls={false} muted={true} />
+            <HLSVideoPlayer 
+              streamUrls={camera.streamUrls} 
+              cameraName={camera.name} 
+              className="w-full h-full" 
+              controls={false} 
+              muted={true} 
+            />
           ) : camera.status ? (
-            <div className="w-full h-full flex items-center justify-center text-white">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mx-auto mb-2"></div><p className="text-xs">Loading stream...</p>
+            <div className="w-full h-full flex flex-col items-center justify-center text-white">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mb-2"></div>
+              <p className="text-sm">Loading stream...</p>
             </div>
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-500">
-              <svg className="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636" /></svg><p className="text-xs">Offline</p>
+            <div className="w-full h-full flex flex-col items-center justify-center text-gray-500">
+              <svg className="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636" />
+              </svg>
+              <p className="text-sm">Offline</p>
             </div>
           )}
         </div>
-        <div className="bg-gray-800 p-2">
+        <div className="bg-white dark:bg-gray-800 p-3 border-t border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
-              <p className={`${isSmall ? 'text-xs' : 'text-sm'} font-medium text-white truncate`}>{camera.name}</p>
-              <p className={`${isSmall ? 'text-xs' : 'text-xs'} text-gray-400 truncate`}>{camera.location}</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{camera.name}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{camera.location}</p>
             </div>
-            <div className="flex items-center space-x-1">
-              {camera.status && camera.streamUrls && <div className="w-1.5 h-1.5 rounded-full bg-green-400"></div>}
-              <div className={`w-2 h-2 rounded-full ${camera.status ? 'bg-green-400' : 'bg-red-400'}`}></div>
+            <div className="flex items-center space-x-2 ml-2">
+              {camera.status && camera.streamUrls && (
+                <div className="flex items-center">
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                </div>
+              )}
+              <div className={`w-2 h-2 rounded-full ${camera.status ? 'bg-green-500' : 'bg-red-500'}`}></div>
             </div>
           </div>
         </div>
@@ -167,46 +184,135 @@ const LiveMonitoringPage = () => {
 
   const LiveMonitoringContent = () => (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Live Monitoring</h1>
-          <p className="text-gray-600 mt-1">Monitor kamera keamanan secara real-time</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Live Monitoring</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">Monitor kamera keamanan secara real-time</p>
         </div>
-        <div className="flex items-center space-x-3 bg-gray-100 rounded-lg p-1">
+        
+        {/* Grid Layout Selector */}
+        <div className="flex items-center space-x-2 bg-gray-100 dark:bg-slate-800/70 rounded-lg p-1 border border-gray-300 dark:border-slate-700">
+          <Squares2X2Icon className="w-5 h-5 text-gray-600 dark:text-gray-400 ml-2" />
           {['2x2', '3x3', '4x4'].map(layout => (
-             <button key={layout} onClick={() => handleGridLayoutChange(layout)} className={`px-3 py-1 text-sm rounded ${gridLayout === layout ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-200'}`}>{layout}</button>
+            <button 
+              key={layout} 
+              onClick={() => handleGridLayoutChange(layout)} 
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                gridLayout === layout 
+                  ? 'bg-blue-600 text-white shadow-sm' 
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700'
+              }`}
+            >
+              {layout}
+            </button>
           ))}
         </div>
       </div>
-      <div className="bg-white p-6 rounded-lg shadow-sm border">
-        <div className="flex items-center space-x-4">
-          <label className="text-sm font-medium text-gray-700">Filter DVR Group:</label>
-          <select value={selectedDVR} onChange={handleDVRChange} disabled={loadingGroups} className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50">
-            <option value="">{loadingGroups ? 'Loading groups...' : 'Pilih DVR Group'}</option>
-            {dvrGroups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}
-          </select>
+
+      {/* Filter Section */}
+      <div className="bg-white dark:bg-slate-900/70 backdrop-blur-sm p-6 rounded-xl border border-gray-300 dark:border-slate-700/50 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center gap-4">
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+            <VideoCameraIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+            DVR Group:
+          </label>
+          
+          <div className="relative flex-1 max-w-xs">
+            <select 
+              value={selectedDVR} 
+              onChange={handleDVRChange} 
+              disabled={loadingGroups}
+              className="block w-full px-4 py-2 pr-10 bg-white dark:bg-slate-800/70 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed appearance-none transition-colors"
+            >
+              <option value="">{loadingGroups ? 'Loading groups...' : 'Pilih DVR Group'}</option>
+              {dvrGroups.map((group) => (
+                <option key={group.id} value={group.id}>{group.name}</option>
+              ))}
+            </select>
+            <ChevronDownIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+          </div>
+          
           {selectedDVR && (
-            <div className="flex items-center space-x-4 text-sm text-gray-600">
-              <span>{cctvCameras.length} kamera ditemukan</span><span>•</span>
-              <span>{cctvCameras.filter(c => c.status).length} online</span><span>•</span>
-              <span>{cctvCameras.filter(c => c.streamUrls).length} streaming</span>
+            <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex items-center gap-2 bg-gray-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg">
+                <span className="font-medium text-gray-900 dark:text-white">{cctvCameras.length}</span>
+                <span>kamera</span>
+              </div>
+              <div className="flex items-center gap-2 bg-green-100 dark:bg-green-900/30 px-3 py-1.5 rounded-lg">
+                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                <span className="font-medium text-green-800 dark:text-green-400">{cctvCameras.filter(c => c.status).length}</span>
+                <span className="text-green-700 dark:text-green-300">online</span>
+              </div>
+              <div className="flex items-center gap-2 bg-blue-100 dark:bg-blue-900/30 px-3 py-1.5 rounded-lg">
+                <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                <span className="font-medium text-blue-800 dark:text-blue-400">{cctvCameras.filter(c => c.streamUrls).length}</span>
+                <span className="text-blue-700 dark:text-blue-300">streaming</span>
+              </div>
             </div>
           )}
         </div>
       </div>
+
+      {/* Content Area */}
       {loadingGroups ? (
-        <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div><p className="text-gray-600 mt-2">Loading DVR groups...</p></div>
-      ) : loading ? (
-        <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div><p className="text-gray-600 mt-2">Loading cameras...</p></div>
-      ) : !selectedDVR ? (
-        <div className="text-center py-12"><svg className="w-12 h-12 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 002 2v8a2 2 0 002 2z" /></svg><p className="text-gray-600">Pilih DVR Group untuk melihat kamera</p></div>
-      ) : (
-        <div className={`grid ${getGridClass()} gap-4`}>
-          {cctvCameras.slice(0, getMaxCameras()).map((camera) => <CameraFeedPlaceholder key={camera.id} camera={camera} onClick={handleCameraClick} isSmall={gridLayout === '4x4'} />)}
-          {Array.from({ length: Math.max(0, getMaxCameras() - cctvCameras.length) }).map((_, index) => <div key={`empty-${index}`} className="bg-gray-200 rounded-lg aspect-video flex items-center justify-center"><p className="text-gray-400 text-sm">Slot Kosong</p></div>)}
+        <div className="flex flex-col items-center justify-center h-96 bg-white dark:bg-slate-900/70 rounded-xl border border-gray-300 dark:border-slate-700/50">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading DVR groups...</p>
         </div>
+      ) : loading ? (
+        <div className="flex flex-col items-center justify-center h-96 bg-white dark:bg-slate-900/70 rounded-xl border border-gray-300 dark:border-slate-700/50">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading cameras...</p>
+        </div>
+      ) : !selectedDVR ? (
+        <div className="text-center py-20 bg-white dark:bg-slate-900/70 rounded-xl border border-gray-300 dark:border-slate-700/50">
+          <div className="flex flex-col items-center">
+            <div className="w-16 h-16 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+              <VideoCameraIcon className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+            </div>
+            <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">Pilih DVR Group</p>
+            <p className="text-gray-600 dark:text-gray-400">Pilih DVR Group untuk melihat kamera yang tersedia</p>
+          </div>
+        </div>
+      ) : cctvCameras.length === 0 ? (
+        <div className="text-center py-20 bg-white dark:bg-slate-900/70 rounded-xl border border-gray-300 dark:border-slate-700/50">
+          <div className="flex flex-col items-center">
+            <div className="w-16 h-16 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+              <VideoCameraIcon className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+            </div>
+            <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">Tidak Ada Kamera</p>
+            <p className="text-gray-600 dark:text-gray-400">Belum ada kamera yang terdaftar di DVR Group ini</p>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className={`grid ${getGridClass()} gap-4`}>
+            {cctvCameras.slice(0, getMaxCameras()).map((camera) => (
+              <CameraFeedPlaceholder 
+                key={camera.id} 
+                camera={camera} 
+                onClick={handleCameraClick} 
+                isSmall={gridLayout === '4x4'} 
+              />
+            ))}
+            {Array.from({ length: Math.max(0, getMaxCameras() - cctvCameras.length) }).map((_, index) => (
+              <div 
+                key={`empty-${index}`} 
+                className="bg-gray-100 dark:bg-gray-800/50 rounded-xl aspect-video flex items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-700"
+              >
+                <p className="text-gray-400 dark:text-gray-500 text-sm">Slot Kosong</p>
+              </div>
+            ))}
+          </div>
+          
+          {cctvCameras.length > getMaxCameras() && (
+            <div className="text-center text-sm bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800">
+              Menampilkan {getMaxCameras()} dari {cctvCameras.length} kamera. Gunakan layout yang lebih besar untuk melihat lebih banyak kamera.
+            </div>
+          )}
+        </>
       )}
-      {cctvCameras.length > getMaxCameras() && <div className="text-center text-sm text-gray-600 bg-yellow-50 p-3 rounded-lg border border-yellow-200">Menampilkan {getMaxCameras()} dari {cctvCameras.length} kamera. Gunakan layout yang lebih besar untuk melihat lebih banyak kamera.</div>}
     </div>
   );
 
@@ -216,7 +322,6 @@ const LiveMonitoringPage = () => {
         <LiveMonitoringContent />
       </MainLayout>
 
-      {/* 2. Ganti pemanggilan modal lama dengan komponen baru */}
       {fullscreenCamera && (
         <LiveMonitoringModal 
           camera={fullscreenCamera} 
