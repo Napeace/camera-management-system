@@ -177,25 +177,47 @@ const CCTVPage = () => {
         showInfo('Refreshing', 'Reloading CCTV data...');
     }, [fetchAllData, showInfo]);
 
+    // Update method handleConfirmAction di CCTVPage.jsx
     const handleConfirmAction = useCallback(async () => {
         const { action, cctv } = confirmDialog;
         setConfirmDialog(prev => ({ ...prev, loading: true }));
+        
         try {
+            console.log('Starting action:', action, 'for CCTV:', cctv);
+            
             switch (action) {
                 case 'delete':
-                    await cctvService.deleteCCTV(cctv.id_cctv);
+                    console.log('Calling deleteCCTV with ID:', cctv.id_cctv);
+                    const deleteResult = await cctvService.deleteCCTV(cctv.id_cctv);
+                    console.log('Delete result:', deleteResult);
+                    
+                    // Close dialog
                     setConfirmDialog({ isOpen: false });
+                    
+                    // Refresh data
                     await fetchAllData();
+                    
+                    // Show success message
                     const cctvName = cctv.titik_letak || 'CCTV';
                     showSuccess('CCTV Berhasil Dihapus', `${cctvName} telah dihapus`);
                     break;
+                    
                 default:
+                    console.log('Unknown action:', action);
                     setConfirmDialog({ isOpen: false });
                     break;
             }
         } catch (err) {
+            console.error('Action failed with error:', err);
+            console.error('Error stack:', err.stack);
+            
+            // Keep dialog open but stop loading
             setConfirmDialog(prev => ({ ...prev, loading: false }));
+            
+            // Extract and show error message
             const errorMessage = extractErrorMessage(err);
+            console.error('Extracted error message:', errorMessage);
+            
             showError('Action Failed', errorMessage);
         }
     }, [confirmDialog, fetchAllData, showSuccess, showError]);

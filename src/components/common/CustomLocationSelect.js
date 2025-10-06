@@ -10,7 +10,7 @@ const CustomLocationSelect = ({ value, onChange, disabled, locations }) => {
     const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
     const buttonRef = useRef(null);
 
-    const selectedLocation = locations.find(loc => loc.id_location === value);
+    const selectedLocation = locations.find(loc => loc.id_location === parseInt(value));
     const displayLabel = selectedLocation ? selectedLocation.nama_lokasi : 'Pilih Lokasi';
 
     // Update dropdown position when opened and on scroll/resize
@@ -66,7 +66,18 @@ const CustomLocationSelect = ({ value, onChange, disabled, locations }) => {
     }, [isOpen]);
 
     const handleSelect = (locationValue) => {
-        onChange({ target: { value: locationValue } });
+        console.log('Selected location value:', locationValue);
+        console.log('Current value before change:', value);
+        
+        // PERBAIKAN: Pastikan event object yang benar dikirim
+        onChange({ 
+            target: { 
+                name: 'id_location',  // tambahkan name
+                value: locationValue.toString() // convert ke string untuk consistency
+            } 
+        });
+        
+        console.log('Value after change should be:', locationValue);
         setIsOpen(false);
     };
 
@@ -86,40 +97,45 @@ const CustomLocationSelect = ({ value, onChange, disabled, locations }) => {
                     scrollbarColor: '#94a3b8 transparent'
                 }}
             >
-                {/* Location Options - No "Pilih Lokasi" option in dropdown */}
-                {locations.map((location) => {
-                    const isSelected = location.id_location === value;
-                    
-                    return (
-                        <button
-                            key={location.id_location}
-                            type="button"
-                            onClick={() => handleSelect(location.id_location)}
-                            className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors duration-150 ${
-                                isSelected 
-                                    ? 'bg-blue-50 dark:bg-slate-700' 
-                                    : 'hover:bg-gray-50 dark:hover:bg-slate-700/50'
-                            }`}
-                        >
-                            <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                {location.nama_lokasi}
-                            </span>
-                            {isSelected && (
-                                <svg 
-                                    className="w-5 h-5 text-blue-600 dark:text-blue-400" 
-                                    fill="currentColor" 
-                                    viewBox="0 0 20 20"
-                                >
-                                    <path 
-                                        fillRule="evenodd" 
-                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
-                                        clipRule="evenodd" 
-                                    />
-                                </svg>
-                            )}
-                        </button>
-                    );
-                })}
+                {locations.length === 0 ? (
+                    <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">
+                        Tidak ada lokasi tersedia
+                    </div>
+                ) : (
+                    locations.map((location) => {
+                        const isSelected = parseInt(location.id_location) === parseInt(value);
+                        
+                        return (
+                            <button
+                                key={location.id_location}
+                                type="button"
+                                onClick={() => handleSelect(location.id_location)}
+                                className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors duration-150 ${
+                                    isSelected 
+                                        ? 'bg-blue-50 dark:bg-slate-700' 
+                                        : 'hover:bg-gray-50 dark:hover:bg-slate-700/50'
+                                }`}
+                            >
+                                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                    {location.nama_lokasi}
+                                </span>
+                                {isSelected && (
+                                    <svg 
+                                        className="w-5 h-5 text-blue-600 dark:text-blue-400" 
+                                        fill="currentColor" 
+                                        viewBox="0 0 20 20"
+                                    >
+                                        <path 
+                                            fillRule="evenodd" 
+                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
+                                            clipRule="evenodd" 
+                                        />
+                                    </svg>
+                                )}
+                            </button>
+                        );
+                    })
+                )}
             </div>,
             document.body
         );

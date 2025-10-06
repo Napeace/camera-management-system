@@ -23,9 +23,10 @@ const CCTVEditModal = ({ isOpen, onClose, cctvToEdit, onCCTVUpdated, locationGro
             const initialData = {
                 titik_letak: cctvToEdit.titik_letak || '',
                 ip_address: cctvToEdit.ip_address || '',
-                id_location: cctvToEdit.id_location || '',
+                id_location: cctvToEdit.id_location ? cctvToEdit.id_location.toString() : '',
                 status: cctvToEdit.status
             };
+            console.log('Initializing edit form with data:', initialData);
             setFormData(initialData);
             setOriginalData(initialData);
             setError('');
@@ -41,6 +42,7 @@ const CCTVEditModal = ({ isOpen, onClose, cctvToEdit, onCCTVUpdated, locationGro
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
+        console.log('Input changed:', name, value);
         setFormData(prev => ({
             ...prev,
             [name]: value
@@ -75,7 +77,11 @@ const CCTVEditModal = ({ isOpen, onClose, cctvToEdit, onCCTVUpdated, locationGro
     };
 
     const hasChanges = () => {
-        return JSON.stringify(formData) !== JSON.stringify(originalData);
+        const changed = JSON.stringify(formData) !== JSON.stringify(originalData);
+        console.log('Has changes:', changed);
+        console.log('Current formData:', formData);
+        console.log('Original data:', originalData);
+        return changed;
     };
 
     const handleSubmit = async (e) => {
@@ -100,6 +106,7 @@ const CCTVEditModal = ({ isOpen, onClose, cctvToEdit, onCCTVUpdated, locationGro
                 id_location: parseInt(formData.id_location),
                 status: formData.status
             };
+            console.log('Updating CCTV with data:', cctvData);
             await cctvService.updateCCTV(cctvToEdit.id_cctv, cctvData);
             if (onCCTVUpdated) {
                 await onCCTVUpdated({
@@ -116,13 +123,9 @@ const CCTVEditModal = ({ isOpen, onClose, cctvToEdit, onCCTVUpdated, locationGro
         }
     };
 
+    // PERBAIKAN: Hilangkan popup konfirmasi
     const handleClose = () => {
-        if (loading) return;
-        if (hasChanges()) {
-            if (window.confirm('Ada perubahan yang belum disimpan. Yakin ingin menutup?')) {
-                onClose();
-            }
-        } else {
+        if (!loading) {
             onClose();
         }
     };

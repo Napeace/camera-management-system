@@ -48,7 +48,9 @@ const LiveMonitoringPage = () => {
                 id: foundCamera.id_cctv,
                 name: foundCamera.titik_letak,
                 location: foundCamera.location_name || 'Unknown Location',
+                // cctvService sudah map is_streaming ke status
                 status: foundCamera.status,
+                is_streaming: foundCamera.is_streaming,
                 ip_address: foundCamera.ip_address
               });
             }
@@ -65,7 +67,7 @@ const LiveMonitoringPage = () => {
     };
     loadInitialData();
   }, [searchParams]);
-  
+
   // Load streams for selected DVR
   useEffect(() => {
     const loadStreamsForDVR = async () => {
@@ -73,16 +75,31 @@ const LiveMonitoringPage = () => {
         try {
           setLoading(true);
           setCctvCameras([]);
+          
           const locationData = await cctvService.getStreamsByLocation(selectedDVR);
-          const transformedCameras = locationData.cameras.map(cam => ({
-            id: cam.cctv_id,
-            name: cam.titik_letak,
-            location: locationData.location_name,
-            status: cam.is_streaming, 
-            ip_address: cam.ip_address,
-            dvr_group: selectedDVR,
-            streamUrls: cam.stream_urls
-          }));
+          
+          const transformedCameras = locationData.cameras.map(cam => {
+            // cctvService sudah map is_streaming ke status
+            const cameraData = {
+              id: cam.cctv_id,
+              name: cam.titik_letak,
+              location: locationData.location_name,
+              status: cam.status, // sudah di-map dari is_streaming di service
+              is_streaming: cam.is_streaming,
+              ip_address: cam.ip_address,
+              dvr_group: selectedDVR,
+              streamUrls: cam.stream_urls,
+              stream_status: cam.stream_status
+            };
+            
+            console.log('Camera data:', cameraData);
+            return cameraData;
+          });
+          
+          console.log('All transformed cameras:', transformedCameras);
+          console.log('Online cameras:', transformedCameras.filter(c => c.status).length);
+          console.log('Offline cameras:', transformedCameras.filter(c => !c.status).length);
+          
           setCctvCameras(transformedCameras);
         } catch (error) {
           console.error('Error loading streams for DVR:', error);
@@ -184,62 +201,63 @@ const LiveMonitoringPage = () => {
 
   const LiveMonitoringContent = () => (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        
-        {/* Grid Layout Selector */}
-        <div className="flex items-center space-x-2 bg-gray-100 dark:bg-slate-800/70 rounded-lg p-1 border border-gray-300 dark:border-slate-700">
-          <Squares2X2Icon className="w-5 h-5 text-gray-600 dark:text-gray-400 ml-2" />
-          {['2x2', '3x3', '4x4'].map(layout => (
-            <button 
-              key={layout} 
-              onClick={() => handleGridLayoutChange(layout)} 
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                gridLayout === layout 
-                  ? 'bg-blue-600 text-white shadow-sm' 
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700'
-              }`}
-            >
-              {layout}
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* Filter Section */}
       <div className="bg-white dark:bg-slate-900/70 backdrop-blur-sm p-6 rounded-xl border border-gray-300 dark:border-slate-700/50 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center gap-4">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-            <VideoCameraIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-            DVR Group:
-          </label>
-          
-          <CustomDVRSelect
-            value={selectedDVR}
-            onChange={handleDVRChange}
-            disabled={loadingGroups}
-            dvrGroups={dvrGroups}
-            loading={loadingGroups}
-          />
-          
-          {selectedDVR && (
-            <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
-              <div className="flex items-center gap-2 bg-gray-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg">
-                <span className="font-medium text-gray-900 dark:text-white">{cctvCameras.length}</span>
-                <span>kamera</span>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+          {/* Kiri: DVR Select + Status */}
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+              <VideoCameraIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              DVR Group:
+            </label>
+            
+            <CustomDVRSelect
+              value={selectedDVR}
+              onChange={handleDVRChange}
+              disabled={loadingGroups}
+              dvrGroups={dvrGroups}
+              loading={loadingGroups}
+            />
+
+            {selectedDVR && (
+              <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex items-center gap-2 bg-gray-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg">
+                  <span className="font-medium text-gray-900 dark:text-white">{cctvCameras.length}</span>
+                  <span>kamera</span>
+                </div>
+                <div className="flex items-center gap-2 bg-green-100 dark:bg-green-900/30 px-3 py-1.5 rounded-lg">
+                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                  <span className="font-medium text-green-800 dark:text-green-400">{cctvCameras.filter(c => c.status).length}</span>
+                  <span className="text-green-700 dark:text-green-300">online</span>
+                </div>
+                <div className="flex items-center gap-2 bg-blue-100 dark:bg-blue-900/30 px-3 py-1.5 rounded-lg">
+                  <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                  <span className="font-medium text-blue-800 dark:text-blue-400">{cctvCameras.filter(c => c.streamUrls).length}</span>
+                  <span className="text-blue-700 dark:text-blue-300">streaming</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2 bg-green-100 dark:bg-green-900/30 px-3 py-1.5 rounded-lg">
-                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                <span className="font-medium text-green-800 dark:text-green-400">{cctvCameras.filter(c => c.status).length}</span>
-                <span className="text-green-700 dark:text-green-300">online</span>
-              </div>
-              <div className="flex items-center gap-2 bg-blue-100 dark:bg-blue-900/30 px-3 py-1.5 rounded-lg">
-                <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-                <span className="font-medium text-blue-800 dark:text-blue-400">{cctvCameras.filter(c => c.streamUrls).length}</span>
-                <span className="text-blue-700 dark:text-blue-300">streaming</span>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
+
+          {/* Kanan: Grid Layout Selector */}
+          <div className="flex items-center space-x-2 bg-gray-100 dark:bg-slate-800/70 rounded-lg p-1 border border-gray-300 dark:border-slate-700">
+            <Squares2X2Icon className="w-5 h-5 text-gray-600 dark:text-gray-400 ml-2" />
+            {['2x2', '3x3', '4x4'].map(layout => (
+              <button 
+                key={layout} 
+                onClick={() => handleGridLayoutChange(layout)} 
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                  gridLayout === layout 
+                    ? 'bg-blue-600 text-white shadow-sm' 
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700'
+                }`}
+              >
+                {layout}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
