@@ -195,7 +195,7 @@ const Sidebar = ({
   const IconComponent = ({ IconComponent: Icon, className = "w-5 h-5", isActive = false, isHovered = false }) => {
     const getColorClass = () => {
       if (isActive) return 'text-blue-600';
-      if (isHovered) return 'text-slate-700 dark:text-slate-200';
+      if (isHovered) return 'text-slate-800 dark:text-black';
       return 'text-slate-600 dark:text-white';
     };
 

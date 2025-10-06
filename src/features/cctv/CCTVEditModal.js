@@ -56,8 +56,8 @@ const CCTVEditModal = ({ isOpen, onClose, cctvToEdit, onCCTVUpdated, locationGro
             setError('Titik Letak wajib diisi');
             return false;
         }
-        if (titik_letak.trim().length < 5) {
-            setError('Titik Letak harus memiliki minimal 5 karakter');
+        if (titik_letak.trim().length < 3) {
+            setError('Titik Letak harus memiliki minimal 3 karakter');
             return false;
         }
         if (!ip_address.trim()) {

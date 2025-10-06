@@ -5,7 +5,7 @@ class CCTVService {
   fieldLabels = {
     'titik_letak': 'Titik Letak',
     'ip_address': 'IP Address', 
-    'status': 'Status',
+    'is_streaming': 'Status Streaming',
     'id_location': 'Lokasi',
     'string': 'Titik Letak', 
     'str': 'Titik Letak'    
@@ -68,8 +68,8 @@ class CCTVService {
         params.append('search', filters.search);
       }
       
-      if (filters.status !== undefined) {
-        params.append('status', filters.status);
+      if (filters.is_streaming !== undefined) {
+        params.append('is_streaming', filters.is_streaming);
       }
       
       if (filters.id_location) {
@@ -90,14 +90,13 @@ class CCTVService {
         cctvData = response.data;
       }
       
-      // Transform data - map backend fields to frontend expectations
+      // Transform data - ensure is_streaming is properly mapped
       const transformedData = cctvData.map(cctv => ({
         ...cctv,
         // Map location name for compatibility
         location_name: cctv.cctv_location_name || cctv.location_name,
-        // Map is_streaming to status for frontend compatibility
-        status: cctv.is_streaming !== undefined ? cctv.is_streaming : false,
-        is_streaming: cctv.is_streaming !== undefined ? cctv.is_streaming : false
+        // Ensure is_streaming is boolean
+        is_streaming: cctv.is_streaming !== undefined ? Boolean(cctv.is_streaming) : false
       }));
       
       console.log('Transformed CCTV data:', transformedData);
@@ -173,13 +172,11 @@ class CCTVService {
       
       console.log('Extracted stream data:', streamData);
       
-      // Map is_streaming to status
       return {
         success: true,
         data: {
           ...streamData,
-          is_streaming: streamData.is_streaming !== undefined ? streamData.is_streaming : false,
-          status: streamData.is_streaming !== undefined ? streamData.is_streaming : false
+          is_streaming: streamData.is_streaming !== undefined ? Boolean(streamData.is_streaming) : false
         }
       };
     } catch (error) {
@@ -236,16 +233,15 @@ class CCTVService {
 
       console.log('Extracted location data:', locationData);
 
-      // Transform camera data to map is_streaming to status
+      // Transform camera data - backend sudah mengirim is_streaming
       if (locationData && locationData.cameras) {
         locationData.cameras = locationData.cameras.map(cam => {
           console.log('Camera before transform:', cam);
           
           const transformed = {
             ...cam,
-            // Backend returns is_streaming, map to status for frontend
-            status: cam.is_streaming !== undefined ? cam.is_streaming : false,
-            is_streaming: cam.is_streaming !== undefined ? cam.is_streaming : false
+            // Backend mengirim is_streaming, pastikan boolean
+            is_streaming: cam.is_streaming !== undefined ? Boolean(cam.is_streaming) : false
           };
           
           console.log('Camera after transform:', transformed);
@@ -329,7 +325,6 @@ class CCTVService {
       const requestData = {
         titik_letak: cctvData.titik_letak,
         ip_address: cctvData.ip_address,
-        status: cctvData.status,
         id_location: parseInt(cctvData.id_location)
       };
       
@@ -374,7 +369,6 @@ class CCTVService {
       
       if (cctvData.titik_letak) updateData.titik_letak = cctvData.titik_letak;
       if (cctvData.ip_address) updateData.ip_address = cctvData.ip_address;
-      if (cctvData.status !== undefined) updateData.status = cctvData.status;
       if (cctvData.id_location) updateData.id_location = parseInt(cctvData.id_location);
 
       console.log('Updating CCTV', cctvId, 'with data:', updateData);
@@ -428,45 +422,24 @@ class CCTVService {
       console.log('=== DELETE CCTV DEBUG ===');
       console.log('CCTV ID:', cctvId);
       console.log('Token:', token ? 'Present' : 'Missing');
-      console.log('API Base URL:', apiClient.defaults.baseURL);
-      console.log('Full URL:', `${apiClient.defaults.baseURL}/cctv/${cctvId}?${params.toString()}`);
       
-      // Test connection first with a simple GET request
-      console.log('Testing API connection...');
-      try {
-        const testResponse = await apiClient.get(`/cctv/?skip=0&limit=1&token=${token}`, {
-          timeout: 5000
-        });
-        console.log('API connection test successful:', testResponse.status);
-      } catch (testError) {
-        console.error('API connection test FAILED:', testError.message);
-        throw new Error('Backend tidak dapat dijangkau. Pastikan server sedang berjalan.');
-      }
-      
-      console.log('Sending DELETE request...');
       const response = await apiClient.delete(`/cctv/${cctvId}?${params.toString()}`, {
-        timeout: 15000, // 15 second timeout for delete
+        timeout: 15000,
         headers: {
           'Content-Type': 'application/json'
         }
       });
       
-      console.log('Delete response received!');
-      console.log('Status:', response.status);
-      console.log('Status text:', response.statusText);
-      console.log('Response data:', response.data);
+      console.log('Delete response:', response.data);
       
-      // Handle success_response wrapper dari backend
       if (response.data) {
         if (response.data.status === 'success') {
-          console.log('Delete successful with success status');
           return {
             success: true,
             message: response.data.message || 'CCTV berhasil dihapus',
             data: response.data.data
           };
         } else if (response.data.message) {
-          console.log('Delete successful with message');
           return {
             success: true,
             message: response.data.message,
@@ -475,9 +448,7 @@ class CCTVService {
         }
       }
       
-      // Fallback untuk response 204 No Content atau response tanpa body
       if (response.status === 204 || response.status === 200) {
-        console.log('Delete successful with status code', response.status);
         return {
           success: true,
           message: 'CCTV berhasil dihapus',
@@ -485,7 +456,6 @@ class CCTVService {
         };
       }
       
-      console.log('Delete successful with fallback handling');
       return {
         success: true,
         message: 'CCTV berhasil dihapus',
@@ -494,22 +464,11 @@ class CCTVService {
       
     } catch (error) {
       console.error('=== DELETE CCTV ERROR ===');
-      console.error('Error object:', error);
-      console.error('Error name:', error.name);
-      console.error('Error message:', error.message);
-      console.error('Error code:', error.code);
-      console.error('Error stack:', error.stack);
+      console.error('Error:', error);
       
       let errorMessage = 'Gagal menghapus CCTV';
       
       if (error.response) {
-        // Server responded with error status
-        console.error('=== SERVER RESPONSE ERROR ===');
-        console.error('Status:', error.response.status);
-        console.error('Status text:', error.response.statusText);
-        console.error('Response data:', error.response.data);
-        console.error('Response headers:', error.response.headers);
-        
         const errorData = error.response.data;
         
         if (typeof errorData === 'string') {
@@ -528,33 +487,17 @@ class CCTVService {
           errorMessage = `Server Error (${error.response.status}): ${error.response.statusText}`;
         }
       } else if (error.request) {
-        // Request made but no response received
-        console.error('=== NO RESPONSE ERROR ===');
-        console.error('Request object:', error.request);
-        console.error('Request ready state:', error.request.readyState);
-        console.error('Request status:', error.request.status);
-        console.error('Request response:', error.request.response);
-        console.error('Request config:', error.config);
-        
         if (error.code === 'ECONNABORTED') {
-          errorMessage = 'Request timeout. Server terlalu lama merespon (>15 detik).';
+          errorMessage = 'Request timeout. Server terlalu lama merespon.';
         } else if (error.code === 'ERR_NETWORK') {
-          errorMessage = 'Network error. Backend tidak dapat dijangkau atau CORS issue.';
-        } else if (error.message.includes('timeout')) {
-          errorMessage = 'Request timeout. Server tidak merespon dalam waktu yang ditentukan.';
-        } else if (error.message.includes('Network Error')) {
-          errorMessage = 'Network Error. Pastikan backend berjalan di: ' + apiClient.defaults.baseURL;
+          errorMessage = 'Network error. Backend tidak dapat dijangkau.';
         } else {
           errorMessage = `Tidak ada response dari server. ${error.message}`;
         }
       } else {
-        // Something else happened
-        console.error('=== UNEXPECTED ERROR ===');
-        console.error('Error:', error);
         errorMessage = error.message || 'Terjadi kesalahan yang tidak diketahui';
       }
       
-      console.error('Final error message:', errorMessage);
       throw new Error(errorMessage);
     }
   }

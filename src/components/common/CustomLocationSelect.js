@@ -16,7 +16,6 @@ const CustomLocationSelect = ({ value, onChange, disabled, locations }) => {
     // Update dropdown position when opened and on scroll/resize
     useEffect(() => {
         const updatePosition = (event) => {
-            // Jangan update jika scroll terjadi di dalam dropdown itu sendiri
             const dropdownElement = document.getElementById('location-dropdown-portal');
             if (dropdownElement && dropdownElement.contains(event?.target)) {
                 return;
@@ -66,18 +65,12 @@ const CustomLocationSelect = ({ value, onChange, disabled, locations }) => {
     }, [isOpen]);
 
     const handleSelect = (locationValue) => {
-        console.log('Selected location value:', locationValue);
-        console.log('Current value before change:', value);
-        
-        // PERBAIKAN: Pastikan event object yang benar dikirim
         onChange({ 
             target: { 
-                name: 'id_location',  // tambahkan name
-                value: locationValue.toString() // convert ke string untuk consistency
+                name: 'id_location',
+                value: locationValue.toString()
             } 
         });
-        
-        console.log('Value after change should be:', locationValue);
         setIsOpen(false);
     };
 
@@ -110,18 +103,18 @@ const CustomLocationSelect = ({ value, onChange, disabled, locations }) => {
                                 key={location.id_location}
                                 type="button"
                                 onClick={() => handleSelect(location.id_location)}
-                                className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors duration-150 ${
+                                className={`w-full flex items-center justify-between gap-2 px-4 py-3 text-left transition-colors duration-150 ${
                                     isSelected 
                                         ? 'bg-blue-50 dark:bg-slate-700' 
                                         : 'hover:bg-gray-50 dark:hover:bg-slate-700/50'
                                 }`}
                             >
-                                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                <span className="text-sm font-medium text-gray-900 dark:text-white truncate flex-1 min-w-0">
                                     {location.nama_lokasi}
                                 </span>
                                 {isSelected && (
                                     <svg 
-                                        className="w-5 h-5 text-blue-600 dark:text-blue-400" 
+                                        className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" 
                                         fill="currentColor" 
                                         viewBox="0 0 20 20"
                                     >
@@ -149,10 +142,10 @@ const CustomLocationSelect = ({ value, onChange, disabled, locations }) => {
                     type="button"
                     onClick={() => !disabled && setIsOpen(!isOpen)}
                     disabled={disabled}
-                    className="w-full flex items-center justify-between py-2.5 pl-10 pr-3 bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-blue-500 dark:focus:border-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:border-gray-400 dark:hover:border-slate-500 font-medium text-sm shadow-sm text-left"
+                    className="w-full flex items-center justify-between gap-2 py-2.5 pl-10 pr-3 bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-blue-500 dark:focus:border-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:border-gray-400 dark:hover:border-slate-500 font-medium text-sm shadow-sm text-left"
                 >
-                    <span className="flex items-center gap-2 flex-1 mr-2">
-                        <VideoCameraIcon className="w-5 h-5 absolute left-3 text-gray-500 dark:text-gray-400" />
+                    <VideoCameraIcon className="w-5 h-5 absolute left-3 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+                    <span className="truncate flex-1 min-w-0">
                         {displayLabel}
                     </span>
                     <ChevronDownIcon 

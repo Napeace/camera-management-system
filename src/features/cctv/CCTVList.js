@@ -12,6 +12,7 @@ import {
   CogIcon,
   ClipboardDocumentListIcon
 } from '@heroicons/react/24/outline';
+import Pagination from '../../components/common/Pagination';
 
 const CCTVList = ({ 
   cctvData, 
@@ -24,7 +25,8 @@ const CCTVList = ({
   currentPage,
   totalPages,
   onPageChange,
-  totalItems
+  totalItems,
+  itemsPerPage = 10
 }) => {
   const [actionLoading, setActionLoading] = useState({});
   
@@ -216,82 +218,16 @@ const CCTVList = ({
         </table>
       </div>
       
-      {/* Pagination Footer */}
-      {totalPages > 1 && (
-        <div className="px-6 py-4 bg-gray-50 dark:bg-slate-900/30 border-t border-gray-200 dark:border-slate-700/50 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            Halaman {currentPage} dari {totalPages} ({totalItems} total CCTV)
-          </div>
-          <div className="flex items-center gap-2 flex-wrap justify-center">
-            <button
-              onClick={() => onPageChange(1)}
-              disabled={currentPage === 1}
-              className="px-3 py-1 rounded-lg text-sm font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-slate-600"
-            >
-              First
-            </button>
-            <button
-              onClick={() => onPageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="px-3 py-1 rounded-lg text-sm font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-slate-600"
-            >
-              Prev
-            </button>
-            
-            {/* Page Numbers */}
-            <div className="flex gap-1">
-              {[...Array(totalPages)].map((_, idx) => {
-                const pageNum = idx + 1;
-                // Show first, last, current, and adjacent pages
-                if (
-                  pageNum === 1 ||
-                  pageNum === totalPages ||
-                  (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
-                ) {
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => onPageChange(pageNum)}
-                      className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                        currentPage === pageNum
-                          ? 'bg-blue-600 dark:bg-blue-500 text-white'
-                          : 'bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-slate-600'
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                } else if (pageNum === currentPage - 2 || pageNum === currentPage + 2) {
-                  return <span key={pageNum} className="px-2 text-gray-500">...</span>;
-                }
-                return null;
-              })}
-            </div>
-
-            <button
-              onClick={() => onPageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 rounded-lg text-sm font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-slate-600"
-            >
-              Next
-            </button>
-            <button
-              onClick={() => onPageChange(totalPages)}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 rounded-lg text-sm font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-slate-600"
-            >
-              Last
-            </button>
-          </div>
-        </div>
-      )}
-      
-      {/* Single Page Footer */}
-      {totalPages <= 1 && (
-        <div className="px-6 py-3 bg-gray-50 dark:bg-slate-900/30 border-t border-gray-200 dark:border-slate-700/50 text-sm text-gray-600 dark:text-gray-400">
-          Menampilkan {cctvData.length} CCTV
-        </div>
-      )}
+      {/* Pagination Component */}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        itemsPerPage={itemsPerPage}
+        onPageChange={onPageChange}
+        itemName="CCTV"
+        showFirstLast={true}
+      />
     </div>
   );
 };
