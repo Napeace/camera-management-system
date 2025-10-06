@@ -58,27 +58,22 @@ class CCTVService {
     try {
       const params = new URLSearchParams();
       
-      // Add token (consistent with userService)
       const token = localStorage.getItem('access_token');
       if (token) {
         params.append('token', token);
       }
       
-      // Add pagination
       params.append('skip', filters.skip || 0);
       params.append('limit', filters.limit || 50);
       
-      // Add search parameter if exists
       if (filters.search) {
         params.append('search', filters.search);
       }
       
-      // Add status filter if exists
       if (filters.status !== undefined) {
         params.append('status', filters.status);
       }
       
-      // Add location filter if exists
       if (filters.id_location) {
         params.append('id_location', filters.id_location);
       }
@@ -88,23 +83,26 @@ class CCTVService {
       const response = await apiClient.get(`/cctv/?${params.toString()}`);
       
       console.log('CCTV API Response:', response);
-      console.log('CCTV API Response Data:', response.data);
       
-      // Pastikan response.data adalah array
       const cctvData = Array.isArray(response.data) ? response.data : 
                       response.data.data ? response.data.data :
                       response.data.items ? response.data.items : [];
       
+      // Transform data to ensure is_streaming is mapped to status
+      const transformedData = cctvData.map(cctv => ({
+        ...cctv,
+        status: cctv.is_streaming || false,
+        is_streaming: cctv.is_streaming || false
+      }));
+      
       return {
-        data: cctvData,
-        total: cctvData.length,
+        data: transformedData,
+        total: transformedData.length,
         success: true
       };
     } catch (error) {
       console.error('Error fetching CCTV data:', error);
-      console.error('Error response:', error.response);
       
-      // Detailed error message
       let errorMessage = 'Failed to fetch CCTV data';
       if (error.response) {
         errorMessage = error.response.data?.detail || 
@@ -157,16 +155,19 @@ class CCTVService {
       const response = await apiClient.get(`/cctv/${cctvId}/stream?${params.toString()}`);
       console.log('Stream URLs Response:', response.data);
       
-      // Extract data from response
       const streamData = response.data.data || response.data;
       
+      // Ensure is_streaming status is included
       return {
         success: true,
-        data: streamData
+        data: {
+          ...streamData,
+          is_streaming: streamData.is_streaming || false,
+          status: streamData.is_streaming || false
+        }
       };
     } catch (error) {
       console.error('Error fetching stream URLs:', error);
-      console.error('Error response:', error.response);
       
       let errorMessage = 'Gagal mengambil stream URLs';
       
@@ -193,8 +194,9 @@ class CCTVService {
       };
     }
   }
-  
-async getStreamsByLocation(locationId) {
+
+  // getStreamsByLocation method - UPDATED
+  async getStreamsByLocation(locationId) {
     try {
       console.log(`Fetching streams for location: ${locationId}`);
       const token = localStorage.getItem('access_token');
@@ -205,11 +207,24 @@ async getStreamsByLocation(locationId) {
       
       const response = await apiClient.get(`/cctv/location/${locationId}/streams?${params.toString()}`);
       
+      let locationData;
       if (response.data && response.data.status === 'success') {
-        return response.data.data;
+        locationData = response.data.data;
       } else {
-        return response.data;
+        locationData = response.data;
       }
+
+      // Transform data to use is_streaming instead of status
+      if (locationData && locationData.cameras) {
+        locationData.cameras = locationData.cameras.map(cam => ({
+          ...cam,
+          // Map is_streaming from backend to status for frontend compatibility
+          status: cam.is_streaming || false,
+          is_streaming: cam.is_streaming || false
+        }));
+      }
+
+      return locationData;
 
     } catch (error) {
       console.error('Error fetching streams by location:', error);

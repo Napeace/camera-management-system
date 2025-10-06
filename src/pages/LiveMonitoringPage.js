@@ -5,10 +5,10 @@ import Sidebar from '../components/layout/Sidebar';
 import cctvService from '../services/cctvService';
 import HLSVideoPlayer from '../components/common/HLSVideoPlayer'; 
 import LiveMonitoringModal from '../features/cctv/LiveMonitoringModal';
+import CustomDVRSelect from '../components/common/CustomDVRSelect';
 import { 
   VideoCameraIcon, 
-  Squares2X2Icon,
-  ChevronDownIcon 
+  Squares2X2Icon
 } from '@heroicons/react/24/outline';
 
 const LiveMonitoringPage = () => {
@@ -186,10 +186,6 @@ const LiveMonitoringPage = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Live Monitoring</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">Monitor kamera keamanan secara real-time</p>
-        </div>
         
         {/* Grid Layout Selector */}
         <div className="flex items-center space-x-2 bg-gray-100 dark:bg-slate-800/70 rounded-lg p-1 border border-gray-300 dark:border-slate-700">
@@ -218,20 +214,13 @@ const LiveMonitoringPage = () => {
             DVR Group:
           </label>
           
-          <div className="relative flex-1 max-w-xs">
-            <select 
-              value={selectedDVR} 
-              onChange={handleDVRChange} 
-              disabled={loadingGroups}
-              className="block w-full px-4 py-2 pr-10 bg-white dark:bg-slate-800/70 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed appearance-none transition-colors"
-            >
-              <option value="">{loadingGroups ? 'Loading groups...' : 'Pilih DVR Group'}</option>
-              {dvrGroups.map((group) => (
-                <option key={group.id} value={group.id}>{group.name}</option>
-              ))}
-            </select>
-            <ChevronDownIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-          </div>
+          <CustomDVRSelect
+            value={selectedDVR}
+            onChange={handleDVRChange}
+            disabled={loadingGroups}
+            dvrGroups={dvrGroups}
+            loading={loadingGroups}
+          />
           
           {selectedDVR && (
             <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
@@ -318,7 +307,16 @@ const LiveMonitoringPage = () => {
 
   return (
     <>
-      <MainLayout Sidebar={(props) => <Sidebar {...props} onPageChange={handlePageChange} />}>
+      <MainLayout 
+        Sidebar={(props) => (
+          <Sidebar 
+            {...props} 
+            onPageChange={handlePageChange} 
+            />
+          )}
+          navbarTitle="Live Monitoring"
+          navbarSubtitle="Monitor kamera keamanan secara real-time"
+      >
         <LiveMonitoringContent />
       </MainLayout>
 

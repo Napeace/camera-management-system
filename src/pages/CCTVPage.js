@@ -235,6 +235,8 @@ const CCTVPage = () => {
                         onPageChange={handlePageChange}
                     />
                 )}
+                navbarTitle="Manajemen CCTV"
+                navbarSubtitle="Kontrol keamanan Rumah Sakit Citra Husada"
             >
                 <div className="space-y-6">
                     {/* Statistics Cards */}

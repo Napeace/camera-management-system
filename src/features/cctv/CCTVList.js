@@ -40,7 +40,7 @@ const CCTVList = ({
       return (
         <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-500/20 dark:bg-red-500/20 text-red-700 dark:text-red-300 border border-red-500/30">
           <span className="w-2 h-2 mr-2 bg-red-600 dark:bg-red-400 rounded-full"></span>
-          Error
+          Offline
         </span>
       );
     }

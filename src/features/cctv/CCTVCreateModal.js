@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import cctvService from '../../services/cctvService';
 import { XMarkIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
+import CustomLocationSelect from '../../components/common/CustomLocationSelect';
 
 const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }) => {
     const [loading, setLoading] = useState(false);
@@ -108,10 +109,17 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
 
     const handleClose = () => !loading && onClose();
 
+    const handleBackdropClick = (e) => {
+        if (e.target === e.currentTarget && !loading) {
+            onClose();
+        }
+    };
+
     if (!isOpen && !isAnimating) return null;
 
     return (
         <div 
+            onClick={handleBackdropClick}
             className={`fixed inset-0 bg-black/70 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity duration-300 ${
                 shouldShow ? 'opacity-100' : 'opacity-0'
             }`}
@@ -188,29 +196,12 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
                         <label htmlFor="id_location" className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
                             Lokasi DVR
                         </label>
-                        <select
-                            id="id_location" 
-                            name="id_location" 
-                            required
-                            value={formData.id_location} 
-                            onChange={handleInputChange} 
+                        <CustomLocationSelect
+                            value={formData.id_location}
+                            onChange={handleInputChange}
                             disabled={loading}
-                            className="block w-full px-4 py-3 bg-white dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-white/30 focus:border-blue-500 dark:focus:border-white/30 disabled:opacity-50 transition-all appearance-none"
-                            style={{
-                                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor' %3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                                backgroundRepeat: 'no-repeat',
-                                backgroundPosition: 'right 0.75rem center',
-                                backgroundSize: '1.5em 1.5em',
-                                paddingRight: '2.5rem'
-                            }}
-                        >
-                            <option value="" className="bg-white dark:bg-slate-800">Pilih Lokasi</option>
-                            {locationGroups.map((location) => (
-                                <option key={location.id_location} value={location.id_location} className="bg-white dark:bg-slate-800">
-                                    {location.nama_lokasi}
-                                </option>
-                            ))}
-                        </select>
+                            locations={locationGroups}
+                        />
                     </div>
 
                     {/* Border persegi panjang sebelum button */}

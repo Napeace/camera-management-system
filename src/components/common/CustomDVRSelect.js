@@ -1,29 +1,27 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { 
-    SignalIcon, 
-    SignalSlashIcon,
+    VideoCameraIcon,
     ChevronDownIcon 
 } from '@heroicons/react/24/outline';
 
-const CustomStatusSelect = ({ value, onChange, disabled }) => {
+const CustomDVRSelect = ({ value, onChange, disabled, dvrGroups, loading }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
     const buttonRef = useRef(null);
 
-    const options = [
-        { value: 'online', label: 'Online', icon: SignalIcon, color: 'text-green-600 dark:text-green-400' },
-        { value: 'offline', label: 'Offline', icon: SignalSlashIcon, color: 'text-red-600 dark:text-red-400' }
-    ];
-
-    const selectedOption = options.find(opt => opt.value === value);
-    const displayLabel = selectedOption ? selectedOption.label : 'Pilih Status';
-    const DisplayIcon = selectedOption ? selectedOption.icon : SignalIcon;
-    const displayColor = selectedOption ? selectedOption.color : 'text-gray-500 dark:text-gray-400';
+    const selectedDVR = dvrGroups.find(dvr => dvr.id.toString() === value);
+    const displayLabel = loading ? 'Loading groups...' : (selectedDVR ? selectedDVR.name : 'Pilih DVR Group');
 
     // Update dropdown position when opened and on scroll/resize
     useEffect(() => {
-        const updatePosition = () => {
+        const updatePosition = (event) => {
+            // Jangan update jika scroll terjadi di dalam dropdown itu sendiri
+            const dropdownElement = document.getElementById('dvr-dropdown-portal');
+            if (dropdownElement && dropdownElement.contains(event?.target)) {
+                return;
+            }
+
             if (isOpen && buttonRef.current) {
                 const rect = buttonRef.current.getBoundingClientRect();
                 setDropdownPosition({
@@ -51,7 +49,7 @@ const CustomStatusSelect = ({ value, onChange, disabled }) => {
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (buttonRef.current && !buttonRef.current.contains(event.target)) {
-                const dropdownElement = document.getElementById('status-dropdown-portal');
+                const dropdownElement = document.getElementById('dvr-dropdown-portal');
                 if (dropdownElement && !dropdownElement.contains(event.target)) {
                     setIsOpen(false);
                 }
@@ -67,8 +65,8 @@ const CustomStatusSelect = ({ value, onChange, disabled }) => {
         };
     }, [isOpen]);
 
-    const handleSelect = (optionValue) => {
-        onChange({ target: { value: optionValue } });
+    const handleSelect = (dvrValue) => {
+        onChange({ target: { value: dvrValue } });
         setIsOpen(false);
     };
 
@@ -77,38 +75,37 @@ const CustomStatusSelect = ({ value, onChange, disabled }) => {
 
         return createPortal(
             <div 
-                id="status-dropdown-portal"
-                className="fixed bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 rounded-xl shadow-xl overflow-hidden animate-slideDown"
+                id="dvr-dropdown-portal"
+                className="fixed bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 rounded-xl shadow-xl overflow-hidden max-h-60 overflow-y-auto animate-slideDown"
                 style={{
                     top: `${dropdownPosition.top}px`,
                     left: `${dropdownPosition.left}px`,
                     width: `${dropdownPosition.width}px`,
-                    zIndex: 999999
+                    zIndex: 999999,
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: '#94a3b8 transparent'
                 }}
             >
-                {/* Status Options - No "Pilih Status" option in dropdown */}
-                {options.map((option) => {
-                    const Icon = option.icon;
-                    const isSelected = option.value === value;
+                {dvrGroups.map((group) => {
+                    const isSelected = group.id.toString() === value;
                     
                     return (
                         <button
-                            key={option.value}
+                            key={group.id}
                             type="button"
-                            onClick={() => handleSelect(option.value)}
-                            className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors duration-150 ${
+                            onClick={() => handleSelect(group.id.toString())}
+                            className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors duration-150 ${
                                 isSelected 
                                     ? 'bg-blue-50 dark:bg-slate-700' 
                                     : 'hover:bg-gray-50 dark:hover:bg-slate-700/50'
                             }`}
                         >
-                            <Icon className={`w-5 h-5 ${option.color}`} />
                             <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                {option.label}
+                                {group.name}
                             </span>
                             {isSelected && (
                                 <svg 
-                                    className="w-5 h-5 ml-auto text-blue-600 dark:text-blue-400" 
+                                    className="w-5 h-5 text-blue-600 dark:text-blue-400" 
                                     fill="currentColor" 
                                     viewBox="0 0 20 20"
                                 >
@@ -129,16 +126,16 @@ const CustomStatusSelect = ({ value, onChange, disabled }) => {
 
     return (
         <>
-            <div className="relative">
+            <div className="relative flex-1 max-w-xs">
                 <button
                     ref={buttonRef}
                     type="button"
-                    onClick={() => !disabled && setIsOpen(!isOpen)}
-                    disabled={disabled}
+                    onClick={() => !disabled && !loading && setIsOpen(!isOpen)}
+                    disabled={disabled || loading}
                     className="w-full flex items-center justify-between py-2.5 pl-10 pr-3 bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-blue-500 dark:focus:border-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:border-gray-400 dark:hover:border-slate-500 font-medium text-sm shadow-sm text-left"
                 >
                     <span className="flex items-center gap-2 flex-1 mr-2">
-                        <DisplayIcon className={`w-5 h-5 absolute left-3 ${displayColor}`} />
+                        <VideoCameraIcon className="w-5 h-5 absolute left-3 text-gray-500 dark:text-gray-400" />
                         {displayLabel}
                     </span>
                     <ChevronDownIcon 
@@ -152,4 +149,4 @@ const CustomStatusSelect = ({ value, onChange, disabled }) => {
     );
 };
 
-export default CustomStatusSelect;
+export default CustomDVRSelect;

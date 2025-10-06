@@ -5,6 +5,20 @@ import { useAuth } from '../contexts/AuthContext';
 import authService from '../services/authService';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
+// Array kalimat motivasi
+const motivationalQuotes = [
+  "Keamanan dimulai dari kewaspadaan kita!",
+  "Pantau, Lindungi, dan Jaga Keamanan Bersama",
+  "Setiap detik adalah momen untuk menjaga keamanan",
+  "Bersama kita ciptakan lingkungan yang aman",
+  "Teknologi menjaga, kita yang mengawasi",
+  "Keamanan adalah prioritas utama kami",
+  "Awasi hari ini, amankan masa depan",
+  "Satu sistem, satu tujuan: Keamanan maksimal",
+  "Monitoring cerdas untuk perlindungan optimal",
+  "Kewaspadaan adalah kunci keamanan terbaik"
+];
+
 function LoginPage() {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading, login: authLogin } = useAuth();
@@ -17,8 +31,25 @@ function LoginPage() {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [motivationalQuote, setMotivationalQuote] = useState('');
+  const [lastQuoteIndex, setLastQuoteIndex] = useState(-1);
+  const [quoteVisible, setQuoteVisible] = useState(true);
 
   useEffect(() => {
+    // Fungsi untuk mendapatkan index random yang berbeda dari sebelumnya
+    const getRandomDifferentIndex = (currentIndex) => {
+      let newIndex;
+      do {
+        newIndex = Math.floor(Math.random() * motivationalQuotes.length);
+      } while (newIndex === currentIndex && motivationalQuotes.length > 1);
+      return newIndex;
+    };
+
+    // Pilih kalimat motivasi random pertama kali
+    const randomIndex = getRandomDifferentIndex(-1);
+    setMotivationalQuote(motivationalQuotes[randomIndex]);
+    setLastQuoteIndex(randomIndex);
+
     if (!isLoading && isAuthenticated()) {
       navigate('/dashboard');
     }
@@ -28,7 +59,26 @@ function LoginPage() {
       setIsVisible(true);
     }, 100);
     
-    return () => clearTimeout(timer);
+    // Ganti kalimat motivasi setiap 3 detik dengan animasi
+    const quoteInterval = setInterval(() => {
+      // Fade out
+      setQuoteVisible(false);
+      
+      // Setelah fade out selesai, ganti quote dan fade in
+      setTimeout(() => {
+        setLastQuoteIndex(prevIndex => {
+          const newIndex = getRandomDifferentIndex(prevIndex);
+          setMotivationalQuote(motivationalQuotes[newIndex]);
+          return newIndex;
+        });
+        setQuoteVisible(true);
+      }, 300);
+    }, 3000);
+    
+    return () => {
+      clearTimeout(timer);
+      clearInterval(quoteInterval);
+    };
   }, [navigate, isAuthenticated, isLoading]);
 
   const handleSubmit = async (e) => {
@@ -100,6 +150,13 @@ function LoginPage() {
             />
           </div>
           <h2 className="text-3xl font-bold text-white animate-fade-in drop-shadow-lg">Selamat Datang!</h2>
+          
+          {/* Kalimat Motivasi Random dengan animasi */}
+          <p className={`mt-3 text-lg text-white/90 font-medium drop-shadow-md transition-all duration-300 ${
+            quoteVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
+          }`}>
+            {motivationalQuote}
+          </p>
         </div>
 
         {/* Form Section */}

@@ -6,7 +6,9 @@ import Navbar from './Navbar';
 
 const MainLayout = ({ 
   children, 
-  Sidebar 
+  Sidebar,
+  navbarTitle,   
+  navbarSubtitle 
 }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const location = useLocation();
@@ -79,7 +81,11 @@ const MainLayout = ({
                 ? 'bg-slate-900/50 border-slate-600/30'
                 : 'bg-white/60 border-gray-200/50'
             }`}>
-              <Navbar user={user} />
+              <Navbar 
+                user={user} 
+                title={navbarTitle}       
+                subtitle={navbarSubtitle} 
+              />
             </div>
           </div>
           

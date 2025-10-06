@@ -27,6 +27,7 @@ const DashboardContent = ({
   showError,
   showWarning,
   navigate,
+  isSuperAdmin,
 }) => {
   const lastLogin = [
     { user: 'Admin RSCH', date: '19 September 2025', action: 'Logged in: Admin RSCH' },
@@ -73,20 +74,56 @@ const DashboardContent = ({
     <div className="space-y-6">
       {/* Top Grid: Stats Cards (left) + Last Login (right) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Side: Stats Cards in 2x2 Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {stats.map((stat, index) => (
+        {/* Left Side: Stats Cards */}
+        {isSuperAdmin ? (
+          // SuperAdmin: 2x2 Grid (4 cards)
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {stats.map((stat, index) => (
+              <StatCard
+                key={index}
+                label={stat.label}
+                value={stat.value}
+                icon={stat.Icon}
+                color={stat.color}
+                loading={loading}
+                onClick={() => handleStatCardClick(stat)}
+              />
+            ))}
+          </div>
+        ) : (
+          // Security: Total Kamera full width on top, Online/Offline below in 2 columns
+          <div className="space-y-4">
+            {/* Total Kamera - Full Width */}
             <StatCard
-              key={index}
-              label={stat.label}
-              value={stat.value}
-              icon={stat.Icon}
-              color={stat.color}
+              label={stats[0].label}
+              value={stats[0].value}
+              icon={stats[0].Icon}
+              color={stats[0].color}
               loading={loading}
-              onClick={() => handleStatCardClick(stat)}
+              onClick={() => handleStatCardClick(stats[0])}
             />
-          ))}
-        </div>
+            
+            {/* Online & Offline - Side by Side */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <StatCard
+                label={stats[1].label}
+                value={stats[1].value}
+                icon={stats[1].Icon}
+                color={stats[1].color}
+                loading={loading}
+                onClick={() => handleStatCardClick(stats[1])}
+              />
+              <StatCard
+                label={stats[2].label}
+                value={stats[2].value}
+                icon={stats[2].Icon}
+                color={stats[2].color}
+                loading={loading}
+                onClick={() => handleStatCardClick(stats[2])}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Right Side: Last Login */}
         <div>
@@ -316,6 +353,7 @@ const DashboardPage = () => {
         showWarning={showWarning}
         showInfo={showInfo}
         navigate={navigate}
+        isSuperAdmin={isSuperAdmin}
       />
     </MainLayout>
   );
