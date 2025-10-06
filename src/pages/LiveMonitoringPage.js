@@ -168,12 +168,7 @@ const LiveMonitoringPage = () => {
   const handlePageChange = (pageId, path) => navigate(path);
   const handleStatusFilter = (e) => setStatusFilter(e.target.value);
   const handleLocationFilter = (e) => setLocationFilter(e.target.value);
-  const handleCameraClick = (camera) => {
-    if (!camera.is_streaming) {
-      alert('Kamera sedang offline atau stream belum siap.');
-      return;
-    }
-    
+  const handleCameraClick = (camera) => {  
     // Pastikan semua data lengkap saat dikirim ke modal
     setFullscreenCamera({
       id: camera.id,
@@ -287,19 +282,19 @@ const LiveMonitoringPage = () => {
                 <div className="flex flex-wrap items-center gap-3 text-sm">
                   {/* Total Card */}
                   <div className="relative overflow-hidden flex items-center gap-2 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm px-6 py-3 rounded-2xl border-2 border-indigo-500">
-                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 via-indigo-500/10 to-transparent dark:from-indigo-900/30 dark:via-indigo-900/15 dark:to-transparent pointer-events-none"></div>
+                    <div className="absolute inset-0 bg-gradient-to-bl from-indigo-500/20 via-indigo-500/10 to-transparent dark:from-indigo-900/30 dark:via-indigo-900/15 dark:to-transparent pointer-events-none"></div>
                     <span className="relative z-10 text-sm text-gray-900 dark:text-white">{allStats.total}</span>
                     <span className="relative z-10 text-sm text-gray-900 dark:text-white">Total</span>
                   </div>
                   {/* Online Card */}
                   <div className="relative overflow-hidden flex items-center gap-2 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm px-6 py-3 rounded-2xl border-2 border-green-500">
-                    <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 via-green-500/10 to-transparent dark:from-green-900/30 dark:via-green-900/15 dark:to-transparent pointer-events-none"></div>
+                    <div className="absolute inset-0 bg-gradient-to-bl from-green-500/20 via-green-500/10 to-transparent dark:from-green-900/30 dark:via-green-900/15 dark:to-transparent pointer-events-none"></div>
                     <span className="relative z-10 text-sm text-gray-900 dark:text-white">{allStats.online}</span>
                     <span className="relative z-10 text-sm text-gray-900 dark:text-white">Online</span>
                   </div>
                   {/* Offline Card */}
                   <div className="relative overflow-hidden flex items-center gap-2 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm px-6 py-3 rounded-2xl border-2 border-red-500">
-                    <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 via-red-500/10 to-transparent dark:from-red-900/30 dark:via-red-900/15 dark:to-transparent pointer-events-none"></div>
+                    <div className="absolute inset-0 bg-gradient-to-bl from-red-500/20 via-red-500/10 to-transparent dark:from-red-900/30 dark:via-red-900/15 dark:to-transparent pointer-events-none"></div>
                     <span className="relative z-10 text-sm text-gray-900 dark:text-white">{allStats.offline}</span>
                     <span className="relative z-10 text-sm text-gray-900 dark:text-white">Offline</span>
                   </div>

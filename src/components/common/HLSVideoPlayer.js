@@ -241,7 +241,7 @@ const HLSVideoPlayer = ({
     <div className={`relative bg-black rounded-lg overflow-hidden ${className}`}>
       <video
         ref={videoRef}
-        className="w-full h-full object-cover"
+        className="w-full h-full object-contain"
         controls={controls}
         muted={muted}
         playsInline

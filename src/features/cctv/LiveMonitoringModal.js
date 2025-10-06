@@ -34,8 +34,19 @@ const LiveMonitoringModal = ({ camera, onClose }) => {
             maxHeight: '550px'
           }}
         >
-          <div className="w-full h-full">
-            {camera.streamUrls || camera.stream_urls ? (
+          <div className="w-full h-full relative">
+            {!camera.status ? (
+              // Tampilan untuk kamera offline
+              <div className="w-full h-full flex items-center justify-center text-white bg-gray-900">
+                <div className="text-center">
+                  <svg className="w-16 h-16 mx-auto mb-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636" />
+                  </svg>
+                  <p className="text-xl font-semibold mb-2">Kamera Offline</p>
+                  <p className="text-sm text-gray-400">Stream tidak tersedia saat ini</p>
+                </div>
+              </div>
+            ) : (camera.streamUrls || camera.stream_urls) ? (
               <HLSVideoPlayer
                 streamUrls={camera.streamUrls || camera.stream_urls}
                 cameraName={camera.name}
@@ -73,7 +84,7 @@ const LiveMonitoringModal = ({ camera, onClose }) => {
                   {camera.status ? 'Online' : 'Offline'}
                 </span>
               </div>
-              {(camera.streamUrls || camera.stream_urls) && (
+              {camera.status && (camera.streamUrls || camera.stream_urls) && (
                 <div className="flex items-center space-x-2 bg-red-900/40 px-3 py-1.5 rounded-lg">
                   <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
                   <span className="font-semibold text-red-400 text-sm">LIVE</span>
