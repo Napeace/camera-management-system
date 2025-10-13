@@ -65,7 +65,13 @@ const NotificationDropdown = ({ notifications = [] }) => {
         </div>
         
         {/* Notification List */}
-        <div className="max-h-80 overflow-y-auto sidebar-scrollbar">
+        <div 
+          className="max-h-80 overflow-y-auto"
+          style={{
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#94a3b8 transparent'
+          }}
+        >
           {notificationList.length > 0 ? (
             notificationList.map((notification) => (
               <NotificationItem

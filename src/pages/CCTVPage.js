@@ -1,6 +1,7 @@
 // CCTVPage.jsx
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import MainLayout from '../components/layout/MainLayout';
@@ -14,6 +15,7 @@ import CCTVCreateModal from '../features/cctv/CCTVCreateModal';
 import CCTVEditModal from '../features/cctv/CCTVEditModal';
 import CCTVList from '../features/cctv/CCTVList';
 import ConfirmDialog from '../components/common/ConfirmDialog';
+import useStaggerAnimation from '../hooks/useStaggerAnimation';
 import { 
     PlusIcon, 
     VideoCameraIcon, 
@@ -25,6 +27,17 @@ const CCTVPage = () => {
     const { user } = useAuth();
     const { showSuccess, showError, showInfo } = useToast();
     const navigate = useNavigate();
+
+    // Ref untuk scroll ke bottom saat pagination berubah
+    const bottomRef = useRef(null);
+
+    // Animation variants dari custom hook
+    const animations = useStaggerAnimation({
+        staggerDelay: 0.08,
+        initialDelay: 0.1,
+        duration: 0.4,
+        yOffset: 0 // Hanya opacity
+    });
 
     // State for CCTV data
     const [allCctvData, setAllCctvData] = useState([]);
@@ -59,6 +72,17 @@ const CCTVPage = () => {
         action: null,
         loading: false
     });
+
+    // Auto-scroll ke paling bawah halaman saat pagination berubah
+    useEffect(() => {
+        if (bottomRef.current && !loading) {
+            bottomRef.current.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'end',
+                inline: 'nearest'
+            });
+        }
+    }, [currentPage, loading]);
 
     const extractErrorMessage = (error) => {
         if (error?.response?.data?.message) return error.response.data.message;
@@ -177,7 +201,6 @@ const CCTVPage = () => {
         showInfo('Refreshing', 'Reloading CCTV data...');
     }, [fetchAllData, showInfo]);
 
-    // Update method handleConfirmAction di CCTVPage.jsx
     const handleConfirmAction = useCallback(async () => {
         const { action, cctv } = confirmDialog;
         setConfirmDialog(prev => ({ ...prev, loading: true }));
@@ -260,9 +283,19 @@ const CCTVPage = () => {
                 navbarTitle="Manajemen CCTV"
                 navbarSubtitle="Kontrol keamanan Rumah Sakit Citra Husada"
             >
-                <div className="space-y-6">
-                    {/* Statistics Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {/* Wrap seluruh konten dengan motion container */}
+                <motion.div 
+                    className="space-y-6"
+                    variants={animations.container}
+                    initial="hidden"
+                    animate="visible"
+                    exit="hidden"
+                >
+                    {/* Statistics Cards - Animated */}
+                    <motion.div 
+                        variants={animations.item}
+                        className="grid grid-cols-1 md:grid-cols-4 gap-4"
+                    >
                         <StatCard 
                             label="Online Kamera" 
                             value={String(statistics.online)}
@@ -289,10 +322,13 @@ const CCTVPage = () => {
                                 color="blue"
                             />
                         </div>
-                    </div>
+                    </motion.div>
 
-                    {/* Filters */}
-                    <div className="bg-white dark:bg-slate-900/70 backdrop-blur-sm p-6 rounded-xl border border-gray-300 dark:border-slate-700/50">
+                    {/* Filters - Animated */}
+                    <motion.div 
+                        variants={animations.item}
+                        className="bg-white dark:bg-slate-900/70 backdrop-blur-sm p-6 rounded-xl border border-gray-300 dark:border-slate-700/50"
+                    >
                         <div className="flex flex-col lg:flex-row gap-4 items-end">
                             <div className="flex-1">
                                 <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Cari CCTV</label>
@@ -330,30 +366,38 @@ const CCTVPage = () => {
                                 </div>
                             )}
                         </div>
-                    </div>
+                    </motion.div>
 
-                    {/* CCTV List Component */}
-                    <CCTVList
-                        cctvData={paginatedCctvData}
-                        loading={loading}
-                        error={error}
-                        onRefresh={handleRefresh}
-                        onEdit={handleEditCCTV}
-                        onDelete={handleDeleteCCTV}
-                        locationGroups={locationGroups}
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={setCurrentPage}
-                        totalItems={filteredCctvData.length}
-                    />
+                    {/* CCTV List Component - Animated */}
+                    <motion.div variants={animations.item}>
+                        <CCTVList
+                            cctvData={paginatedCctvData}
+                            loading={loading}
+                            error={error}
+                            onRefresh={handleRefresh}
+                            onEdit={handleEditCCTV}
+                            onDelete={handleDeleteCCTV}
+                            locationGroups={locationGroups}
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={setCurrentPage}
+                            totalItems={filteredCctvData.length}
+                        />
+                    </motion.div>
 
-                    {/* Results Count */}
+                    {/* Results Count - Animated */}
                     {!loading && allCctvData.length > 0 && (
-                        <div className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                        <motion.div 
+                            variants={animations.item}
+                            className="text-sm text-gray-500 dark:text-gray-400 text-center"
+                        >
                             Menampilkan {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, filteredCctvData.length)} dari {filteredCctvData.length} CCTV yang difilter ({allCctvData.length} total).
-                        </div>
+                        </motion.div>
                     )}
-                </div>
+
+                    {/* Invisible ref element at the bottom for scrolling */}
+                    <div ref={bottomRef} className="h-1" />
+                </motion.div>
             </MainLayout>
 
             {/* Modals and Dialogs */}

@@ -14,7 +14,7 @@ const HLSVideoPlayer = ({
 }) => {
   const videoRef = useRef(null);
   const hlsRef = useRef(null);
-  const [playerStatus, setPlayerStatus] = useState('loading'); // loading, playing, error, no-stream
+  const [playerStatus, setPlayerStatus] = useState('loading');
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
@@ -24,18 +24,15 @@ const HLSVideoPlayer = ({
       return;
     }
 
-    // Reset status saat mulai load
     setPlayerStatus('loading');
     setErrorMessage('');
     onLoadStart && onLoadStart();
 
-    // Cleanup previous HLS instance
     if (hlsRef.current) {
       hlsRef.current.destroy();
       hlsRef.current = null;
     }
 
-    // Check if HLS is supported
     if (Hls.isSupported()) {
       console.log('HLS.js supported, initializing player for:', cameraName);
       

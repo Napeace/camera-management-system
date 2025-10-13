@@ -1,6 +1,7 @@
-// pages/UserPage.js - Fixed version with better error handling
+// pages/UserPage.js
 import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion'; // 1. Impor motion
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import MainLayout from '../components/layout/MainLayout';
@@ -19,7 +20,7 @@ const SearchInput = React.memo(({ value, onChange, placeholder }) => (
     placeholder={placeholder} 
     value={value} 
     onChange={onChange} 
-    className="block w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+    className="block w-full p-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
   />
 ));
 
@@ -27,7 +28,7 @@ const RoleSelect = React.memo(({ value, onChange }) => (
   <select 
     value={value} 
     onChange={onChange} 
-    className="block w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+    className="block w-full p-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
   >
     <option value="">All Roles</option>
     <option value="SuperAdmin">Super Admin</option>
@@ -95,35 +96,28 @@ const UserPage = () => {
   const extractErrorMessage = (error) => {
     console.log('Extracting error from:', error);
     
-    // If error has response data with message
     if (error?.response?.data?.message) {
       return error.response.data.message;
     }
     
-    // If error has response data with detail
     if (error?.response?.data?.detail) {
       return error.response.data.detail;
     }
     
-    // If error has response data as string
     if (typeof error?.response?.data === 'string') {
       return error.response.data;
     }
     
-    // If error has message property
     if (error?.message) {
       return error.message;
     }
     
-    // If error is a string
     if (typeof error === 'string') {
       return error;
     }
     
-    // Handle validation errors (422 status)
     if (error?.response?.status === 422) {
       if (error?.response?.data?.errors) {
-        // Format validation errors
         const errors = error.response.data.errors;
         if (Array.isArray(errors)) {
           return errors.map(err => err.message || err).join(', ');
@@ -134,7 +128,6 @@ const UserPage = () => {
       return 'Validation failed. Please check your file format and data.';
     }
     
-    // Default fallback
     return 'An unexpected error occurred. Please try again.';
   };
 
@@ -144,7 +137,6 @@ const UserPage = () => {
     try {
       const response = await userService.exportUsers();
       
-      // Create blob and download
       const blob = new Blob([response.data], { 
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
       });
@@ -153,7 +145,6 @@ const UserPage = () => {
       const link = document.createElement('a');
       link.href = url;
       
-      // Generate filename with timestamp
       const timestamp = new Date().toISOString().split('T')[0];
       link.download = `users_export_${timestamp}.xlsx`;
       
@@ -188,11 +179,10 @@ const UserPage = () => {
       lastModified: new Date(file.lastModified).toISOString()
     });
 
-    // Validate file type
     const allowedTypes = [
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-      'application/vnd.ms-excel', // .xls
-      'text/csv' // .csv
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel',
+      'text/csv'
     ];
     
     const allowedExtensions = ['.xlsx', '.xls', '.csv'];
@@ -203,25 +193,23 @@ const UserPage = () => {
         'Invalid File Type', 
         'Please select a valid Excel file (.xlsx, .xls) or CSV file (.csv)'
       );
-      event.target.value = ''; // Reset file input
+      event.target.value = '';
       return;
     }
 
-    // Validate file size (max 5MB)
-    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
       showError(
         'File Too Large', 
         `File size is ${(file.size / (1024 * 1024)).toFixed(2)}MB. Maximum allowed size is 5MB.`
       );
-      event.target.value = ''; // Reset file input
+      event.target.value = '';
       return;
     }
 
-    // Check if file is empty
     if (file.size === 0) {
       showError('Empty File', 'The selected file is empty. Please choose a valid file with data.');
-      event.target.value = ''; // Reset file input
+      event.target.value = '';
       return;
     }
 
@@ -231,13 +219,11 @@ const UserPage = () => {
       const formData = new FormData();
       formData.append('file', file);
       
-      // Log formData for debugging
       console.log('FormData created with file:', file.name);
       
       const response = await userService.importUsers(formData);
       console.log('Import response:', response);
       
-      // Refresh user list
       await fetchUsers();
       
       const importedCount = response?.data?.imported_count || response?.imported_count || 0;
@@ -255,7 +241,6 @@ const UserPage = () => {
       
       const errorMessage = extractErrorMessage(error);
       
-      // Show more specific error messages based on status
       let title = 'Import Failed';
       if (error?.response?.status === 422) {
         title = 'File Validation Error';
@@ -268,7 +253,6 @@ const UserPage = () => {
       showError(title, errorMessage);
     } finally {
       setIsImporting(false);
-      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -320,7 +304,6 @@ const UserPage = () => {
     });
   }, []);
 
-  // Handle confirm dialog actions
   const handleConfirmAction = useCallback(async () => {
     const { action, user } = confirmDialog;
     setConfirmDialog(prev => ({ ...prev, loading: true }));
@@ -404,7 +387,6 @@ const UserPage = () => {
     security: filteredUsers.filter(u => u.user_role_name === 'Security').length
   }), [filteredUsers]);
 
-  // Get confirm button text based on action
   const getConfirmButtonText = () => {
     switch (confirmDialog.action) {
       case 'soft-delete':
@@ -426,12 +408,19 @@ const UserPage = () => {
           />
         )}
       >
-        <div className="space-y-6">
+        {/* 2. Tambahkan motion.div untuk transisi halaman */}
+        <motion.div 
+          className="space-y-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+        >
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-              <p className="text-gray-600 mt-1">Manage system users and their roles</p>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">User Management</h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">Manage system users and their roles</p>
             </div>
             <div className="flex items-center space-x-3">
               {/* Import Button */}
@@ -497,25 +486,25 @@ const UserPage = () => {
           
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-white p-4 rounded-lg shadow-sm border">
-              <p className="text-sm text-gray-600">Total Users</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+            <div className="bg-white dark:bg-slate-950/50 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-slate-600/30">
+              <p className="text-sm text-gray-600 dark:text-gray-400">Total Users</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
             </div>
-            <div className="bg-white p-4 rounded-lg shadow-sm border">
-              <p className="text-sm text-gray-600">Super Admins</p>
-              <p className="text-2xl font-bold text-blue-600">{stats.superAdmins}</p>
+            <div className="bg-white dark:bg-slate-950/50 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-slate-600/30">
+              <p className="text-sm text-gray-600 dark:text-gray-400">Super Admins</p>
+              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.superAdmins}</p>
             </div>
-            <div className="bg-white p-4 rounded-lg shadow-sm border">
-              <p className="text-sm text-gray-600">Security Staff</p>
-              <p className="text-2xl font-bold text-green-600">{stats.security}</p>
+            <div className="bg-white dark:bg-slate-950/50 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-slate-600/30">
+              <p className="text-sm text-gray-600 dark:text-gray-400">Security Staff</p>
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.security}</p>
             </div>
           </div>
           
           {/* Filters */}
-          <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="bg-white dark:bg-slate-950/50 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-slate-600/30">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
-                <label className="block text-sm font-medium mb-2">Search Users</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Search Users</label>
                 <SearchInput 
                   value={searchTerm}
                   onChange={handleSearch}
@@ -523,7 +512,7 @@ const UserPage = () => {
                 />
               </div>
               <div className="sm:w-48">
-                <label className="block text-sm font-medium mb-2">Filter by Role</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Filter by Role</label>
                 <RoleSelect 
                   value={roleFilter}
                   onChange={handleRoleFilter}
@@ -533,7 +522,7 @@ const UserPage = () => {
                 <div className="sm:w-32 flex items-end">
                   <button 
                     onClick={handleClearFilters} 
-                    className="w-full px-4 py-2 text-gray-600 border rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                    className="w-full px-4 py-2 text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors duration-200"
                   >
                     Clear
                   </button>
@@ -542,7 +531,6 @@ const UserPage = () => {
             </div>
           </div>
           
-          {/* User List */}
           <UserList 
             users={filteredUsers}
             loading={loading} 
@@ -550,7 +538,7 @@ const UserPage = () => {
             onEdit={handleEditUser}
             onDelete={handleDeleteUser} 
           />
-        </div>
+        </motion.div>
       </MainLayout>
 
       {/* Hidden File Input for Import */}

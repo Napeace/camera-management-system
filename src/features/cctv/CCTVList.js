@@ -1,5 +1,7 @@
 // CCTVList.jsx
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import useTableAnimation from '../../hooks/useTableAnimation';
 import { 
   PencilIcon, 
   TrashIcon, 
@@ -29,6 +31,13 @@ const CCTVList = ({
   itemsPerPage = 10
 }) => {
   const [actionLoading, setActionLoading] = useState({});
+  
+  // Gunakan custom hook untuk table animation tanpa hover scale
+  const tableAnimations = useTableAnimation({
+    staggerDelay: 0.05,
+    duration: 0.3,
+    enableHover: false // Disable hover animation untuk mencegah scroll
+  });
   
   const getStatusBadge = (status) => {
     if (status) {
@@ -72,7 +81,7 @@ const CCTVList = ({
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 dark:bg-slate-700 rounded w-1/3 mb-6"></div>
           <div className="space-y-4">
-            {[...Array(5)].map((_, i) => (
+            {[...Array(1)].map((_, i) => (
               <div key={i} className="h-12 bg-gray-200 dark:bg-slate-700 rounded w-full"></div>
             ))}
           </div>
@@ -113,9 +122,15 @@ const CCTVList = ({
     );
   }
 
-  // Main Table
+  // Main Table with Animation
   return (
-    <div className="bg-white dark:bg-slate-800/70 backdrop-blur-sm rounded-xl border border-gray-300 dark:border-slate-700/50 overflow-hidden">
+    <motion.div 
+      className="bg-white dark:bg-slate-800/70 backdrop-blur-sm rounded-xl border border-gray-300 dark:border-slate-700/50 overflow-hidden"
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: "auto" }}
+      exit={{ opacity: 0, height: 0 }}
+      transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+    >
       {/* Header */}
       <div className="px-6 py-4 bg-gray-50 dark:bg-slate-900/50 border-b border-gray-200 dark:border-slate-700/50">
         <div className="flex items-center gap-2">
@@ -124,8 +139,8 @@ const CCTVList = ({
         </div>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto">
+      {/* Table - Removed overflow-x-auto to prevent horizontal scroll */}
+      <div className="w-full">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700/50">
           <thead className="bg-gray-100 dark:bg-slate-900/30">
             <tr>
@@ -161,10 +176,19 @@ const CCTVList = ({
               </th>
             </tr>
           </thead>
-          <tbody>
+          
+          {/* Animated tbody */}
+          <motion.tbody
+            variants={tableAnimations.tbody}
+            initial="hidden"
+            animate="visible"
+          >
             {cctvData.map((cctv, index) => (
               <React.Fragment key={cctv.id_cctv}>
-                <tr className="hover:bg-gray-50 dark:hover:bg-slate-900/30 transition-colors duration-200">
+                <motion.tr 
+                  variants={tableAnimations.row}
+                  className="hover:bg-gray-50 dark:hover:bg-slate-900/30 transition-colors duration-200"
+                >
                   <td className="px-6 py-4">
                     <div className="text-sm font-medium text-gray-900 dark:text-white">{cctv.titik_letak}</div>
                     {cctv.description && (
@@ -204,7 +228,7 @@ const CCTVList = ({
                       </button>
                     </div>
                   </td>
-                </tr>
+                </motion.tr>
                 {index !== cctvData.length - 1 && (
                   <tr>
                     <td colSpan="5" className="px-0 py-0">
@@ -214,7 +238,7 @@ const CCTVList = ({
                 )}
               </React.Fragment>
             ))}
-          </tbody>
+          </motion.tbody>
         </table>
       </div>
       
@@ -228,7 +252,7 @@ const CCTVList = ({
         itemName="CCTV"
         showFirstLast={true}
       />
-    </div>
+    </motion.div>
   );
 };
 

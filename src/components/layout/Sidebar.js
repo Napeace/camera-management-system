@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import ConfirmDialog from '../common/ConfirmDialog';
+import ExportDataModal from '../../features/backup/export/ExportDataModal';
 import {
   HomeIcon,
   ComputerDesktopIcon,
@@ -32,6 +33,7 @@ const Sidebar = ({
   
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -135,6 +137,7 @@ const Sidebar = ({
       id: 'backup',
       label: 'Backup',
       icon: CircleStackIcon,
+      roleRequired: 'superadmin',
       hasSubmenu: true,
       submenu: [
         { id: 'export-data', label: 'Export Data', icon: ArrowDownTrayIcon, path: '/backup/export' },
@@ -172,6 +175,14 @@ const Sidebar = ({
 
   const handleSubmenuClick = (parentId, subItem) => {
     console.log('Submenu clicked:', subItem);
+    
+    // ← TAMBAHKAN KONDISI INI (baris 179-182)
+    // Jika klik Export Data, buka modal
+    if (subItem.id === 'export-data') {
+      setShowExportModal(true);
+      return;
+    }
+    
     navigate(subItem.path); 
     onPageChange(subItem.id, subItem.path);
     
@@ -428,6 +439,11 @@ const Sidebar = ({
         cancelText="Tidak"
         type="warning"
         loading={isLoggingOut}
+      />
+
+      <ExportDataModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
       />
     </>
   );

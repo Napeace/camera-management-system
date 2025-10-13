@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import Navbar from './Navbar';
@@ -14,35 +15,24 @@ const MainLayout = ({
   const location = useLocation();
   const navigate = useNavigate();
   
-  // Gunakan AuthContext untuk mendapatkan user dan logout function
   const { user, logout: authLogout, isLoading } = useAuth();
-  
-  // Gunakan ThemeContext untuk mendapatkan tema
   const { isDarkMode } = useTheme();
 
   const handleSidebarToggle = (collapsed) => {
     setSidebarCollapsed(collapsed);
   };
 
-  // Handle logout dengan navigation ke login page
   const handleLogout = async () => {
     try {
       console.log('MainLayout: Starting logout process');
-      
-      // Panggil logout dari AuthContext
       authLogout();
-      
       console.log('MainLayout: Logout completed, navigating to login');
-      
-      // Navigate ke login page setelah logout
       navigate('/login', { replace: true });
-      
     } catch (error) {
       console.error('MainLayout: Logout error:', error);
     }
   };
 
-  // Show loading state if auth is still loading
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-blue-500 to-[#0a1628] flex items-center justify-center">
@@ -52,10 +42,10 @@ const MainLayout = ({
         </div>
       </div>
     );
-  };
+  }
 
   return (
-    <div className={`min-h-screen transition-all duration-300 ${
+    <div className={`min-h-screen ${
       isDarkMode 
         ? 'bg-gradient-to-b from-[#0a1628] via-blue-500 to-[#0a1628]' 
         : 'bg-gradient-to-b from-blue-50 via-blue-100 to-blue-200'
@@ -64,7 +54,7 @@ const MainLayout = ({
         {Sidebar && (
           <Sidebar
             user={user}
-            onLogout={handleLogout} // Pass the actual logout function
+            onLogout={handleLogout}
             onToggle={handleSidebarToggle}
             isCollapsed={sidebarCollapsed} 
           />
@@ -75,21 +65,31 @@ const MainLayout = ({
             sidebarCollapsed ? 'ml-20' : 'ml-72'
           }`}
         >
-          <div className="p-4 pb-0">
-            <div className={`backdrop-blur-sm rounded-xl border shadow-lg overflow-visible transition-all duration-300 ${
+          <motion.div 
+            key={`navbar-${location.pathname}`}
+            className="p-4 pb-0"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ 
+              duration: 0.2,
+              ease: [0.4, 0, 0.2, 1]
+            }}
+          >
+            <div className={`navbar-container backdrop-blur-sm rounded-xl border shadow-lg overflow-visible ${
               isDarkMode
                 ? 'bg-slate-900/50 border-slate-600/30'
                 : 'bg-white/60 border-gray-200/50'
             }`}>
               <Navbar 
                 user={user} 
-                title={navbarTitle}       
+                title={navbarTitle}      
                 subtitle={navbarSubtitle} 
               />
             </div>
-          </div>
+          </motion.div>
           
-          <main key={location.pathname} className="p-6 animate-fade-in">
+          <main className="p-6">
             {children}
           </main>
         </div>

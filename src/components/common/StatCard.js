@@ -54,7 +54,7 @@ const StatCard = ({
       `}
     >
       {/* Gradient Background */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${colors.gradient} pointer-events-none`}></div>
+      <div className={`absolute inset-0 bg-gradient-to-bl ${colors.gradient} pointer-events-none`}></div>
       
       {/* Content */}
       <div className="relative z-10">
@@ -111,7 +111,7 @@ export const StatCardWithAction = ({
   return (
     <div className="relative overflow-hidden bg-white dark:bg-slate-950/60 backdrop-blur-sm rounded-xl border-2 border-blue-300 dark:border-blue-900 p-6 shadow-sm">
       {/* Gradient Background */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${colors.gradient} pointer-events-none`}></div>
+      <div className={`absolute inset-0 bg-gradient-to-bl ${colors.gradient} pointer-events-none`}></div>
       
       {/* Content */}
       <div className="relative z-10">

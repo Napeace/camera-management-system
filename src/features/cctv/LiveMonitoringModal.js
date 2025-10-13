@@ -7,7 +7,10 @@ const LiveMonitoringModal = ({ camera, onClose }) => {
   console.log('LiveMonitoringModal - Camera data:', camera); // Debug log
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center p-6">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center p-6"
+      onClick={onClose}
+    >
       
       {/* Tombol Close - di luar modal */}
       <button 
@@ -24,6 +27,7 @@ const LiveMonitoringModal = ({ camera, onClose }) => {
       <div 
         className="relative w-full bg-gray-900 rounded-lg flex flex-col overflow-hidden shadow-2xl"
         style={{ maxWidth: '1100px', maxHeight: '90vh' }}
+        onClick={(e) => e.stopPropagation()}
       >
 
         {/* Video Container - aspect ratio 16:9 dengan max height */}

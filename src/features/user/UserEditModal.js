@@ -1,4 +1,4 @@
-// src/components/user/UserEditModal.js
+// src/components/user/UserEditModal.js - Dark Mode
 import React, { useState, useEffect } from 'react';
 
 const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) => {
@@ -15,7 +15,7 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
     if (isOpen && userToEdit) {
       setFormData({
         nama: userToEdit.nama || '',
-        nip: String(userToEdit.nip || ''), // Convert to string
+        nip: String(userToEdit.nip || ''),
         username: userToEdit.username || '',
         password: '',
       });
@@ -35,7 +35,6 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
     setError('');
     
     try {
-      // Validate required fields
       if (!formData.nama.trim() || !formData.nip.trim() || !formData.username.trim()) {
         setError('Full Name, NIP, and Username are required');
         setLoading(false);
@@ -44,11 +43,10 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
 
       const userData = {
         nama: String(formData.nama).trim(),
-        nip: String(formData.nip).trim(), // Ensure it's string and trim
+        nip: String(formData.nip).trim(),
         username: String(formData.username).trim(),
       };
       
-      // Only include password if it's provided
       if (formData.password) {
         if (formData.password.length < 6) {
           setError('Password must be at least 6 characters');
@@ -58,17 +56,14 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
         userData.password = formData.password;
       }
       
-      // Panggil fungsi onSave dari props
       if (onSave) {
         await onSave(userToEdit.id_user, userData);
       }
 
-      // Tutup modal setelah berhasil
       onClose();
 
-      // Panggil callback untuk menampilkan toast dan refresh data
       if (onUserUpdated) {
-        onUserUpdated(userData); // Toast akan muncul di sini
+        onUserUpdated(userData);
       }
             
     } catch (error) {
@@ -85,10 +80,16 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Edit User: {userToEdit?.nama}</h2>
-          <button onClick={handleClose} disabled={loading} className="text-gray-400 hover:text-gray-600">
+      <div className="bg-white dark:bg-slate-900 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-700">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            Edit User: {userToEdit?.nama}
+          </h2>
+          <button 
+            onClick={handleClose} 
+            disabled={loading} 
+            className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+          >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -97,14 +98,15 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
         
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-md">
-              <p className="text-sm text-red-700">{error}</p>
+            <div className="bg-red-50 dark:bg-red-900/30 border-l-4 border-red-400 dark:border-red-600 p-4 rounded-md">
+              <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
             </div>
           )}
 
-          {/* Form Fields */}
           <div>
-            <label htmlFor="nama" className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+            <label htmlFor="nama" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Full Name *
+            </label>
             <input 
               type="text" 
               id="nama"
@@ -112,13 +114,15 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
               required 
               value={formData.nama} 
               onChange={handleInputChange} 
-              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+              className="block w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
               disabled={loading} 
             />
           </div>
           
           <div>
-            <label htmlFor="nip" className="block text-sm font-medium text-gray-700 mb-1">NIP *</label>
+            <label htmlFor="nip" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              NIP *
+            </label>
             <input 
               type="text" 
               id="nip"
@@ -126,13 +130,15 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
               required 
               value={formData.nip} 
               onChange={handleInputChange} 
-              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+              className="block w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
               disabled={loading} 
             />
           </div>
           
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">Username *</label>
+            <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Username *
+            </label>
             <input 
               type="text" 
               id="username"
@@ -140,34 +146,37 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
               required 
               value={formData.username} 
               onChange={handleInputChange} 
-              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+              className="block w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
               disabled={loading} 
             />
           </div>
           
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              New Password
+            </label>
             <input 
               type="password" 
               id="password"
               name="password" 
               value={formData.password} 
               onChange={handleInputChange} 
-              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+              className="block w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
               placeholder="Leave blank to keep current password" 
               minLength="6" 
               disabled={loading} 
             />
-            <p className="text-xs text-gray-500 mt-1">Leave blank to keep current password</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Leave blank to keep current password
+            </p>
           </div>
 
-          {/* Form Actions */}
-          <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+          <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-slate-700">
             <button 
               type="button" 
               onClick={handleClose} 
               disabled={loading} 
-              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+              className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50"
             >
               Cancel
             </button>

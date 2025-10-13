@@ -9,10 +9,9 @@ const apiClient = axios.create({
   },
 });
 
-// Interceptor untuk request (berguna untuk endpoint selain get users)
+// Interceptor untuk request
 apiClient.interceptors.request.use(
   (config) => {
-    // Jangan tambahkan header auth untuk request login
     if (config.url.includes('/auth/login')) {
       return config;
     }

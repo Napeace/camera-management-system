@@ -1,6 +1,7 @@
-// pages/HistoryPage.js
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+// pages/HistoryPage.js - With Staggered Animation
+import React, { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import MainLayout from '../components/layout/MainLayout';
@@ -9,26 +10,27 @@ import HistoryList from '../features/history/HistoryList';
 import SearchInput from '../components/common/SearchInput';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 import useHistory from '../hooks/useHistory';
+import useStaggerAnimation from '../hooks/useStaggerAnimation';
 
 // Date filter component
 const DateRangeFilter = React.memo(({ startDate, endDate, onStartDateChange, onEndDateChange }) => (
   <div className="flex gap-2">
     <div className="flex-1">
-      <label className="block text-sm font-medium mb-1">Date Range From</label>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date Range From</label>
       <input 
         type="date" 
         value={startDate} 
         onChange={onStartDateChange}
-        className="block w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        className="block w-full p-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
       />
     </div>
     <div className="flex-1">
-      <label className="block text-sm font-medium mb-1">To</label>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">To</label>
       <input 
         type="date" 
         value={endDate} 
         onChange={onEndDateChange}
-        className="block w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        className="block w-full p-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
       />
     </div>
   </div>
@@ -38,6 +40,13 @@ const HistoryPage = () => {
   const { user } = useAuth();
   const { showSuccess, showError, showInfo } = useToast();
   const navigate = useNavigate();
+  
+  // Animation variants dari custom hook
+  const animations = useStaggerAnimation({
+    staggerDelay: 0.08,
+    initialDelay: 0.1,
+    duration: 0.4
+  });
   
   // Local UI states
   const [searchTerm, setSearchTerm] = useState('');
@@ -125,7 +134,7 @@ const HistoryPage = () => {
 
   const handleSearch = useCallback((e) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1); // Reset to first page when searching
+    setCurrentPage(1);
   }, []);
 
   const handleStartDateChange = useCallback((e) => {
@@ -154,9 +163,7 @@ const HistoryPage = () => {
   const handleExportToPDF = useCallback(async () => {
     setIsExporting(true);
     try {
-      // This would be implemented when connecting to backend
-      // For now, just show success message
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
       showSuccess('Export Successful', 'History data has been exported to PDF successfully');
     } catch (error) {
@@ -175,7 +182,6 @@ const HistoryPage = () => {
     setConfirmDialog(prev => ({ ...prev, loading: true }));
     
     try {
-      // Tidak ada action yang perlu dihandle untuk saat ini
       setConfirmDialog({ 
         isOpen: false, 
         type: 'danger', 
@@ -206,7 +212,6 @@ const HistoryPage = () => {
     }
   }, [confirmDialog.loading]);
 
-  // Get confirm button text based on action
   const getConfirmButtonText = () => {
     return 'Confirm';
   };
@@ -223,12 +228,19 @@ const HistoryPage = () => {
           />
         )}
       >
-        <div className="space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
+        {/* Wrap seluruh konten dengan motion container */}
+        <motion.div 
+          className="space-y-6"
+          variants={animations.container}
+          initial="hidden"
+          animate="visible"
+          exit="hidden"
+        >
+          {/* Header - Animated */}
+          <motion.div variants={animations.item} className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">CCTV Error History</h1>
-              <p className="text-gray-600 mt-1">Track and monitor CCTV camera error incidents</p>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">CCTV Error History</h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">Track and monitor CCTV camera error incidents</p>
             </div>
             <div className="flex items-center space-x-3">
               {/* Export to PDF Button */}
@@ -255,29 +267,35 @@ const HistoryPage = () => {
                 )}
               </button>
             </div>
-          </div>
+          </motion.div>
           
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-white p-4 rounded-lg shadow-sm border">
-              <p className="text-sm text-gray-600">Total Errors</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+          {/* Stats Cards - Animated dengan stagger */}
+          <motion.div 
+            variants={animations.item}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            <div className="bg-white dark:bg-slate-950/50 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-slate-600/30">
+              <p className="text-sm text-gray-600 dark:text-gray-400">Total Errors</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
             </div>
-            <div className="bg-white p-4 rounded-lg shadow-sm border">
-              <p className="text-sm text-gray-600">Today's Errors</p>
-              <p className="text-2xl font-bold text-red-600">{stats.today}</p>
+            <div className="bg-white dark:bg-slate-950/50 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-slate-600/30">
+              <p className="text-sm text-gray-600 dark:text-gray-400">Today's Errors</p>
+              <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.today}</p>
             </div>
-            <div className="bg-white p-4 rounded-lg shadow-sm border">
-              <p className="text-sm text-gray-600">Yesterday's Errors</p>
-              <p className="text-2xl font-bold text-orange-600">{stats.yesterday}</p>
+            <div className="bg-white dark:bg-slate-950/50 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-slate-600/30">
+              <p className="text-sm text-gray-600 dark:text-gray-400">Yesterday's Errors</p>
+              <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{stats.yesterday}</p>
             </div>
-          </div>
+          </motion.div>
           
-          {/* Filters */}
-          <div className="bg-white p-6 rounded-lg shadow-sm border">
+          {/* Filters - Animated */}
+          <motion.div 
+            variants={animations.item}
+            className="bg-white dark:bg-slate-950/50 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-slate-600/30"
+          >
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="flex-1">
-                <label className="block text-sm font-medium mb-2">Search History</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Search History</label>
                 <SearchInput 
                   value={searchTerm}
                   onChange={handleSearch}
@@ -296,45 +314,50 @@ const HistoryPage = () => {
                 <div className="lg:w-32 flex items-end">
                   <button 
                     onClick={handleClearFilters} 
-                    className="w-full px-4 py-2 text-gray-600 border rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                    className="w-full px-4 py-2 text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors duration-200"
                   >
                     Clear
                   </button>
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
           
-          {/* History List */}
-          <HistoryList 
-            historyData={paginatedHistory}
-            loading={loading} 
-            error={error} 
-          />
+          {/* History List - Animated */}
+          <motion.div variants={animations.item}>
+            <HistoryList 
+              historyData={paginatedHistory}
+              loading={loading} 
+              error={error} 
+            />
+          </motion.div>
 
-          {/* Pagination */}
+          {/* Pagination - Animated */}
           {totalPages > 1 && (
-            <div className="bg-white px-4 py-3 border rounded-lg">
+            <motion.div 
+              variants={animations.item}
+              className="bg-white dark:bg-slate-950/50 px-4 py-3 border border-gray-200 dark:border-slate-600/30 rounded-lg"
+            >
               <div className="flex items-center justify-between">
                 <div className="flex-1 flex justify-between sm:hidden">
                   <button
                     onClick={() => handlePageNavigation(Math.max(currentPage - 1, 1))}
                     disabled={currentPage === 1}
-                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-slate-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Previous
                   </button>
                   <button
                     onClick={() => handlePageNavigation(Math.min(currentPage + 1, totalPages))}
                     disabled={currentPage === totalPages}
-                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-slate-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Next
                   </button>
                 </div>
                 <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-sm text-gray-700">
+                    <p className="text-sm text-gray-700 dark:text-gray-400">
                       Showing{' '}
                       <span className="font-medium">{((currentPage - 1) * itemsPerPage) + 1}</span>
                       {' '}to{' '}
@@ -351,7 +374,7 @@ const HistoryPage = () => {
                       <button
                         onClick={() => handlePageNavigation(Math.max(currentPage - 1, 1))}
                         disabled={currentPage === 1}
-                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <span className="sr-only">Previous</span>
                         <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
@@ -378,8 +401,8 @@ const HistoryPage = () => {
                             onClick={() => handlePageNavigation(pageNumber)}
                             className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                               currentPage === pageNumber
-                                ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                                ? 'z-10 bg-blue-50 dark:bg-blue-900/30 border-blue-500 dark:border-blue-600 text-blue-600 dark:text-blue-400'
+                                : 'bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700'
                             }`}
                           >
                             {pageNumber}
@@ -390,7 +413,7 @@ const HistoryPage = () => {
                       <button
                         onClick={() => handlePageNavigation(Math.min(currentPage + 1, totalPages))}
                         disabled={currentPage === totalPages}
-                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <span className="sr-only">Next</span>
                         <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
@@ -401,9 +424,9 @@ const HistoryPage = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
       </MainLayout>
 
       {/* Confirmation Dialog */}
