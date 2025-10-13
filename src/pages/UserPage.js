@@ -1,7 +1,7 @@
 // pages/UserPage.js
 import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion'; // 1. Impor motion
+import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import MainLayout from '../components/layout/MainLayout';
@@ -10,8 +10,16 @@ import UserList from '../features/user/UserList';
 import UserCreateModal from '../features/user/UserCreateModal';
 import UserEditModal from '../features/user/UserEditModal';
 import ConfirmDialog from '../components/common/ConfirmDialog';
+import StatCard, { StatCardWithAction } from '../components/common/StatCard';
 import useUsers from '../hooks/useUsers';
 import userService from '../services/userService';
+import useStaggerAnimation from '../hooks/useStaggerAnimation';
+import { 
+  UserGroupIcon, 
+  ShieldCheckIcon, 
+  UserIcon,
+  PlusIcon
+} from '@heroicons/react/24/outline';
 
 // Isolated components to prevent re-renders
 const SearchInput = React.memo(({ value, onChange, placeholder }) => (
@@ -24,13 +32,14 @@ const SearchInput = React.memo(({ value, onChange, placeholder }) => (
   />
 ));
 
-const RoleSelect = React.memo(({ value, onChange }) => (
+const RoleSelect = React.memo(({ value, onChange, disabled }) => (
   <select 
     value={value} 
-    onChange={onChange} 
-    className="block w-full p-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+    onChange={onChange}
+    disabled={disabled}
+    className="block w-full p-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
   >
-    <option value="">All Roles</option>
+    <option value="">Semua Role</option>
     <option value="SuperAdmin">Super Admin</option>
     <option value="Security">Security</option>
   </select>
@@ -40,7 +49,14 @@ const UserPage = () => {
   const { user } = useAuth();
   const { showSuccess, showError, showInfo } = useToast();
   const navigate = useNavigate();
-  const fileInputRef = useRef(null);
+  
+  // Animation variants dari custom hook (sama seperti CCTVPage)
+  const animations = useStaggerAnimation({
+    staggerDelay: 0.08,
+    initialDelay: 0.1,
+    duration: 0.4,
+    yOffset: 0 // Hanya opacity
+  });
   
   // Local UI states
   const [searchTerm, setSearchTerm] = useState('');
@@ -48,8 +64,10 @@ const UserPage = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [isExporting, setIsExporting] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   
   // Confirm dialog states
   const [confirmDialog, setConfirmDialog] = useState({
@@ -92,29 +110,31 @@ const UserPage = () => {
     return filtered;
   }, [users, searchTerm, roleFilter]);
 
+  // Calculate paginated users
+  const paginatedUsers = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredUsers.slice(startIndex, endIndex);
+  }, [filteredUsers, currentPage, itemsPerPage]);
+
+  // Calculate total pages
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+
+  // Statistics (sama seperti CCTVPage)
+  const statistics = useMemo(() => {
+    const total = filteredUsers.length;
+    const superAdmins = filteredUsers.filter(u => u.user_role_name === 'SuperAdmin').length;
+    const security = filteredUsers.filter(u => u.user_role_name === 'Security').length;
+    return { total, superAdmins, security };
+  }, [filteredUsers]);
+
   // Helper function to extract error message
   const extractErrorMessage = (error) => {
-    console.log('Extracting error from:', error);
-    
-    if (error?.response?.data?.message) {
-      return error.response.data.message;
-    }
-    
-    if (error?.response?.data?.detail) {
-      return error.response.data.detail;
-    }
-    
-    if (typeof error?.response?.data === 'string') {
-      return error.response.data;
-    }
-    
-    if (error?.message) {
-      return error.message;
-    }
-    
-    if (typeof error === 'string') {
-      return error;
-    }
+    if (error?.response?.data?.message) return error.response.data.message;
+    if (error?.response?.data?.detail) return error.response.data.detail;
+    if (typeof error?.response?.data === 'string') return error.response.data;
+    if (error?.message) return error.message;
+    if (typeof error === 'string') return error;
     
     if (error?.response?.status === 422) {
       if (error?.response?.data?.errors) {
@@ -131,150 +151,30 @@ const UserPage = () => {
     return 'An unexpected error occurred. Please try again.';
   };
 
-  // Export Users
-  const handleExportUsers = useCallback(async () => {
-    setIsExporting(true);
-    try {
-      const response = await userService.exportUsers();
-      
-      const blob = new Blob([response.data], { 
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-      });
-      
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      
-      const timestamp = new Date().toISOString().split('T')[0];
-      link.download = `users_export_${timestamp}.xlsx`;
-      
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      
-      showSuccess('Export Successful', 'User data has been exported successfully');
-    } catch (error) {
-      console.error('Export error:', error);
-      const errorMessage = extractErrorMessage(error);
-      showError('Export Failed', errorMessage);
-    } finally {
-      setIsExporting(false);
-    }
-  }, [showSuccess, showError]);
-
-  // Import Users
-  const handleImportUsers = useCallback(() => {
-    fileInputRef.current?.click();
-  }, []);
-
-  const handleFileChange = useCallback(async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    console.log('Selected file:', {
-      name: file.name,
-      type: file.type,
-      size: file.size,
-      lastModified: new Date(file.lastModified).toISOString()
-    });
-
-    const allowedTypes = [
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.ms-excel',
-      'text/csv'
-    ];
-    
-    const allowedExtensions = ['.xlsx', '.xls', '.csv'];
-    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
-    
-    if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
-      showError(
-        'Invalid File Type', 
-        'Please select a valid Excel file (.xlsx, .xls) or CSV file (.csv)'
-      );
-      event.target.value = '';
-      return;
-    }
-
-    const maxSize = 5 * 1024 * 1024;
-    if (file.size > maxSize) {
-      showError(
-        'File Too Large', 
-        `File size is ${(file.size / (1024 * 1024)).toFixed(2)}MB. Maximum allowed size is 5MB.`
-      );
-      event.target.value = '';
-      return;
-    }
-
-    if (file.size === 0) {
-      showError('Empty File', 'The selected file is empty. Please choose a valid file with data.');
-      event.target.value = '';
-      return;
-    }
-
-    setIsImporting(true);
-    
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      console.log('FormData created with file:', file.name);
-      
-      const response = await userService.importUsers(formData);
-      console.log('Import response:', response);
-      
-      await fetchUsers();
-      
-      const importedCount = response?.data?.imported_count || response?.imported_count || 0;
-      const skippedCount = response?.data?.skipped_count || response?.skipped_count || 0;
-      
-      let successMessage = `Successfully imported ${importedCount} user(s)`;
-      if (skippedCount > 0) {
-        successMessage += ` (${skippedCount} duplicate(s) skipped)`;
-      }
-      
-      showSuccess('Import Successful', successMessage);
-      
-    } catch (error) {
-      console.error('Import error details:', error);
-      
-      const errorMessage = extractErrorMessage(error);
-      
-      let title = 'Import Failed';
-      if (error?.response?.status === 422) {
-        title = 'File Validation Error';
-      } else if (error?.response?.status === 413) {
-        title = 'File Too Large';
-      } else if (error?.response?.status === 415) {
-        title = 'Unsupported File Type';
-      }
-      
-      showError(title, errorMessage);
-    } finally {
-      setIsImporting(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  }, [showSuccess, showError, fetchUsers]);
-
   const handlePageChange = useCallback((pageId, path) => {
     navigate(path);
   }, [navigate]);
 
+  const handlePaginationChange = useCallback((page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
   const handleSearch = useCallback((e) => {
     setSearchTerm(e.target.value);
+    setCurrentPage(1);
   }, []);
 
   const handleRoleFilter = useCallback((e) => {
     setRoleFilter(e.target.value);
+    setCurrentPage(1);
   }, []);
 
   const handleClearFilters = useCallback(() => {
     setSearchTerm('');
     setRoleFilter('');
-    showInfo('Filters Cleared', 'All filters have been reset');
+    setCurrentPage(1);
+    showInfo('Filter Dibersihkan', 'Semua filter telah direset');
   }, [showInfo]);
 
   const handleAddUser = useCallback(() => {
@@ -288,10 +188,10 @@ const UserPage = () => {
 
   const handleDeleteUser = useCallback((userToDelete, isHard = false) => {
     const actionType = isHard ? 'hard-delete' : 'soft-delete';
-    const title = isHard ? 'Permanently Delete User' : 'Delete User';
+    const title = isHard ? 'Hapus User Permanen' : 'Hapus User';
     const message = isHard 
-      ? 'This action cannot be undone. The user and all associated data will be permanently removed from the system.'
-      : 'This user will be deactivated and can be restored later if needed.';
+      ? 'Tindakan ini tidak dapat dibatalkan. User dan semua data terkait akan dihapus permanen dari sistem.'
+      : 'User ini akan dinonaktifkan dan dapat dipulihkan nanti jika diperlukan.';
     
     setConfirmDialog({
       isOpen: true,
@@ -304,6 +204,11 @@ const UserPage = () => {
     });
   }, []);
 
+  const handleRefresh = useCallback(() => {
+    fetchUsers();
+    showInfo('Memuat Ulang', 'Memperbarui data user...');
+  }, [fetchUsers, showInfo]);
+
   const handleConfirmAction = useCallback(async () => {
     const { action, user } = confirmDialog;
     setConfirmDialog(prev => ({ ...prev, loading: true }));
@@ -313,13 +218,13 @@ const UserPage = () => {
         case 'soft-delete':
           await softDeleteUser(user.id_user);
           setConfirmDialog({ isOpen: false });
-          showSuccess('User Deleted', `${user.nama} has been successfully deactivated`);
+          showSuccess('User Berhasil Dihapus', `${user.nama} telah dinonaktifkan`);
           break;
           
         case 'hard-delete':
           await hardDeleteUser(user.id_user);
           setConfirmDialog({ isOpen: false });
-          showSuccess('User Permanently Deleted', `${user.nama} has been permanently removed from the system`);
+          showSuccess('User Berhasil Dihapus Permanen', `${user.nama} telah dihapus permanen dari sistem`);
           break;
           
         default:
@@ -330,7 +235,7 @@ const UserPage = () => {
       console.error('Action failed:', err);
       setConfirmDialog(prev => ({ ...prev, loading: false }));
       const errorMessage = extractErrorMessage(err);
-      showError('Action Failed', errorMessage);
+      showError('Tindakan Gagal', errorMessage);
     }
   }, [confirmDialog, softDeleteUser, hardDeleteUser, showSuccess, showError]);
 
@@ -358,43 +263,37 @@ const UserPage = () => {
     try {
       await fetchUsers();
       showSuccess(
-        'User Created Successfully', 
-        `${newUser?.nama || 'New user'} has been created`
+        'User Berhasil Dibuat', 
+        `${newUser?.nama || 'User baru'} telah ditambahkan`
       );
     } catch (error) {
       console.error('Error refreshing data:', error);
       const errorMessage = extractErrorMessage(error);
-      showError('Refresh Failed', errorMessage);
+      showError('Gagal Memuat Ulang', errorMessage);
     }
   }, [fetchUsers, showSuccess, showError]);
 
   const handleUserUpdated = useCallback(async (updatedUser) => {
     try {
       await fetchUsers();
-      showSuccess('User Updated', `${updatedUser?.nama || 'User'} has been successfully updated`);
+      showSuccess('User Berhasil Diperbarui', `${updatedUser?.nama || 'User'} telah diperbarui`);
     } catch (error) {
       console.error('Error refreshing data:', error);
       const errorMessage = extractErrorMessage(error);
-      showError('Refresh Failed', errorMessage);
+      showError('Gagal Memuat Ulang', errorMessage);
     }
   }, [fetchUsers, showSuccess, showError]);
 
   const hasActiveFilters = searchTerm || roleFilter;
 
-  const stats = useMemo(() => ({
-    total: filteredUsers.length,
-    superAdmins: filteredUsers.filter(u => u.user_role_name === 'SuperAdmin').length,
-    security: filteredUsers.filter(u => u.user_role_name === 'Security').length
-  }), [filteredUsers]);
-
   const getConfirmButtonText = () => {
     switch (confirmDialog.action) {
       case 'soft-delete':
-        return 'Delete';
+        return 'Hapus';
       case 'hard-delete':
-        return 'Permanently Delete';
+        return 'Hapus Permanen';
       default:
-        return 'Confirm';
+        return 'Konfirmasi';
     }
   };
 
@@ -407,148 +306,114 @@ const UserPage = () => {
             onPageChange={handlePageChange}
           />
         )}
+        navbarTitle="Manajemen User"
+        navbarSubtitle="Kelola user sistem dan role mereka"
       >
-        {/* 2. Tambahkan motion.div untuk transisi halaman */}
+        {/* Wrap seluruh konten dengan motion container */}
         <motion.div 
           className="space-y-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
+          variants={animations.container}
+          initial="hidden"
+          animate="visible"
+          exit="hidden"
         >
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">User Management</h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">Manage system users and their roles</p>
+          {/* Statistics Cards - Animated (Layout: 1-1-2 seperti CCTVPage) */}
+          <motion.div 
+            variants={animations.item}
+            className="grid grid-cols-1 md:grid-cols-4 gap-4"
+          >
+            <StatCard 
+              label="Total Users" 
+              value={String(statistics.total)}
+              icon={UserGroupIcon}
+              color="blue"
+              loading={loading}
+            />
+            <StatCard 
+              label="Super Admins" 
+              value={String(statistics.superAdmins)}
+              icon={ShieldCheckIcon}
+              color="purple"
+              loading={loading}
+            />
+            <div className="md:col-span-2">
+              <StatCardWithAction 
+                label="Security Staff" 
+                value={String(statistics.security)}
+                icon={UserIcon}
+                buttonText="Tambah User"
+                buttonIcon={PlusIcon}
+                onButtonClick={handleAddUser}
+                loading={loading}
+                color="green"
+              />
             </div>
-            <div className="flex items-center space-x-3">
-              {/* Import Button */}
-              <button 
-                onClick={handleImportUsers}
-                disabled={isImporting}
-                className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-              >
-                {isImporting ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Importing...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-                    </svg>
-                    Import
-                  </>
-                )}
-              </button>
-
-              {/* Export Button */}
-              <button 
-                onClick={handleExportUsers}
-                disabled={isExporting}
-                className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-              >
-                {isExporting ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Exporting...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                    Export
-                  </>
-                )}
-              </button>
-
-              {/* Add User Button */}
-              <button 
-                onClick={handleAddUser} 
-                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-all duration-200"
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                Tambah User
-              </button>
-            </div>
-          </div>
+          </motion.div>
           
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-white dark:bg-slate-950/50 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-slate-600/30">
-              <p className="text-sm text-gray-600 dark:text-gray-400">Total Users</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
-            </div>
-            <div className="bg-white dark:bg-slate-950/50 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-slate-600/30">
-              <p className="text-sm text-gray-600 dark:text-gray-400">Super Admins</p>
-              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.superAdmins}</p>
-            </div>
-            <div className="bg-white dark:bg-slate-950/50 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-slate-600/30">
-              <p className="text-sm text-gray-600 dark:text-gray-400">Security Staff</p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.security}</p>
-            </div>
-          </div>
-          
-          {/* Filters */}
-          <div className="bg-white dark:bg-slate-950/50 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-slate-600/30">
-            <div className="flex flex-col sm:flex-row gap-4">
+          {/* Filters - Animated */}
+          <motion.div 
+            variants={animations.item}
+            className="bg-white dark:bg-slate-900/70 backdrop-blur-sm p-6 rounded-xl border border-gray-300 dark:border-slate-700/50"
+          >
+            <div className="flex flex-col lg:flex-row gap-4 items-end">
               <div className="flex-1">
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Search Users</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Cari User</label>
                 <SearchInput 
                   value={searchTerm}
                   onChange={handleSearch}
-                  placeholder="Search by name, username, or NIP..."
+                  placeholder="Cari berdasarkan nama, username, atau NIP..."
                 />
               </div>
-              <div className="sm:w-48">
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Filter by Role</label>
+              <div className="w-full lg:w-48">
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Role</label>
                 <RoleSelect 
                   value={roleFilter}
                   onChange={handleRoleFilter}
+                  disabled={loading}
                 />
               </div>
               {hasActiveFilters && (
-                <div className="sm:w-32 flex items-end">
+                <div className="w-full lg:w-auto">
                   <button 
-                    onClick={handleClearFilters} 
-                    className="w-full px-4 py-2 text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors duration-200"
+                    onClick={handleClearFilters}
+                    disabled={loading}
+                    className="w-full bg-gray-300 hover:bg-gray-400 dark:bg-slate-700 dark:hover:bg-slate-600 disabled:bg-gray-200 dark:disabled:bg-slate-800 text-gray-800 dark:text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-sm"
                   >
                     Clear
                   </button>
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
           
-          <UserList 
-            users={filteredUsers}
-            loading={loading} 
-            error={error} 
-            onEdit={handleEditUser}
-            onDelete={handleDeleteUser} 
-          />
+          {/* User List Component - Animated */}
+          <motion.div variants={animations.item}>
+            <UserList 
+              users={paginatedUsers}
+              loading={loading} 
+              error={error} 
+              onRefresh={handleRefresh}
+              onEdit={handleEditUser}
+              onDelete={handleDeleteUser}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePaginationChange}
+              totalItems={filteredUsers.length}
+              itemsPerPage={itemsPerPage}
+            />
+          </motion.div>
+
+          {/* Results Count - Animated */}
+          {!loading && users.length > 0 && (
+            <motion.div 
+              variants={animations.item}
+              className="text-sm text-gray-500 dark:text-gray-400 text-center"
+            >
+              Menampilkan {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, filteredUsers.length)} dari {filteredUsers.length} user yang difilter ({users.length} total).
+            </motion.div>
+          )}
         </motion.div>
       </MainLayout>
-
-      {/* Hidden File Input for Import */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".xlsx,.xls,.csv"
-        onChange={handleFileChange}
-        style={{ display: 'none' }}
-      />
 
       {/* Modals */}
       <UserCreateModal 
@@ -573,7 +438,7 @@ const UserPage = () => {
         title={confirmDialog.title}
         message={confirmDialog.message}
         confirmText={getConfirmButtonText()}
-        cancelText="Cancel"
+        cancelText="Batal"
         type={confirmDialog.type}
         loading={confirmDialog.loading}
         itemName={confirmDialog.user?.nama}

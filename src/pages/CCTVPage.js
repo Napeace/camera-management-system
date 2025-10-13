@@ -7,20 +7,22 @@ import { useToast } from '../contexts/ToastContext';
 import MainLayout from '../components/layout/MainLayout';
 import Sidebar from '../components/layout/Sidebar';
 import SearchInput from '../components/common/SearchInput';
-import StatCard, { StatCardWithAction } from '../components/common/StatCard';
+import StatCard, { StatCardWithAction, StatCardWithMultipleActions } from '../components/common/StatCard';
 import CustomStatusSelect from '../components/common/CustomStatusSelect';
 import CustomLocationSelect from '../components/common/CustomLocationSelect';
 import cctvService from '../services/cctvService';
 import CCTVCreateModal from '../features/cctv/CCTVCreateModal';
 import CCTVEditModal from '../features/cctv/CCTVEditModal';
 import CCTVList from '../features/cctv/CCTVList';
+import LocationManagementModal from '../features/cctv/LocationManagementModal';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 import useStaggerAnimation from '../hooks/useStaggerAnimation';
 import { 
     PlusIcon, 
     VideoCameraIcon, 
     SignalIcon, 
-    SignalSlashIcon
+    SignalSlashIcon,
+    MapPinIcon
 } from '@heroicons/react/24/outline';
 
 const CCTVPage = () => {
@@ -49,6 +51,7 @@ const CCTVPage = () => {
     // State for modals
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showLocationModal, setShowLocationModal] = useState(false);
     const [editingCCTV, setEditingCCTV] = useState(null);
 
     // State for filters
@@ -177,6 +180,7 @@ const CCTVPage = () => {
     }, [showInfo]);
 
     const handleAddCCTV = useCallback(() => setShowCreateModal(true), []);
+    const handleManageLocations = useCallback(() => setShowLocationModal(true), []);
     const handleEditCCTV = useCallback((cctv) => {
         setEditingCCTV(cctv);
         setShowEditModal(true);
@@ -254,6 +258,7 @@ const CCTVPage = () => {
     const handleModalClose = useCallback(() => {
         setShowCreateModal(false);
         setShowEditModal(false);
+        setShowLocationModal(false);
         setEditingCCTV(null);
     }, []);
 
@@ -268,6 +273,16 @@ const CCTVPage = () => {
         const cctvName = updatedCCTV?.titik_letak || updatedCCTV?.title || 'CCTV';
         showSuccess('CCTV Berhasil Diperbarui', `${cctvName} berhasil diperbarui`);
     }, [fetchAllData, showSuccess]);
+
+    const handleLocationCreated = useCallback(async (newLocation) => {
+        // Refresh location groups
+        try {
+            const locations = await cctvService.getLocationGroups();
+            setLocationGroups(locations || []);
+        } catch (err) {
+            console.error('Error refreshing locations:', err);
+        }
+    }, []);
 
     const hasActiveFilters = searchTerm || statusFilter || locationFilter;
 
@@ -311,13 +326,20 @@ const CCTVPage = () => {
                             loading={loading}
                         />
                         <div className="md:col-span-2">
-                            <StatCardWithAction 
+                            <StatCardWithMultipleActions 
                                 label="Total Kamera" 
                                 value={String(statistics.total)}
                                 icon={VideoCameraIcon}
-                                buttonText="Tambah Kamera"
-                                buttonIcon={PlusIcon}
-                                onButtonClick={handleAddCCTV}
+                                primaryButton={{
+                                    text: 'Tambah Kamera',
+                                    icon: PlusIcon,
+                                    onClick: handleAddCCTV
+                                }}
+                                secondaryButton={{
+                                    text: 'Kelola Lokasi DVR',
+                                    icon: MapPinIcon,
+                                    onClick: handleManageLocations
+                                }}
                                 loading={loading}
                                 color="blue"
                             />
@@ -413,6 +435,11 @@ const CCTVPage = () => {
                 cctvToEdit={editingCCTV} 
                 onCCTVUpdated={handleCCTVUpdated} 
                 locationGroups={locationGroups} 
+            />
+            <LocationManagementModal
+                isOpen={showLocationModal}
+                onClose={handleModalClose}
+                onLocationCreated={handleLocationCreated}
             />
             <ConfirmDialog 
                 isOpen={confirmDialog.isOpen} 

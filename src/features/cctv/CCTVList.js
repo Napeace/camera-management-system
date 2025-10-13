@@ -1,7 +1,8 @@
-// CCTVList.jsx
+// CCTVList.jsx - REFACTORED menggunakan AnimatedSection component
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import useTableAnimation from '../../hooks/useTableAnimation';
+import AnimatedSection from '../../components/common/AnimatedSection';
 import { 
   PencilIcon, 
   TrashIcon, 
@@ -17,17 +18,17 @@ import {
 import Pagination from '../../components/common/Pagination';
 
 const CCTVList = ({ 
-  cctvData, 
-  loading, 
-  error, 
+  cctvData = [], // ✅ Default value
+  loading = false, 
+  error = null, 
   onRefresh, 
   onEdit, 
   onDelete, 
-  locationGroups,
-  currentPage,
-  totalPages,
+  locationGroups = [],
+  currentPage = 1,
+  totalPages = 1,
   onPageChange,
-  totalItems,
+  totalItems = 0,
   itemsPerPage = 10
 }) => {
   const [actionLoading, setActionLoading] = useState({});
@@ -122,14 +123,12 @@ const CCTVList = ({
     );
   }
 
-  // Main Table with Animation
+  // ✅ Main Table SEKARANG MENGGUNAKAN AnimatedSection.ExpandHeight
   return (
-    <motion.div 
+    <AnimatedSection.ExpandHeight 
+      duration={0.6} 
+      delay={0}
       className="bg-white dark:bg-slate-800/70 backdrop-blur-sm rounded-xl border border-gray-300 dark:border-slate-700/50 overflow-hidden"
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: "auto" }}
-      exit={{ opacity: 0, height: 0 }}
-      transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
     >
       {/* Header */}
       <div className="px-6 py-4 bg-gray-50 dark:bg-slate-900/50 border-b border-gray-200 dark:border-slate-700/50">
@@ -139,7 +138,7 @@ const CCTVList = ({
         </div>
       </div>
 
-      {/* Table - Removed overflow-x-auto to prevent horizontal scroll */}
+      {/* Table */}
       <div className="w-full">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700/50">
           <thead className="bg-gray-100 dark:bg-slate-900/30">
@@ -177,7 +176,7 @@ const CCTVList = ({
             </tr>
           </thead>
           
-          {/* Animated tbody */}
+          {/* Animated tbody dengan slide up effect */}
           <motion.tbody
             variants={tableAnimations.tbody}
             initial="hidden"
@@ -252,7 +251,7 @@ const CCTVList = ({
         itemName="CCTV"
         showFirstLast={true}
       />
-    </motion.div>
+    </AnimatedSection.ExpandHeight>
   );
 };
 

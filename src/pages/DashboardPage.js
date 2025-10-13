@@ -1,3 +1,4 @@
+// pages/DashboardPage.js - REFACTORED dengan AnimatedSection + Custom Hooks untuk Exit Animation
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -6,11 +7,12 @@ import { useToast } from '../contexts/ToastContext';
 import MainLayout from '../components/layout/MainLayout';
 import Sidebar from '../components/layout/Sidebar';
 import StatCard from '../components/common/StatCard';
+import AnimatedSection from '../components/common/AnimatedSection';
 import cctvService from '../services/cctvService';
 import userService from '../services/userService';
 import useStaggerAnimation from '../hooks/useStaggerAnimation';
 import useTableAnimation from '../hooks/useTableAnimation';
-
+import { staggerContainer, fadeInUp } from '../utils/animationVariants';
 import {
     VideoCameraIcon,
     UserGroupIcon,
@@ -32,20 +34,19 @@ const DashboardContent = ({
     navigate,
     isSuperAdmin,
 }) => {
-    // Animation variants dari custom hook dengan slide down effect
+    // ✅ Keep custom hooks for proper exit animations
     const animations = useStaggerAnimation({
         staggerDelay: 0.15,
         initialDelay: 0.1,
         duration: 0.5,
-        yOffset: 30 // Slide down dari atas
+        yOffset: 30
     });
 
-    // Animation untuk table rows dengan slide effect
     const tableAnimations = useTableAnimation({
         staggerDelay: 0.08,
         duration: 0.4,
-        enableHover: true,
-        yOffset: 20 // Add slide effect untuk rows
+        enableHover: false, // Disable hover to prevent scroll issues
+        yOffset: 20
     });
 
     const lastLogin = [
@@ -95,9 +96,9 @@ const DashboardContent = ({
             variants={animations.container}
             initial="hidden"
             animate="visible"
-            exit="hidden"
+            exit="exit"
         >
-            {/* Top Grid: Stats Cards (left) + Last Login (right) - Animated with slide down */}
+            {/* Top Grid: Stats Cards (left) + Last Login (right) */}
             <motion.div
                 variants={animations.item}
                 className="grid grid-cols-1 lg:grid-cols-2 gap-6"
@@ -113,12 +114,20 @@ const DashboardContent = ({
                                 opacity: 1,
                                 transition: {
                                     staggerChildren: 0.1,
-                                    delayChildren: 0.2
+                                    delayChildren: 0.15
+                                }
+                            },
+                            exit: {
+                                opacity: 0,
+                                transition: {
+                                    staggerChildren: 0.05,
+                                    staggerDirection: -1
                                 }
                             }
                         }}
                         initial="hidden"
                         animate="visible"
+                        exit="exit"
                     >
                         {stats.map((stat, index) => (
                             <motion.div
@@ -130,6 +139,14 @@ const DashboardContent = ({
                                         y: 0,
                                         transition: {
                                             duration: 0.4,
+                                            ease: [0.4, 0, 0.2, 1]
+                                        }
+                                    },
+                                    exit: {
+                                        opacity: 0,
+                                        y: -20,
+                                        transition: {
+                                            duration: 0.3,
                                             ease: [0.4, 0, 0.2, 1]
                                         }
                                     }
@@ -156,12 +173,20 @@ const DashboardContent = ({
                                 opacity: 1,
                                 transition: {
                                     staggerChildren: 0.15,
-                                    delayChildren: 0.2
+                                    delayChildren: 0.15
+                                }
+                            },
+                            exit: {
+                                opacity: 0,
+                                transition: {
+                                    staggerChildren: 0.05,
+                                    staggerDirection: -1
                                 }
                             }
                         }}
                         initial="hidden"
                         animate="visible"
+                        exit="exit"
                     >
                         {/* Total Kamera - Full Width */}
                         <motion.div
@@ -172,6 +197,14 @@ const DashboardContent = ({
                                     y: 0,
                                     transition: {
                                         duration: 0.4,
+                                        ease: [0.4, 0, 0.2, 1]
+                                    }
+                                },
+                                exit: {
+                                    opacity: 0,
+                                    y: -20,
+                                    transition: {
+                                        duration: 0.3,
                                         ease: [0.4, 0, 0.2, 1]
                                     }
                                 }
@@ -197,6 +230,13 @@ const DashboardContent = ({
                                     transition: {
                                         staggerChildren: 0.1
                                     }
+                                },
+                                exit: {
+                                    opacity: 0,
+                                    transition: {
+                                        staggerChildren: 0.05,
+                                        staggerDirection: -1
+                                    }
                                 }
                             }}
                         >
@@ -208,6 +248,14 @@ const DashboardContent = ({
                                         y: 0,
                                         transition: {
                                             duration: 0.4,
+                                            ease: [0.4, 0, 0.2, 1]
+                                        }
+                                    },
+                                    exit: {
+                                        opacity: 0,
+                                        y: -20,
+                                        transition: {
+                                            duration: 0.3,
                                             ease: [0.4, 0, 0.2, 1]
                                         }
                                     }
@@ -232,6 +280,14 @@ const DashboardContent = ({
                                             duration: 0.4,
                                             ease: [0.4, 0, 0.2, 1]
                                         }
+                                    },
+                                    exit: {
+                                        opacity: 0,
+                                        y: -20,
+                                        transition: {
+                                            duration: 0.3,
+                                            ease: [0.4, 0, 0.2, 1]
+                                        }
                                     }
                                 }}
                             >
@@ -248,97 +304,101 @@ const DashboardContent = ({
                     </motion.div>
                 )}
 
-                {/* Right Side: Last Login - Animated */}
+                {/* Right Side: Last Login */}
                 <motion.div
-                    variants={{
-                        hidden: { opacity: 0, y: 30 },
-                        visible: {
-                            opacity: 1,
-                            y: 0,
-                            transition: {
-                                duration: 0.5,
-                                delay: 0.3,
-                                ease: [0.4, 0, 0.2, 1]
-                            }
-                        }
-                    }}
+                    variants={animations.item}
+                    className="bg-white dark:bg-slate-950/50 rounded-xl border border-gray-200 dark:border-slate-600/30 p-4 flex flex-col h-full shadow-sm"
                 >
-                    <div className="bg-white dark:bg-slate-950/50 rounded-xl border border-gray-200 dark:border-slate-600/30 p-4 flex flex-col h-full shadow-sm">
-                        <div className="flex items-center justify-between mb-1">
-                            <div className="flex items-center space-x-2">
-                                <EyeIcon className="w-5 h-5 text-blue-400" />
-                                <h3 className="text-base font-semibold text-slate-900 dark:text-white">
-                                    Last Login
-                                </h3>
-                            </div>
+                    <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center space-x-2">
+                            <EyeIcon className="w-5 h-5 text-blue-400" />
+                            <h3 className="text-base font-semibold text-slate-900 dark:text-white">
+                                Last Login
+                            </h3>
                         </div>
-                        <p className="text-slate-700 dark:text-white text-xs mb-3">
-                            Aktivitas 3 bulan terakhir akan tercatat
-                        </p>
+                    </div>
+                    <p className="text-slate-700 dark:text-white text-xs mb-3">
+                        Aktivitas 3 bulan terakhir akan tercatat
+                    </p>
 
-                        <motion.div
-                            className="flex-grow"
-                            variants={{
-                                hidden: { opacity: 0 },
-                                visible: {
-                                    opacity: 1,
-                                    transition: {
-                                        staggerChildren: 0.1,
-                                        delayChildren: 0.5
-                                    }
+                    <motion.div
+                        className="flex-grow"
+                        variants={{
+                            hidden: { opacity: 0 },
+                            visible: {
+                                opacity: 1,
+                                transition: {
+                                    staggerChildren: 0.1,
+                                    delayChildren: 0.3
                                 }
-                            }}
-                            initial="hidden"
-                            animate="visible"
-                        >
-                            {lastLogin.map((login, i) => (
-                                <motion.div
-                                    key={i}
-                                    className="flex items-start"
-                                    variants={{
-                                        hidden: { opacity: 0, x: -20 },
-                                        visible: {
-                                            opacity: 1,
-                                            x: 0,
-                                            transition: {
-                                                duration: 0.3,
-                                                ease: [0.4, 0, 0.2, 1]
-                                            }
+                            },
+                            exit: {
+                                opacity: 0,
+                                transition: {
+                                    staggerChildren: 0.05,
+                                    staggerDirection: -1
+                                }
+                            }
+                        }}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                    >
+                        {lastLogin.map((login, i) => (
+                            <motion.div
+                                key={i}
+                                className="flex items-start"
+                                variants={{
+                                    hidden: { opacity: 0, x: -20 },
+                                    visible: {
+                                        opacity: 1,
+                                        x: 0,
+                                        transition: {
+                                            duration: 0.3,
+                                            ease: [0.4, 0, 0.2, 1]
                                         }
-                                    }}
-                                >
-                                    <div className="flex flex-col items-center mr-4">
-                                        <div className="bg-orange-400/20 p-1.5 rounded-full text-orange-400">
-                                            <UserIcon className="w-4 h-4" />
-                                        </div>
-                                        {i < lastLogin.length - 1 && (
-                                            <div className="w-px h-6 bg-gray-300 dark:bg-slate-600 my-1"></div>
-                                        )}
-                                    </div>
-                                    <div className="flex-grow flex items-center justify-between pt-1">
-                                        <p className="font-medium text-slate-900 dark:text-white text-xs">
-                                            {login.action}
-                                        </p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">{login.date}</p>
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </motion.div>
-
-                        <div className="pt-3">
-                            <button
-                                onClick={() => navigate('/history')}
-                                className="flex items-center justify-center w-full text-xs text-gray-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors duration-200"
+                                    },
+                                    exit: {
+                                        opacity: 0,
+                                        x: -20,
+                                        transition: {
+                                            duration: 0.2,
+                                            ease: [0.4, 0, 0.2, 1]
+                                        }
+                                    }
+                                }}
                             >
-                                Selengkapnya
-                                <ChevronDownIcon className="w-3 h-3 ml-1" />
-                            </button>
-                        </div>
+                                <div className="flex flex-col items-center mr-4">
+                                    <div className="bg-orange-400/20 p-1.5 rounded-full text-orange-400">
+                                        <UserIcon className="w-4 h-4" />
+                                    </div>
+                                    {i < lastLogin.length - 1 && (
+                                        <div className="w-px h-6 bg-gray-300 dark:bg-slate-600 my-1"></div>
+                                    )}
+                                </div>
+                                <div className="flex-grow flex items-center justify-between pt-1">
+                                    <p className="font-medium text-slate-900 dark:text-white text-xs">
+                                        {login.action}
+                                    </p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">{login.date}</p>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </motion.div>
+
+                    <div className="pt-3">
+                        <button
+                            onClick={() => navigate('/history')}
+                            className="flex items-center justify-center w-full text-xs text-gray-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors duration-200"
+                        >
+                            Selengkapnya
+                            <ChevronDownIcon className="w-3 h-3 ml-1" />
+                        </button>
                     </div>
                 </motion.div>
             </motion.div>
 
-            {/* Bottom: Recent History Table - FIXED: Fade in entrance + Exit cepat tanpa delay */}
+            {/* Bottom: Recent History Table - ✅ With proper exit animation */}
             <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ 
@@ -354,7 +414,8 @@ const DashboardContent = ({
                     opacity: 0, 
                     height: 0,
                     transition: {
-                        duration: 0.3,
+                        opacity: { duration: 0.3 },
+                        height: { duration: 0.4 },
                         ease: [0.4, 0, 0.2, 1]
                     }
                 }}
@@ -382,50 +443,27 @@ const DashboardContent = ({
                         </thead>
                         <motion.tbody
                             className="divide-y divide-gray-200 dark:divide-slate-600/30"
+                            variants={tableAnimations.tbody}
                             initial="hidden"
                             animate="visible"
                             exit="hidden"
-                            variants={{
-                                visible: {
-                                    transition: {
-                                        staggerChildren: 0.08,
-                                        delayChildren: 0.7
-                                    }
-                                },
-                                hidden: {
-                                    transition: {
-                                        staggerChildren: 0.05,
-                                        staggerDirection: -1
-                                    }
-                                }
-                            }}
                         >
                             {staticHistoryData.slice(0, 4).map((item) => (
                                 <motion.tr
                                     key={item.id_history}
                                     className="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors duration-150"
-                                    variants={{
-                                        hidden: { opacity: 0, y: 20 },
-                                        visible: {
-                                            opacity: 1,
-                                            y: 0,
-                                            transition: {
-                                                duration: 0.4,
-                                                ease: [0.4, 0, 0.2, 1]
-                                            }
-                                        }
-                                    }}
-                                    whileHover={{ scale: 1.005 }}
+                                    variants={tableAnimations.row}
                                 >
                                     <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                                         {item.location_name}
                                     </td>
                                     <td className="px-4 py-3">
                                         <span
-                                            className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${item.status
+                                            className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                                item.status
                                                     ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
                                                     : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
-                                                }`}
+                                            }`}
                                         >
                                             {item.status ? 'Online' : 'Offline'}
                                         </span>
