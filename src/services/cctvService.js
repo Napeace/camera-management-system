@@ -146,124 +146,6 @@ class CCTVService {
     }
   }
 
-  // Get stream URLs for a specific CCTV
-  async getStreamUrls(cctvId) {
-    try {
-      console.log('Fetching stream URLs for CCTV:', cctvId);
-      
-      const token = localStorage.getItem('access_token');
-      const params = new URLSearchParams();
-      if (token) {
-        params.append('token', token);
-      }
-      
-      const response = await apiClient.get(`/cctv/${cctvId}/stream?${params.toString()}`);
-      console.log('Stream URLs Response:', response.data);
-      
-      // Handle success_response wrapper
-      let streamData;
-      if (response.data && response.data.status === 'success') {
-        streamData = response.data.data;
-      } else if (response.data && response.data.data) {
-        streamData = response.data.data;
-      } else {
-        streamData = response.data;
-      }
-      
-      console.log('Extracted stream data:', streamData);
-      
-      return {
-        success: true,
-        data: {
-          ...streamData,
-          is_streaming: streamData.is_streaming !== undefined ? Boolean(streamData.is_streaming) : false
-        }
-      };
-    } catch (error) {
-      console.error('Error fetching stream URLs:', error);
-      
-      let errorMessage = 'Gagal mengambil stream URLs';
-      
-      if (error.response) {
-        const errorData = error.response.data;
-        if (typeof errorData === 'string') {
-          errorMessage = errorData;
-        } else if (errorData?.detail) {
-          errorMessage = errorData.detail;
-        } else if (errorData?.message) {
-          errorMessage = errorData.message;
-        } else if (error.response.status === 404) {
-          errorMessage = 'CCTV tidak ditemukan';
-        } else if (error.response.status === 401) {
-          errorMessage = 'Tidak memiliki akses untuk melihat stream';
-        }
-      } else if (error.request) {
-        errorMessage = 'Koneksi bermasalah - tidak dapat terhubung ke server';
-      }
-      
-      return {
-        success: false,
-        error: errorMessage
-      };
-    }
-  }
-  
-  async getStreamsByLocation(locationId) {
-    try {
-      console.log(`Fetching streams for location: ${locationId}`);
-      const token = localStorage.getItem('access_token');
-      const params = new URLSearchParams();
-      if (token) {
-        params.append('token', token);
-      }
-      
-      const response = await apiClient.get(`/cctv/location/${locationId}/streams?${params.toString()}`);
-      
-      console.log('Raw location streams response:', response.data);
-      
-      // Handle success_response wrapper dari backend
-      let locationData;
-      if (response.data && response.data.status === 'success') {
-        locationData = response.data.data;
-      } else if (response.data && response.data.data) {
-        locationData = response.data.data;
-      } else {
-        locationData = response.data;
-      }
-
-      console.log('Extracted location data:', locationData);
-
-      // Transform camera data - backend sudah mengirim is_streaming
-      if (locationData && locationData.cameras) {
-        locationData.cameras = locationData.cameras.map(cam => {
-          console.log('Camera before transform:', cam);
-          
-          const transformed = {
-            ...cam,
-            // Backend mengirim is_streaming, pastikan boolean
-            is_streaming: cam.is_streaming !== undefined ? Boolean(cam.is_streaming) : false
-          };
-          
-          console.log('Camera after transform:', transformed);
-          return transformed;
-        });
-      }
-
-      console.log('Final location data with transformed cameras:', locationData);
-      return locationData;
-
-    } catch (error) {
-      console.error('Error fetching streams by location:', error);
-      console.error('Error response:', error.response);
-      
-      const errorMessage = error.response?.data?.message || 
-                          error.response?.data?.detail ||
-                          error.message || 
-                          'Gagal terhubung ke server';
-      throw new Error(errorMessage);
-    }
-  }
-
   // Test CCTV connection
   async testCCTVConnection(cctvId) {
     try {
@@ -502,7 +384,7 @@ class CCTVService {
     }
   }
 
-  // Get statistics
+  // Get statistics (used in CRUD page)
   async getStatistics() {
     try {
       const result = await this.getAllCCTV();
@@ -519,7 +401,7 @@ class CCTVService {
     }
   }
 
-  // Get unique locations for filter dropdown
+  // Get unique locations for filter dropdown (CRUD page)
   async getLocationGroups() {
     try {
       const locations = await this.getAllLocations();
@@ -529,21 +411,6 @@ class CCTVService {
       }));
     } catch (error) {
       console.error('Error fetching location groups:', error);
-      return [];
-    }
-  }
-
-  // Get DVR groups
-  async getDVRGroups() {
-    try {
-      const locations = await this.getAllLocations();
-      return locations.map(loc => ({
-        id: loc.id_location || loc.id,
-        name: loc.nama_lokasi || loc.location_name || loc.name,
-        type: 'location'
-      }));
-    } catch (error) {
-      console.error('Error fetching DVR groups:', error);
       return [];
     }
   }

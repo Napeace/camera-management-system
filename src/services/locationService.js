@@ -9,12 +9,11 @@ const locationService = {
      */
     getAllLocations: async (skip = 0, limit = 50) => {
         try {
-            // Get token from localStorage (sesuai dengan cara cctvService)
             const token = localStorage.getItem('access_token');
             
             const response = await api.get('/location/', {
                 params: { 
-                    token,  // Token di query string, bukan header
+                    token,
                     skip, 
                     limit 
                 }
@@ -34,16 +33,63 @@ const locationService = {
      */
     createLocation: async (locationData) => {
         try {
-            // Get token from localStorage
             const token = localStorage.getItem('access_token');
             
             const response = await api.post('/location/', locationData, {
-                params: { token }  // Token di query string untuk POST juga
+                params: { token }
             });
             return response.data;
         } catch (error) {
             console.error('Error creating location:', error);
-            // Extract error message from backend
+            if (error.response?.data?.detail) {
+                throw new Error(error.response.data.detail);
+            }
+            throw error;
+        }
+    },
+
+    /**
+     * Update existing location
+     * @param {number} locationId - Location ID
+     * @param {Object} locationData - Updated location data
+     * @param {string} locationData.nama_lokasi - Location name (min 5, max 200 chars)
+     * @returns {Promise} Response with updated location
+     */
+    updateLocation: async (locationId, locationData) => {
+        try {
+            const token = localStorage.getItem('access_token');
+            
+            const response = await api.put(`/location/${locationId}`, locationData, {
+                params: { token }
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Error updating location:', error);
+            if (error.response?.data?.detail) {
+                throw new Error(error.response.data.detail);
+            }
+            throw error;
+        }
+    },
+
+    /**
+     * Delete location (hard delete)
+     * @param {number} locationId - Location ID to delete
+     * @returns {Promise} Response with deleted location info
+     */
+    deleteLocation: async (locationId) => {
+        try {
+            const token = localStorage.getItem('access_token');
+            
+            const response = await api.delete('/location/', {
+                params: { 
+                    token,
+                    location_id: locationId 
+                }
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Error deleting location:', error);
             if (error.response?.data?.detail) {
                 throw new Error(error.response.data.detail);
             }

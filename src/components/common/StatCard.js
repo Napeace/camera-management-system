@@ -84,7 +84,7 @@ const StatCard = ({
 };
 
 /**
- * StatCard dengan tombol action (untuk Total Kamera)
+ * StatCard dengan tombol action (untuk Security Staff di UserPage)
  */
 export const StatCardWithAction = ({ 
   label, 
@@ -102,14 +102,21 @@ export const StatCardWithAction = ({
       border: 'border-blue-400 dark:border-blue-900',
       gradient: 'from-blue-500/20 via-blue-500/10 to-transparent dark:from-blue-900/30 dark:via-blue-900/15 dark:to-transparent',
       iconBg: 'bg-blue-500/10 dark:bg-blue-900/30',
-      button: 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 dark:from-blue-700 dark:to-blue-600 dark:hover:from-blue-800 dark:hover:to-blue-700'
+      button: 'bg-gradient-to-l from-blue-700 to-blue-500 hover:from-blue-800 hover:to-blue-600 dark:from-blue-800 dark:to-blue-600 dark:hover:from-blue-900 dark:hover:to-blue-700'
+    },
+    green: {
+      icon: 'text-green-600 dark:text-green-400',
+      border: 'border-green-400 dark:border-green-800',
+      gradient: 'from-green-500/20 via-green-500/10 to-transparent dark:from-green-900/30 dark:via-green-900/15 dark:to-transparent',
+      iconBg: 'bg-green-500/10 dark:bg-green-900/30',
+      button: 'bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 dark:from-green-700 dark:to-green-600 dark:hover:from-green-800 dark:hover:to-green-700'
     }
   };
 
   const colors = colorConfig[color] || colorConfig.blue;
 
   return (
-    <div className="relative overflow-hidden bg-white dark:bg-slate-950/60 backdrop-blur-sm rounded-xl border-2 border-blue-300 dark:border-blue-900 p-6 shadow-sm">
+    <div className={`relative overflow-hidden bg-white dark:bg-slate-950/60 backdrop-blur-sm rounded-xl border-2 ${colors.border} p-6 shadow-sm`}>
       {/* Gradient Background */}
       <div className={`absolute inset-0 bg-gradient-to-bl ${colors.gradient} pointer-events-none`}></div>
       
@@ -162,14 +169,16 @@ export const StatCardWithAction = ({
 
 /**
  * StatCard dengan 2 tombol action (untuk Total Kamera + Kelola Lokasi)
- * Layout: Kiri (Label + Value) | Kanan (2 Buttons Stacked)
+ * Layout: 
+ * - Baris 1: Label + Icon (kiri) | Button Tambah Kamera (kanan)
+ * - Baris 2: Value (kiri) | Button Kelola Lokasi DVR (kanan, optional)
  */
 export const StatCardWithMultipleActions = ({ 
   label, 
   value, 
   icon: Icon,
   primaryButton = {},
-  secondaryButton = {},
+  secondaryButton = null,
   loading = false,
   color = 'blue'
 }) => {
@@ -179,8 +188,8 @@ export const StatCardWithMultipleActions = ({
       border: 'border-blue-400 dark:border-blue-900',
       gradient: 'from-blue-500/20 via-blue-500/10 to-transparent dark:from-blue-900/30 dark:via-blue-900/15 dark:to-transparent',
       iconBg: 'bg-blue-500/10 dark:bg-blue-900/30',
-      primaryBtn: 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 dark:from-blue-700 dark:to-blue-600 dark:hover:from-blue-800 dark:hover:to-blue-700',
-      secondaryBtn: 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-800'
+      primaryBtn: 'bg-gradient-to-l from-blue-700 to-blue-500 hover:from-blue-800 hover:to-blue-600 dark:from-blue-800 dark:to-blue-600 dark:hover:from-blue-900 dark:hover:to-blue-700',
+      secondaryBtn: 'bg-gradient-to-r from-blue-700 to-blue-500 hover:from-blue-800 hover:to-blue-600 dark:from-blue-800 dark:to-blue-600 dark:hover:from-blue-900 dark:hover:to-blue-700'
     }
   };
 
@@ -191,12 +200,11 @@ export const StatCardWithMultipleActions = ({
       {/* Gradient Background */}
       <div className={`absolute inset-0 bg-gradient-to-bl ${colors.gradient} pointer-events-none`}></div>
       
-      {/* Content - Split Layout */}
-      <div className="relative z-10 flex items-center justify-between gap-4">
-        {/* Left Side: Label + Value */}
-        <div className="flex-1">
-          {/* Header with Icon */}
-          <div className="flex items-center gap-3 mb-4">
+      {/* Content */}
+      <div className="relative z-10">
+        {/* Baris 1: Header with Icon + Primary Button */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
             <div className={`p-2 rounded-lg ${colors.iconBg}`}>
               <Icon className={`w-5 h-5 ${colors.icon}`} />
             </div>
@@ -205,22 +213,8 @@ export const StatCardWithMultipleActions = ({
             </p>
           </div>
 
-          {/* Value */}
-          <div>
-            {loading ? (
-              <div className="h-12 w-24 bg-gray-200 dark:bg-slate-700 rounded animate-pulse"></div>
-            ) : (
-              <p className="text-5xl font-bold text-gray-900 dark:text-white">
-                {value}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Right Side: Action Buttons Stacked */}
-        <div className="flex flex-col gap-2 min-w-[200px]">
-          {/* Primary Button */}
-          {primaryButton.text && (
+          {/* Primary Button (Tambah Kamera) */}
+          {primaryButton?.text && (
             <button
               onClick={primaryButton.onClick}
               disabled={loading}
@@ -232,26 +226,42 @@ export const StatCardWithMultipleActions = ({
                 transition-all duration-200
                 flex items-center justify-center gap-2 text-sm
                 shadow-sm hover:shadow-md
+                min-w-[180px]
               `}
             >
               {primaryButton.text}
               {primaryButton.icon && <primaryButton.icon className="w-4 h-4" />}
             </button>
           )}
+        </div>
 
-          {/* Secondary Button */}
-          {secondaryButton.text && (
+        {/* Baris 2: Value + Secondary Button (optional) */}
+        <div className="flex items-center justify-between">
+          {/* Value */}
+          <div>
+            {loading ? (
+              <div className="h-12 w-24 bg-gray-200 dark:bg-slate-700 rounded animate-pulse"></div>
+            ) : (
+              <p className="text-5xl font-bold text-gray-900 dark:text-white">
+                {value}
+              </p>
+            )}
+          </div>
+
+          {/* Secondary Button (Kelola Lokasi DVR) - only if exists */}
+          {secondaryButton && secondaryButton.text && (
             <button
               onClick={secondaryButton.onClick}
               disabled={loading}
               className={`
                 ${colors.secondaryBtn}
-                disabled:bg-gray-400
-                dark:disabled:bg-slate-800
+                disabled:from-gray-400 disabled:to-gray-300
+                dark:disabled:from-slate-800 dark:disabled:to-slate-700
                 text-white px-4 py-2.5 rounded-lg font-medium
                 transition-all duration-200
                 flex items-center justify-center gap-2 text-sm
                 shadow-sm hover:shadow-md
+                min-w-[180px]
               `}
             >
               {secondaryButton.text}

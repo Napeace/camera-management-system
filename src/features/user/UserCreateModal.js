@@ -1,28 +1,40 @@
-// src/components/user/UserCreateModal.js - Dark Mode
+// src/features/user/UserCreateModal.js - Styled with Password Toggle
 import React, { useState, useEffect } from 'react';
 import userService from '../../services/userService';
+import { XMarkIcon, ExclamationCircleIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
 const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [shouldShow, setShouldShow] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     nama: '',
     nip: '',
     username: '',
     password: '',
-    confirmPassword: '',
   });
 
+  // Handle animation
   useEffect(() => {
     if (isOpen) {
+      setIsAnimating(true);
       setFormData({
         nama: '',
         nip: '',
         username: '',
         password: '',
-        confirmPassword: '',
       });
       setError('');
+      setShowPassword(false);
+      // Small delay to trigger enter animation
+      setTimeout(() => setShouldShow(true), 10);
+    } else {
+      setShouldShow(false);
+      // Delay cleanup to allow exit animation
+      const timer = setTimeout(() => setIsAnimating(false), 300);
+      return () => clearTimeout(timer);
     }
   }, [isOpen]);
 
@@ -33,17 +45,13 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
   };
 
   const validateForm = () => {
-    const { nama, nip, username, password, confirmPassword } = formData;
+    const { nama, nip, username, password } = formData;
     if (!nama.trim() || !nip.trim() || !username.trim() || !password.trim()) {
-      setError('All fields with * are required');
+      setError('Semua field dengan tanda * wajib diisi');
       return false;
     }
     if (password.length < 6) {
-      setError('Password must be at least 6 characters long');
-      return false;
-    }
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError('Password harus minimal 6 karakter');
       return false;
     }
     return true;
@@ -75,42 +83,63 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
       
     } catch (error) {
       console.error('Create user error:', error);
-      setError(error.message || 'Failed to create user. Please try again.');
+      setError(error.message || 'Gagal membuat user. Silakan coba lagi.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleClose = () => !loading && onClose();
+
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget && !loading) {
+      onClose();
+    }
+  };
   
-  if (!isOpen) return null;
+  if (!isOpen && !isAnimating) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-700">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Create New User</h2>
+    <div 
+      onClick={handleBackdropClick}
+      className={`fixed inset-0 bg-black/70 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity duration-300 ${
+        shouldShow ? 'opacity-100' : 'opacity-0'
+      }`}
+    >
+      <div 
+        className={`bg-gradient-to-b from-slate-50 via-blue-50 to-blue-100 dark:from-slate-950 dark:via-indigo-950 dark:to-indigo-800 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all duration-300 ${
+          shouldShow ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+        }`}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-6 mx-4">
+          <h2 className="text-2xl text-gray-900 dark:text-white font-semibold">Tambah User Baru</h2>
           <button 
             onClick={handleClose} 
             disabled={loading} 
-            className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+            className="text-gray-600 hover:text-gray-900 dark:text-white/70 dark:hover:text-white disabled:opacity-50 transition-colors"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <XMarkIcon className="w-7 h-7" />
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        {/* Border after header */}
+        <div className="mx-6 h-1 bg-gray-300 dark:bg-white/10"></div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {error && (
-            <div className="bg-red-50 dark:bg-red-900/30 border-l-4 border-red-400 dark:border-red-600 p-4 rounded-md">
-              <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+            <div className="bg-red-100 dark:bg-red-500/20 border border-red-300 dark:border-red-400/40 rounded-xl p-4 backdrop-blur-sm">
+              <div className="flex items-center">
+                <ExclamationCircleIcon className="w-5 h-5 text-red-600 dark:text-red-300 mr-2 flex-shrink-0" />
+                <p className="text-sm text-red-700 dark:text-red-200">{error}</p>
+              </div>
             </div>
           )}
 
           <div>
-            <label htmlFor="nama" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Full Name *
+            <label htmlFor="nama" className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
+              Nama Lengkap *
             </label>
             <input 
               type="text" 
@@ -119,14 +148,14 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
               required 
               value={formData.nama} 
               onChange={handleInputChange} 
-              className="block w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-              placeholder="Enter full name" 
-              disabled={loading} 
+              disabled={loading}
+              className="block w-full px-4 py-3 bg-white dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-white/30 focus:border-blue-500 dark:focus:border-white/30 disabled:opacity-50 transition-all"
+              placeholder="Masukkan nama lengkap"
             />
           </div>
 
           <div>
-            <label htmlFor="nip" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="nip" className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
               NIP *
             </label>
             <input 
@@ -136,14 +165,14 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
               required 
               value={formData.nip} 
               onChange={handleInputChange} 
-              className="block w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-              placeholder="Enter NIP" 
-              disabled={loading} 
+              disabled={loading}
+              className="block w-full px-4 py-3 bg-white dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-white/30 focus:border-blue-500 dark:focus:border-white/30 disabled:opacity-50 transition-all"
+              placeholder="Masukkan NIP"
             />
           </div>
 
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
               Username *
             </label>
             <input 
@@ -153,64 +182,72 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
               required 
               value={formData.username} 
               onChange={handleInputChange} 
-              className="block w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-              placeholder="Enter username" 
-              disabled={loading} 
+              disabled={loading}
+              className="block w-full px-4 py-3 bg-white dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-white/30 focus:border-blue-500 dark:focus:border-white/30 disabled:opacity-50 transition-all"
+              placeholder="Masukkan username"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
               Password *
             </label>
-            <input 
-              type="password" 
-              id="password" 
-              name="password" 
-              required 
-              value={formData.password} 
-              onChange={handleInputChange} 
-              className="block w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-              placeholder="Enter password" 
-              minLength="6" 
-              disabled={loading} 
-            />
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Minimum 6 characters</p>
+            <div className="relative">
+              <input 
+                type={showPassword ? "text" : "password"}
+                id="password" 
+                name="password" 
+                required 
+                value={formData.password} 
+                onChange={handleInputChange} 
+                disabled={loading}
+                minLength="6"
+                className="block w-full px-4 py-3 pr-12 bg-white dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-white/30 focus:border-blue-500 dark:focus:border-white/30 disabled:opacity-50 transition-all"
+                placeholder="Minimal 6 karakter"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={loading}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white disabled:opacity-50 transition-colors"
+              >
+                {showPassword ? (
+                  <EyeSlashIcon className="w-5 h-5" />
+                ) : (
+                  <EyeIcon className="w-5 h-5" />
+                )}
+              </button>
+            </div>
           </div>
 
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Confirm Password *
-            </label>
-            <input 
-              type="password" 
-              id="confirmPassword" 
-              name="confirmPassword" 
-              required 
-              value={formData.confirmPassword} 
-              onChange={handleInputChange} 
-              className="block w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-              placeholder="Confirm password" 
-              disabled={loading} 
-            />
-          </div>
-
-          <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-slate-700">
-            <button 
-              type="button" 
-              onClick={handleClose} 
-              disabled={loading} 
-              className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700"
-            >
-              Cancel
-            </button>
-            <button 
-              type="submit" 
-              disabled={loading} 
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-            >
-              {loading ? 'Creating...' : 'Create User'}
-            </button>
+          {/* Border before buttons */}
+          <div className="h-1 bg-gray-300 dark:bg-white/10 mb-6"></div>
+          
+          {/* Buttons */}
+          <div className="pb-6">
+            <div className="flex gap-3 justify-end">
+              <button
+                type="button" 
+                onClick={handleClose} 
+                disabled={loading}
+                className="w-28 px-1 py-3 bg-gray-200 dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-700 dark:text-white font-medium hover:bg-gray-300 dark:hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                Batal
+              </button>
+              <button
+                type="submit" 
+                disabled={loading}
+                className="w-48 px-1 py-3 bg-blue-600 dark:bg-white/10 backdrop-blur-sm border border-blue-600 dark:border-white/20 rounded-xl text-white font-medium hover:bg-blue-700 dark:hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+              >
+                {loading && (
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                )}
+                {loading ? 'Menyimpan...' : 'Simpan'}
+              </button>
+            </div>
           </div>
         </form>
       </div>

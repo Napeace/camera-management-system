@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
+import useNavigateWithScroll from '../../hooks/useNavigateWithScroll';
 import ConfirmDialog from '../common/ConfirmDialog';
 import ExportDataModal from '../../features/backup/export/ExportDataModal';
 import {
@@ -24,7 +25,18 @@ const Sidebar = ({
   isCollapsed = false
 }) => {
   const location = useLocation();
-  const navigate = useNavigate();
+  
+  // ✅ SIMPLIFIED: Just use the hook normally
+  const { navigateWithScroll, isNavigating, isNavigatingRef } = useNavigateWithScroll({ 
+    scrollDuration: 600,
+    scrollThreshold: 200
+  });
+
+  // ✅ Debug: Monitor isNavigating changes
+  useEffect(() => {
+    console.log('🔴 [Sidebar] isNavigating changed:', isNavigating);
+  }, [isNavigating]);
+
   
   const [expandedMenus, setExpandedMenus] = useState({
     backup: false
@@ -34,6 +46,12 @@ const Sidebar = ({
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
+
+  const [hoveredItem, setHoveredItem] = useState(null);
+  const [hoveredSubItem, setHoveredSubItem] = useState(null);
+  
+  // ✅ Local lock ref untuk immediate blocking
+  const localLockRef = useRef(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -150,44 +168,96 @@ const Sidebar = ({
     !item.roleRequired || user.role === item.roleRequired
   );
 
-  const [hoveredItem, setHoveredItem] = useState(null);
-  const [hoveredSubItem, setHoveredSubItem] = useState(null);
+  // ✅ SIMPLIFIED: Standard navigation handler
+  const handleMenuClick = async (item) => {
+    const wasLocked = localLockRef.current || isNavigatingRef.current || isNavigating;
+    
+    if (wasLocked) {
+      console.log('⛔ Already navigating, BLOCKED!', {
+        localLock: localLockRef.current,
+        isNavigatingRef: isNavigatingRef.current,
+        isNavigating
+      });
+      return;
+    }
 
-  const handleMenuClick = (item) => {
-    console.log('Menu clicked:', item);
+    localLockRef.current = true;
+    isNavigatingRef.current = true;
+
+    console.log('🔵 [Button Click]', {
+      item: item.id,
+      path: item.path,
+      timestamp: new Date().toISOString()
+    });
 
     if (isCollapsed && !isMobile) {
       onToggle(false); 
     }
 
     if (item.hasSubmenu) {
+      localLockRef.current = false;
+      isNavigatingRef.current = false;
       toggleMenu(item.id);
     } else {
-      console.log('Navigating to:', item.path);
-      navigate(item.path); 
-      onPageChange(item.id, item.path);
+      console.log('🔒 Starting navigation to:', item.path);
       
-      if (isMobile && !isCollapsed) {
-        onToggle(true);
+      try {
+        onPageChange(item.id, item.path);
+        // ✅ Hook will handle: scroll → wait → navigate → exit animation
+        await navigateWithScroll(item.path);
+        
+        if (isMobile && !isCollapsed) {
+          onToggle(true);
+        }
+      } catch (error) {
+        console.error('Navigation error in handleMenuClick:', error);
+        localLockRef.current = false;
+        isNavigatingRef.current = false;
+      } finally {
+        setTimeout(() => {
+          localLockRef.current = false;
+        }, 700);
       }
     }
   };
 
-  const handleSubmenuClick = (parentId, subItem) => {
-    console.log('Submenu clicked:', subItem);
+  // ✅ SIMPLIFIED: Standard submenu handler
+  const handleSubmenuClick = async (parentId, subItem) => {
+    console.log('🔵 [Submenu Click]', {
+      subItem: subItem.id,
+      path: subItem.path,
+      timestamp: new Date().toISOString()
+    });
     
-    // ← TAMBAHKAN KONDISI INI (baris 179-182)
-    // Jika klik Export Data, buka modal
+    if (localLockRef.current || isNavigatingRef.current || isNavigating) {
+      console.log('⛔ Already navigating, BLOCKED!');
+      return;
+    }
+    
     if (subItem.id === 'export-data') {
       setShowExportModal(true);
       return;
     }
     
-    navigate(subItem.path); 
-    onPageChange(subItem.id, subItem.path);
+    localLockRef.current = true;
+    isNavigatingRef.current = true;
+    console.log('🔒 Starting navigation to:', subItem.path);
     
-    if (isMobile && !isCollapsed) {
-      onToggle(true);
+    try {
+      onPageChange(subItem.id, subItem.path);
+      await navigateWithScroll(subItem.path);
+      
+      if (isMobile && !isCollapsed) {
+        onToggle(true);
+      }
+    } catch (error) {
+      console.error('Navigation error in handleSubmenuClick:', error);
+      localLockRef.current = false;
+      isNavigatingRef.current = false;
+    } finally {
+      setTimeout(() => {
+        localLockRef.current = false;
+      }, 700);
     }
   };
 
@@ -289,6 +359,7 @@ const Sidebar = ({
                   onClick={() => handleMenuClick(item)}
                   onMouseEnter={() => setHoveredItem(item.id)}
                   onMouseLeave={() => setHoveredItem(null)}
+                  disabled={isNavigating}
                   className={`
                     w-full flex items-center rounded-xl transition-all duration-200 group
                     ${isCollapsed ? 'px-3 py-3' : 'px-4 py-3'}
@@ -296,6 +367,7 @@ const Sidebar = ({
                       ? 'bg-blue-100 dark:bg-white text-blue-600 shadow-lg transform scale-[0.98]'
                       : 'text-slate-600 dark:text-gray-300 hover:bg-slate-200/70 dark:hover:bg-white/50 hover:text-slate-800 dark:hover:text-black hover:transform hover:scale-[0.98]'
                     }
+                    ${isNavigating ? 'opacity-50 cursor-not-allowed' : ''}
                   `}
                   title={isCollapsed ? item.label : ''}
                 >
@@ -341,6 +413,7 @@ const Sidebar = ({
                         onClick={() => handleSubmenuClick(item.id, subItem)}
                         onMouseEnter={() => setHoveredSubItem(subItem.id)}
                         onMouseLeave={() => setHoveredSubItem(null)}
+                        disabled={isNavigating}
                         className={`
                           w-full flex items-center px-4 py-2 rounded-lg 
                           text-sm transition-all duration-200 hover:transform hover:scale-[0.98]
@@ -348,6 +421,7 @@ const Sidebar = ({
                             ? 'bg-blue-100 dark:bg-white text-blue-600'
                             : 'text-slate-500 dark:text-gray-400 hover:bg-slate-200/70 dark:hover:bg-white/50 hover:text-slate-800 dark:hover:text-black'
                           }
+                          ${isNavigating ? 'opacity-50 cursor-not-allowed' : ''}
                         `}
                       >
                         <IconComponent 

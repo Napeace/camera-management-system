@@ -1,4 +1,4 @@
-// CCTVList.jsx - REFACTORED menggunakan AnimatedSection component
+// CCTVList.js
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import useTableAnimation from '../../hooks/useTableAnimation';
@@ -18,7 +18,7 @@ import {
 import Pagination from '../../components/common/Pagination';
 
 const CCTVList = ({ 
-  cctvData = [], // ✅ Default value
+  cctvData = [],
   loading = false, 
   error = null, 
   onRefresh, 

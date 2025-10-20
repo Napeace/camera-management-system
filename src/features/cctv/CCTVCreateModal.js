@@ -194,7 +194,7 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
                     {/* Lokasi */}
                     <div>
                         <label htmlFor="id_location" className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
-                            Lokasi DVR
+                            Lokasi
                         </label>
                         <CustomLocationSelect
                             value={formData.id_location}

@@ -4,15 +4,15 @@ import { AnimatePresence } from 'framer-motion';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './routes/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
-import DashboardPage from './pages/DashboardPage';
-import UserPage from './pages/UserPage';
-import CCTVPage from './pages/CCTVPage';
-import LiveMonitoringPage from './pages/LiveMonitoringPage';
+import DashboardPage from './features/dashboard/DashboardPage';
+import UserPage from './features/user/UserPage';
+import CCTVPage from './features/cctv/CCTVPage';
+import LiveMonitoringPage from './features/live-monitoring/LiveMonitoringPage';
 import HistoryPage from './pages/HistoryPage';
 import { ToastProvider } from './contexts/ToastContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 
-// Component wrapper untuk menggunakan useLocation
+// ✅ SIMPLIFIED: Just basic AnimatePresence, scroll logic handled in hook
 const AnimatedRoutes = () => {
   const location = useLocation();
 

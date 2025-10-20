@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { XMarkIcon, ExclamationCircleIcon, PlusIcon, MapPinIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, ExclamationCircleIcon, PlusIcon, MapPinIcon, PencilSquareIcon, TrashIcon, CheckIcon } from '@heroicons/react/24/outline';
 import locationService from '../../services/locationService';
 import { useToast } from '../../contexts/ToastContext';
 
 const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
-    const { showSuccess, showError, showInfo } = useToast();
+    const { showSuccess, showError } = useToast();
     const [loading, setLoading] = useState(false);
     const [loadingLocations, setLoadingLocations] = useState(false);
     const [error, setError] = useState('');
@@ -12,6 +12,8 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
     const [shouldShow, setShouldShow] = useState(false);
     const [showForm, setShowForm] = useState(false);
     const [locations, setLocations] = useState([]);
+    const [editingLocationId, setEditingLocationId] = useState(null);
+    const [deleteConfirm, setDeleteConfirm] = useState(null);
     const [formData, setFormData] = useState({
         nama_lokasi: ''
     });
@@ -21,8 +23,10 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
         if (isOpen) {
             setIsAnimating(true);
             setShowForm(false);
+            setEditingLocationId(null);
             setFormData({ nama_lokasi: '' });
             setError('');
+            setDeleteConfirm(null);
             fetchLocations();
             setTimeout(() => setShouldShow(true), 10);
         } else {
@@ -35,17 +39,10 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
     const fetchLocations = async () => {
         setLoadingLocations(true);
         try {
-            console.log('🔍 Fetching locations...');
             const response = await locationService.getAllLocations(0, 100);
-            console.log('✅ Response:', response);
-            console.log('📦 Data:', response.data);
             setLocations(response.data || []);
         } catch (err) {
-            console.error('❌ Error fetching locations:', err);
-            console.error('Error response:', err.response);
-            console.error('Error message:', err.message);
-            
-            // Extract detailed error message
+            console.error('Error fetching locations:', err);
             let errorMsg = 'Gagal memuat data lokasi';
             if (err.response?.data?.detail) {
                 errorMsg = typeof err.response.data.detail === 'string' 
@@ -54,7 +51,6 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
             } else if (err.message) {
                 errorMsg = err.message;
             }
-            
             showError('Load Failed', errorMsg);
         } finally {
             setLoadingLocations(false);
@@ -98,14 +94,10 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
             
             showSuccess('Lokasi Berhasil Dibuat', `${formData.nama_lokasi} telah ditambahkan`);
             
-            // Refresh locations list
             await fetchLocations();
-            
-            // Reset form
             setFormData({ nama_lokasi: '' });
             setShowForm(false);
             
-            // Notify parent
             if (onLocationCreated) {
                 onLocationCreated(newLocation);
             }
@@ -118,33 +110,98 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
         }
     };
 
-    const handleEditLocation = (location) => {
-        // TODO: Implement edit functionality when backend endpoint is ready
-        showInfo('Fitur Belum Tersedia', 'Fitur edit lokasi akan segera hadir');
-        console.log('Edit location:', location);
+    const handleStartEdit = (location) => {
+        setEditingLocationId(location.id_location);
+        setFormData({ nama_lokasi: location.nama_lokasi });
+        setError('');
+        setShowForm(false);
     };
 
-    const handleDeleteLocation = (location) => {
-        // Delete is not allowed by design
-        showError('Fitur Belum Tersedia', 'Fitur hapus lokasi akan segera hadir');
-        console.log('Attempted to delete location:', location);
+    const handleCancelEdit = () => {
+        setEditingLocationId(null);
+        setFormData({ nama_lokasi: '' });
+        setError('');
+    };
+
+    const handleUpdateLocation = async (locationId) => {
+        if (!validateForm()) return;
+
+        setLoading(true);
+        setError('');
+
+        try {
+            await locationService.updateLocation(locationId, {
+                nama_lokasi: formData.nama_lokasi.trim()
+            });
+            
+            showSuccess('Lokasi Berhasil Diperbarui', `${formData.nama_lokasi} telah diupdate`);
+            
+            await fetchLocations();
+            setEditingLocationId(null);
+            setFormData({ nama_lokasi: '' });
+            
+            if (onLocationCreated) {
+                onLocationCreated();
+            }
+        } catch (err) {
+            console.error('Update location error:', err);
+            const errorMessage = err.message || 'Gagal memperbarui lokasi. Silakan coba lagi.';
+            setError(errorMessage);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeleteClick = (location) => {
+        setDeleteConfirm(location);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deleteConfirm) return;
+
+        setLoading(true);
+        try {
+            await locationService.deleteLocation(deleteConfirm.id_location);
+            
+            showSuccess('Lokasi Berhasil Dihapus', `${deleteConfirm.nama_lokasi} telah dihapus`);
+            
+            await fetchLocations();
+            setDeleteConfirm(null);
+            
+            if (onLocationCreated) {
+                onLocationCreated();
+            }
+        } catch (err) {
+            console.error('Delete location error:', err);
+            const errorMessage = err.message || 'Gagal menghapus lokasi. Silakan coba lagi.';
+            showError('Hapus Gagal', errorMessage);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCancelDelete = () => {
+        setDeleteConfirm(null);
     };
 
     const handleClose = () => {
         if (!loading) {
             setShowForm(false);
+            setEditingLocationId(null);
+            setDeleteConfirm(null);
             onClose();
         }
     };
 
     const handleBackdropClick = (e) => {
-        if (e.target === e.currentTarget && !loading) {
+        if (e.target === e.currentTarget && !loading && !deleteConfirm) {
             onClose();
         }
     };
 
     const toggleForm = () => {
         setShowForm(!showForm);
+        setEditingLocationId(null);
         setError('');
         setFormData({ nama_lokasi: '' });
     };
@@ -152,205 +209,303 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
     if (!isOpen && !isAnimating) return null;
 
     return (
-        <div 
-            onClick={handleBackdropClick}
-            className={`fixed inset-0 bg-black/70 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity duration-300 ${
-                shouldShow ? 'opacity-100' : 'opacity-0'
-            }`}
-        >
+        <>
             <div 
-                className={`bg-gradient-to-b from-slate-50 via-purple-50 to-purple-100 dark:from-slate-950 dark:via-purple-950 dark:to-purple-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden transform transition-all duration-300 ${
-                    shouldShow ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+                onClick={handleBackdropClick}
+                className={`fixed inset-0 bg-black/70 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity duration-300 ${
+                    shouldShow ? 'opacity-100' : 'opacity-0'
                 }`}
             >
-                {/* Header */}
-                <div className="flex items-center justify-between px-6 py-6 mx-4">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-purple-500/10 dark:bg-purple-900/30">
-                            <MapPinIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                <div 
+                    className={`bg-gradient-to-b from-slate-950 via-indigo-950 to-indigo-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden transform transition-all duration-300 ${
+                        shouldShow ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+                    }`}
+                >
+                    {/* Header */}
+                    <div className="flex items-center justify-between px-6 py-6 mx-4">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-blue-500/20">
+                                <MapPinIcon className="w-6 h-6 text-blue-400" />
+                            </div>
+                            <h2 className="text-2xl text-white font-semibold">Kelola Lokasi DVR</h2>
                         </div>
-                        <h2 className="text-2xl text-gray-900 dark:text-white font-semibold">Kelola Lokasi DVR</h2>
-                    </div>
-                    <button 
-                        onClick={handleClose} 
-                        disabled={loading} 
-                        className="text-gray-600 hover:text-gray-900 dark:text-white/70 dark:hover:text-white disabled:opacity-50 transition-colors"
-                    >
-                        <XMarkIcon className="w-7 h-7" />
-                    </button>
-                </div>
-                
-                {/* Border separator */}
-                <div className="mx-6 h-1 bg-gray-300 dark:bg-white/10"></div>
-
-                {/* Content - Scrollable */}
-                <div className="p-6 space-y-5 overflow-y-auto max-h-[calc(90vh-180px)]">
-                    {/* Add Location Button */}
-                    {!showForm && (
-                        <button
-                            onClick={toggleForm}
-                            className="w-full bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 dark:from-purple-700 dark:to-purple-600 dark:hover:from-purple-800 dark:hover:to-purple-700 text-white px-4 py-3 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                        <button 
+                            onClick={handleClose} 
+                            disabled={loading} 
+                            className="text-white/70 hover:text-white disabled:opacity-50 transition-colors"
                         >
-                            <PlusIcon className="w-5 h-5" />
-                            Tambah Lokasi Baru
+                            <XMarkIcon className="w-7 h-7" />
                         </button>
-                    )}
+                    </div>
+                    
+                    <div className="mx-6 h-1 bg-white/10"></div>
 
-                    {/* Form Section */}
-                    {showForm && (
-                        <div className="bg-white/50 dark:bg-white/5 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl p-5 space-y-4">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Tambah Lokasi Baru</h3>
-                                <button
-                                    onClick={toggleForm}
-                                    disabled={loading}
-                                    className="text-gray-600 hover:text-gray-900 dark:text-white/70 dark:hover:text-white disabled:opacity-50 transition-colors"
-                                >
-                                    <XMarkIcon className="w-5 h-5" />
-                                </button>
-                            </div>
+                    {/* Content - Scrollable */}
+                    <div className="p-6 space-y-5 overflow-y-auto max-h-[calc(90vh-180px)]">
+                        {/* Add Location Button */}
+                        {!showForm && !editingLocationId && (
+                            <button
+                                onClick={toggleForm}
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                            >
+                                <PlusIcon className="w-5 h-5" />
+                                Tambah Lokasi Baru
+                            </button>
+                        )}
 
-                            {error && (
-                                <div className="bg-red-100 dark:bg-red-500/20 border border-red-300 dark:border-red-400/40 rounded-xl p-4 backdrop-blur-sm">
-                                    <div className="flex items-center">
-                                        <ExclamationCircleIcon className="w-5 h-5 text-red-600 dark:text-red-300 mr-2 flex-shrink-0" />
-                                        <p className="text-sm text-red-700 dark:text-red-200">{error}</p>
-                                    </div>
-                                </div>
-                            )}
-
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                                <div>
-                                    <label htmlFor="nama_lokasi" className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
-                                        Nama Lokasi DVR
-                                    </label>
-                                    <input
-                                        type="text" 
-                                        id="nama_lokasi" 
-                                        name="nama_lokasi" 
-                                        required
-                                        value={formData.nama_lokasi} 
-                                        onChange={handleInputChange} 
-                                        disabled={loading}
-                                        className="block w-full px-4 py-3 bg-white dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-purple-500 dark:focus:ring-white/30 focus:border-purple-500 dark:focus:border-white/30 disabled:opacity-50 transition-all"
-                                        placeholder="Server Monitoring Lantai 1"
-                                        minLength={5}
-                                        maxLength={200}
-                                    />
-                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                        Minimal 5 karakter, maksimal 200 karakter
-                                    </p>
+                        {/* Form Section */}
+                        {showForm && (
+                            <div className="bg-white/5 backdrop-blur-sm border border-white/20 rounded-xl p-5 space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-lg font-semibold text-white">Tambah Lokasi Baru</h3>
                                 </div>
 
-                                <div className="flex gap-3 justify-end pt-2">
-                                    <button
-                                        type="button" 
-                                        onClick={toggleForm} 
-                                        disabled={loading}
-                                        className="px-6 py-2 bg-gray-200 dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-700 dark:text-white font-medium hover:bg-gray-300 dark:hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                    >
-                                        Batal
-                                    </button>
-                                    <button
-                                        type="submit" 
-                                        disabled={loading}
-                                        className="px-6 py-2 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 dark:from-purple-700 dark:to-purple-600 dark:hover:from-purple-800 dark:hover:to-purple-700 text-white font-medium rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
-                                    >
-                                        {loading && (
-                                            <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                            </svg>
-                                        )}
-                                        {loading ? 'Menyimpan...' : 'Simpan'}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    )}
-
-                    {/* Locations List */}
-                    <div className="space-y-3">
-                        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                            <span>Daftar Lokasi DVR</span>
-                            <span className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-1 rounded-full">
-                                {locations.length} lokasi
-                            </span>
-                        </h3>
-
-                        {loadingLocations ? (
-                            <div className="space-y-2">
-                                {[1, 2, 3].map((i) => (
-                                    <div key={i} className="bg-white/50 dark:bg-white/5 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl p-4 animate-pulse">
-                                        <div className="h-5 bg-gray-300 dark:bg-white/10 rounded w-3/4"></div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : locations.length === 0 ? (
-                            <div className="bg-white/50 dark:bg-white/5 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl p-8 text-center">
-                                <MapPinIcon className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
-                                <p className="text-gray-600 dark:text-gray-400 text-sm">
-                                    Belum ada lokasi DVR. Tambahkan lokasi baru untuk memulai.
-                                </p>
-                            </div>
-                        ) : (
-                            <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
-                                {locations.map((location) => (
-                                    <div 
-                                        key={location.id_location}
-                                        className="bg-white/50 dark:bg-white/5 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl p-4 hover:bg-white/70 dark:hover:bg-white/10 transition-all"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2 rounded-lg bg-purple-500/10 dark:bg-purple-900/30">
-                                                <MapPinIcon className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                                            </div>
-                                            <div className="flex-1">
-                                                <p className="font-medium text-gray-900 dark:text-white">
-                                                    {location.nama_lokasi}
-                                                </p>
-                                            </div>
-                                            {/* Action Buttons */}
-                                            <div className="flex items-center gap-2">
-                                                {/* Edit Button */}
-                                                <button
-                                                    onClick={() => handleEditLocation(location)}
-                                                    className="p-2 rounded-lg bg-blue-500/10 dark:bg-blue-900/30 hover:bg-blue-500/20 dark:hover:bg-blue-900/40 transition-all group"
-                                                    title="Edit Lokasi"
-                                                >
-                                                    <PencilSquareIcon className="w-4 h-4 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform" />
-                                                </button>
-                                                {/* Delete Button */}
-                                                <button
-                                                    onClick={() => handleDeleteLocation(location)}
-                                                    className="p-2 rounded-lg bg-red-500/10 dark:bg-red-900/30 hover:bg-red-500/20 dark:hover:bg-red-900/40 transition-all group"
-                                                    title="Hapus Lokasi"
-                                                >
-                                                    <TrashIcon className="w-4 h-4 text-red-600 dark:text-red-400 group-hover:scale-110 transition-transform" />
-                                                </button>
-                                            </div>
+                                {error && (
+                                    <div className="bg-red-500/20 border border-red-400/40 rounded-xl p-4 backdrop-blur-sm">
+                                        <div className="flex items-center">
+                                            <ExclamationCircleIcon className="w-5 h-5 text-red-300 mr-2 flex-shrink-0" />
+                                            <p className="text-sm text-red-200">{error}</p>
                                         </div>
                                     </div>
-                                ))}
+                                )}
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <label htmlFor="nama_lokasi" className="block text-sm font-medium text-white mb-2">
+                                            Nama Lokasi
+                                        </label>
+                                        <input
+                                            type="text" 
+                                            id="nama_lokasi" 
+                                            name="nama_lokasi" 
+                                            value={formData.nama_lokasi} 
+                                            onChange={handleInputChange} 
+                                            disabled={loading}
+                                            className="block w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-white/50 focus:ring-2 focus:ring-white/30 focus:border-white/30 disabled:opacity-50 transition-all"
+                                            placeholder="Server Monitoring Lantai 1"
+                                        />
+                                        <p className="mt-1 text-xs text-gray-400">
+                                            Minimal 5 karakter, maksimal 200 karakter
+                                        </p>
+                                    </div>
+
+                                    <div className="flex gap-3 justify-end pt-2">
+                                        <button
+                                            type="button" 
+                                            onClick={toggleForm} 
+                                            disabled={loading}
+                                            className="px-6 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white font-medium hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                        >
+                                            Batal
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleSubmit}
+                                            disabled={loading}
+                                            className="px-6 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white font-medium hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                                        >
+                                            {loading && (
+                                                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                            )}
+                                            {loading ? 'Menyimpan...' : 'Simpan'}
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         )}
+
+                        {/* Locations List */}
+                        <div className="space-y-3">
+                            <h3 className="text-sm font-semibold text-gray-300 flex items-center gap-2">
+                                <span>Daftar Lokasi</span>
+                                <span className="text-xs bg-blue-900/30 text-blue-300 px-2 py-1 rounded-full">
+                                    {locations.length} lokasi
+                                </span>
+                            </h3>
+
+                            {loadingLocations ? (
+                                <div className="space-y-2">
+                                    {[1, 2, 3].map((i) => (
+                                        <div key={i} className="bg-white/5 backdrop-blur-sm border border-white/20 rounded-xl p-4 animate-pulse">
+                                            <div className="h-5 bg-white/10 rounded w-3/4"></div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : locations.length === 0 ? (
+                                <div className="bg-white/5 backdrop-blur-sm border border-white/20 rounded-xl p-8 text-center">
+                                    <MapPinIcon className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                                    <p className="text-gray-400 text-sm">
+                                        Belum ada lokasi. Tambahkan lokasi baru untuk memulai.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
+                                    {locations.map((location) => (
+                                        <div 
+                                            key={location.id_location}
+                                            className="bg-white/5 backdrop-blur-sm border border-white/20 rounded-xl p-4 hover:bg-white/10 transition-all"
+                                        >
+                                            {editingLocationId === location.id_location ? (
+                                                <div className="space-y-3">
+                                                    {error && (
+                                                        <div className="bg-red-500/20 border border-red-400/40 rounded-lg p-3 backdrop-blur-sm">
+                                                            <div className="flex items-center">
+                                                                <ExclamationCircleIcon className="w-4 h-4 text-red-300 mr-2 flex-shrink-0" />
+                                                                <p className="text-xs text-red-200">{error}</p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    <input
+                                                        type="text"
+                                                        value={formData.nama_lokasi}
+                                                        onChange={handleInputChange}
+                                                        disabled={loading}
+                                                        className="block w-full px-3 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/50 focus:ring-2 focus:ring-white/30 focus:border-white/30 disabled:opacity-50 transition-all text-sm"
+                                                        placeholder="Nama lokasi"
+                                                    />
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            onClick={handleCancelEdit}
+                                                            disabled={loading}
+                                                            className="flex-1 px-3 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white font-medium hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
+                                                        >
+                                                            Batal
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleUpdateLocation(location.id_location)}
+                                                            disabled={loading}
+                                                            className="flex-1 px-3 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white font-medium hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 text-sm"
+                                                        >
+                                                            {loading ? (
+                                                                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                                </svg>
+                                                            ) : (
+                                                                <CheckIcon className="w-4 h-4" />
+                                                            )}
+                                                            {loading ? 'Menyimpan...' : 'Simpan'}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 rounded-lg bg-blue-500/20">
+                                                        <MapPinIcon className="w-4 h-4 text-blue-400" />
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <p className="font-medium text-white">
+                                                            {location.nama_lokasi}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            onClick={() => handleStartEdit(location)}
+                                                            disabled={loading}
+                                                            className="p-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 transition-all group disabled:opacity-50"
+                                                            title="Edit Lokasi"
+                                                        >
+                                                            <PencilSquareIcon className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteClick(location)}
+                                                            disabled={loading}
+                                                            className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 transition-all group disabled:opacity-50"
+                                                            title="Hapus Lokasi"
+                                                        >
+                                                            <TrashIcon className="w-4 h-4 text-red-400 group-hover:scale-110 transition-transform" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="mx-6 h-1 bg-white/10"></div>
+
+                    {/* Footer */}
+                    <div className="p-6">
+                        <button
+                            onClick={handleClose}
+                            disabled={loading}
+                            className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white font-medium hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        >
+                            Tutup
+                        </button>
                     </div>
                 </div>
-
-                {/* Footer Border */}
-                <div className="mx-6 h-1 bg-gray-300 dark:bg-white/10"></div>
-
-                {/* Footer */}
-                <div className="p-6">
-                    <button
-                        onClick={handleClose}
-                        disabled={loading}
-                        className="w-full px-4 py-3 bg-gray-200 dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-700 dark:text-white font-medium hover:bg-gray-300 dark:hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                    >
-                        Tutup
-                    </button>
-                </div>
             </div>
-        </div>
+
+            {/* Delete Confirmation Modal */}
+            {deleteConfirm && (
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+                    <div className="w-full max-w-md transform overflow-hidden rounded-2xl bg-gradient-to-b from-blue-50 via-blue-100 to-blue-200 dark:from-slate-950 dark:via-indigo-950 dark:to-indigo-800 shadow-2xl transition-all">
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-6 py-6 mx-4">
+                            <h2 className="text-2xl text-gray-900 dark:text-white font-semibold">
+                                Konfirmasi Hapus
+                            </h2>
+                            <button 
+                                onClick={handleCancelDelete} 
+                                disabled={loading} 
+                                className="text-gray-600 hover:text-gray-900 dark:text-white/70 dark:hover:text-white disabled:opacity-50 transition-colors"
+                            >
+                                <XMarkIcon className="w-7 h-7" />
+                            </button>
+                        </div>
+                        
+                        {/* Border persegi panjang setelah header */}
+                        <div className="mx-6 h-1 bg-gray-300 dark:bg-white/10"></div>
+
+                        {/* Content */}
+                        <div className="p-6">
+                            <p className="text-gray-800 dark:text-white text-lg leading-relaxed">
+                                Apakah Anda yakin ingin menghapus lokasi <strong>{deleteConfirm.nama_lokasi}</strong>?
+                            </p>
+                            
+                            {/* Buttons */}
+                            <div className="mt-9 pb-2">
+                                <div className="flex gap-3 justify-end">
+                                    <button
+                                        type="button" 
+                                        onClick={handleCancelDelete} 
+                                        disabled={loading}
+                                        className="w-28 px-1 py-3 bg-white/60 dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white font-medium hover:bg-white/80 dark:hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                    >
+                                        Tidak
+                                    </button>
+                                    <button
+                                        type="button" 
+                                        onClick={handleConfirmDelete}
+                                        disabled={loading}
+                                        className="w-28 px-1 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-sm border border-blue-700 dark:border-white/20 rounded-xl text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                                    >
+                                        {loading ? (
+                                            <>
+                                                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                Processing...
+                                            </>
+                                        ) : (
+                                            'Iya'
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
     );
 };
 

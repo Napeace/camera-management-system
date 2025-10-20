@@ -3,8 +3,10 @@
   box-sizing: border-box;
 }
 
+/* ✅ FIX: Disable native smooth scroll, we handle it manually */
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto !important;
+  overflow-y: scroll; /* Force scrollbar untuk prevent layout shift */
 }
 
 body {
@@ -142,6 +144,18 @@ nav *,
 [data-framer-motion],
 [data-framer-motion] * {
   transition: none !important;
+}
+
+/* ===== PAGE TRANSITION OPTIMIZATION ===== */
+/* ✅ FIX: Prevent scroll jump during page transitions */
+.page-transition-container {
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Prevent layout shift during exit animation */
+[data-page-transition] {
+  will-change: opacity, transform;
 }
 
 /* Custom Scrollbar untuk Dropdown Lokasi */

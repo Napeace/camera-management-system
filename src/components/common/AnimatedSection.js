@@ -1,4 +1,4 @@
-// src/components/common/AnimatedSection.jsx
+// src/components/common/AnimatedSection.js
 import React from 'react';
 import { motion } from 'framer-motion';
 import { 

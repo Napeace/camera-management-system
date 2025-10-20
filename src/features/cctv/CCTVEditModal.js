@@ -153,7 +153,7 @@ const CCTVEditModal = ({ isOpen, onClose, cctvToEdit, onCCTVUpdated, locationGro
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-6 mx-4">
                     <h2 className="text-2xl text-gray-900 dark:text-white font-semibold">
-                        Edit CCTV #{cctvToEdit?.id_cctv}
+                        Edit CCTV
                     </h2>
                     <button 
                         onClick={handleClose} 
@@ -229,7 +229,7 @@ const CCTVEditModal = ({ isOpen, onClose, cctvToEdit, onCCTVUpdated, locationGro
                     {/* Lokasi */}
                     <div>
                         <label htmlFor="id_location" className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
-                            Lokasi DVR
+                            Lokasi
                         </label>
                         <CustomLocationSelect
                             value={formData.id_location}
