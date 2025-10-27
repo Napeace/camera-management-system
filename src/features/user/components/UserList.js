@@ -1,9 +1,9 @@
-// features/user/UserList.js - FINAL dengan AnimatedSection & Slide Effect + Pagination
+// features/user/UserList.js - FIXED: updated_at → last_login
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import useTableAnimation from '../../hooks/useTableAnimation';
-import AnimatedSection from '../../components/common/AnimatedSection';
-import Pagination from '../../components/common/Pagination';
+import useTableAnimation from '../../../hooks/useTableAnimation';
+import AnimatedSection from '../../../components/common/AnimatedSection';
+import Pagination from '../../../components/common/Pagination';
 import { 
   PencilIcon, 
   TrashIcon, 
@@ -141,7 +141,7 @@ const UserList = ({
                 Actions
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                Created
+                Last Login
               </th>
             </tr>
           </thead>
@@ -200,8 +200,9 @@ const UserList = ({
                     </button>
                   </div>
                 </td>
+                {/* ✅ FIXED: Ganti user.updated_at menjadi user.last_login */}
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                  {formatDate(user.created_at)}
+                  {formatDate(user.last_login)}
                 </td>
               </motion.tr>
             ))}

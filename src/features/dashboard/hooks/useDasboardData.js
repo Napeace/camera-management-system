@@ -10,10 +10,10 @@ import userService from '../../../services/userService';
  * @param {Object} options
  * @param {Function} options.showError - Toast error handler dari useToast
  * @param {Boolean} options.isSuperAdmin - Apakah user adalah SuperAdmin
- * @returns {Object} { cctvData, userData, loading, error, refetch }
+ * @returns {Object} { cctvData, userData, lastLoginData, loading, error, refetch }
  * 
  * Usage (DashboardPage only):
- * const { cctvData, userData, loading, error, refetch } = useDashboardData({
+ * const { cctvData, userData, lastLoginData, loading, error, refetch } = useDashboardData({
  *     showError,
  *     isSuperAdmin: user?.role === 'superadmin'
  * });
@@ -21,9 +21,61 @@ import userService from '../../../services/userService';
 function useDashboardData({ showError, isSuperAdmin }) {
     const [cctvData, setCctvData] = useState([]);
     const [userData, setUserData] = useState([]);
+    const [lastLoginData, setLastLoginData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const hasShownErrorRef = useRef(false);
+
+    /**
+     * Transform user data menjadi format Last Login
+     * - Filter user dengan last_login tidak null
+     * - Sort by last_login descending (terbaru dulu)
+     * - Ambil 3 teratas
+     * - Format tanggal ke Indonesia: "27 Okt 2025, 14:30"
+     */
+    const transformLastLoginData = useCallback((users) => {
+        if (!users || users.length === 0) {
+            return [];
+        }
+
+        // Filter user yang pernah login (last_login tidak null)
+        const usersWithLogin = users.filter(user => user.last_login !== null && user.last_login !== undefined);
+
+        // Jika tidak ada user yang pernah login, return empty array
+        if (usersWithLogin.length === 0) {
+            return [];
+        }
+
+        // Sort by last_login descending (terbaru dulu)
+        const sortedUsers = usersWithLogin.sort((a, b) => {
+            const dateA = new Date(a.last_login);
+            const dateB = new Date(b.last_login);
+            return dateB - dateA; // Descending
+        });
+
+        // Ambil 3 teratas
+        const topThree = sortedUsers.slice(0, 3);
+
+        // Transform ke format yang dibutuhkan LastLoginSection
+        return topThree.map(user => {
+            const date = new Date(user.last_login);
+            
+            // Format tanggal: "27 Okt 2025, 14:30"
+            const formattedDate = date.toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            return {
+                user: user.nama,
+                date: formattedDate,
+                action: `Logged in: ${user.nama}`
+            };
+        });
+    }, []);
 
     const fetchData = useCallback(async () => {
         try {
@@ -39,13 +91,20 @@ function useDashboardData({ showError, isSuperAdmin }) {
             if (isSuperAdmin) {
                 try {
                     const userResult = await userService.getAllUsers();
-                    setUserData(userResult.data || []);
+                    const users = userResult.data || [];
+                    setUserData(users);
+                    
+                    // Transform untuk Last Login Section
+                    const transformedLoginData = transformLastLoginData(users);
+                    setLastLoginData(transformedLoginData);
                 } catch (userErr) {
                     console.warn('Failed to fetch user data:', userErr);
                     setUserData([]);
+                    setLastLoginData([]);
                 }
             } else {
                 setUserData([]);
+                setLastLoginData([]);
             }
         } catch (err) {
             console.error('Error fetching dashboard data:', err);
@@ -59,7 +118,7 @@ function useDashboardData({ showError, isSuperAdmin }) {
         } finally {
             setLoading(false);
         }
-    }, [showError, isSuperAdmin]);
+    }, [showError, isSuperAdmin, transformLastLoginData]);
 
     useEffect(() => {
         fetchData();
@@ -68,6 +127,7 @@ function useDashboardData({ showError, isSuperAdmin }) {
     return {
         cctvData,
         userData,
+        lastLoginData, // ✅ NEW: Data untuk Last Login Section
         loading,
         error,
         refetch: fetchData // Manual refresh capability

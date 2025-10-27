@@ -1,6 +1,6 @@
 import { Fragment } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
-import { XMarkIcon } from '@heroicons/react/24/outline'
+import { XMarkIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline'
 
 export default function ConfirmDialog({
   isOpen = false,
@@ -57,9 +57,14 @@ export default function ConfirmDialog({
               <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-gradient-to-b from-blue-50 via-blue-100 to-blue-200 dark:from-slate-950 dark:via-indigo-950 dark:to-indigo-800 shadow-2xl transition-all">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-6 mx-4">
-                  <Dialog.Title as="h2" className="text-2xl text-gray-900 dark:text-white font-semibold">
-                    {title}
-                  </Dialog.Title>
+                  <div className="flex items-center gap-3">
+                    <div className="p-1 rounded-lg border-2 border-blue-600 dark:border-blue-950">
+                      <QuestionMarkCircleIcon className="w-8 h-8 text-blue-600 dark:text-blue-700" />
+                    </div>
+                    <Dialog.Title as="h2" className="text-2xl text-gray-900 dark:text-white font-semibold">
+                      {title}
+                    </Dialog.Title>
+                  </div>
                   <button 
                     onClick={handleClose} 
                     disabled={loading} 

@@ -14,8 +14,8 @@ import { useMemo } from 'react';
  */
 const useStaggerAnimation = ({
   staggerDelay = 0.1,
-  initialDelay = 0.2,
-  duration = 0.5,
+  initialDelay = 0.1,
+  duration = 0.1,
   yOffset = 20
 } = {}) => {
   

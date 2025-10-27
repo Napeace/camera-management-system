@@ -16,6 +16,7 @@ import useStaggerAnimation from '../../hooks/useStaggerAnimation';
 // Dashboard Components
 import DashboardStats from './components/DashboardStats';
 import LastLoginSection from './components/LastLoginSection';
+import OfflineHistoryChart from './components/OfflineHistoryChart';
 import RecentHistoryTable from './components/RecentHistoryTable';
 
 // Icons
@@ -43,7 +44,8 @@ const DashboardPage = () => {
     });
 
     // Fetch dashboard data using custom hook
-    const { cctvData, userData, loading, error } = useDashboardData({
+    // ✅ UPDATED: Destructure lastLoginData dari hook
+    const { cctvData, userData, lastLoginData, loading, error } = useDashboardData({
         showError,
         isSuperAdmin
     });
@@ -64,42 +66,51 @@ const DashboardPage = () => {
 
     // Combine stats based on user role
     const stats = useMemo(() => {
-        const baseStats = [
-            {
-                label: 'Total Kamera',
-                value: String(cctvStats.total),
-                Icon: VideoCameraIcon,
-                color: 'blue',
-            },
-            {
-                label: 'Online Kamera',
-                value: String(cctvStats.online),
-                Icon: SignalIcon,
-                color: 'green',
-            },
-            {
-                label: 'Offline Kamera',
-                value: String(cctvStats.offline),
-                Icon: SignalSlashIcon,
-                color: 'red',
-            },
-        ];
-
         if (isSuperAdmin) {
+            // SuperAdmin: 4 cards (Total Kamera, Total Pengguna, Online, Offline)
             return [
-                baseStats[0],
+                {
+                    label: 'Total Kamera',
+                    value: String(cctvStats.total),
+                    Icon: VideoCameraIcon,
+                    color: 'blue',
+                },
                 {
                     label: 'Total Pengguna',
                     value: String(userStats.total),
                     Icon: UserGroupIcon,
                     color: 'purple',
                 },
-                baseStats[1],
-                baseStats[2],
+                {
+                    label: 'Online Kamera',
+                    value: String(cctvStats.online),
+                    Icon: SignalIcon,
+                    color: 'green',
+                },
+                {
+                    label: 'Offline Kamera',
+                    value: String(cctvStats.offline),
+                    Icon: SignalSlashIcon,
+                    color: 'red',
+                },
+            ];
+        } else {
+            // Security: 2 cards only (Total Kamera, Online Kamera)
+            return [
+                {
+                    label: 'Total Kamera',
+                    value: String(cctvStats.total),
+                    Icon: VideoCameraIcon,
+                    color: 'blue',
+                },
+                {
+                    label: 'Online Kamera',
+                    value: String(cctvStats.online),
+                    Icon: SignalIcon,
+                    color: 'green',
+                },
             ];
         }
-
-        return baseStats;
     }, [cctvStats, userStats, isSuperAdmin]);
 
     // Handle stat card click
@@ -145,6 +156,11 @@ const DashboardPage = () => {
         navigate('/history');
     }, [navigate]);
 
+    // Handle see more clicks
+    const handleSeeMoreLastLogin = useCallback(() => {
+        navigate('/users');
+    }, [navigate]);
+
     return (
         <MainLayout
             Sidebar={(props) => <Sidebar {...props} onPageChange={handlePageChange} />}
@@ -157,7 +173,7 @@ const DashboardPage = () => {
                     animate="visible"
                     exit="exit"
                 >
-                    {/* Top Grid: Stats Cards (left) + Last Login (right) */}
+                    {/* Top Grid: Stats Cards (left) + Last Login/Offline Chart (right) */}
                     <motion.div
                         variants={animations.item}
                         className="grid grid-cols-1 lg:grid-cols-2 gap-6"
@@ -170,10 +186,15 @@ const DashboardPage = () => {
                             onStatClick={handleStatCardClick}
                         />
 
-                        {/* Right Side: Last Login */}
-                        <LastLoginSection
-                            onSeeMore={handleSeeMoreHistory}
-                        />
+                        {/* Right Side: Conditional - Last Login (SuperAdmin) or Offline Chart (Security) */}
+                        {isSuperAdmin ? (
+                            <LastLoginSection
+                                lastLoginData={lastLoginData} // ✅ UPDATED: Pass real data dari hook
+                                onSeeMore={handleSeeMoreLastLogin}
+                            />
+                        ) : (
+                            <OfflineHistoryChart />
+                        )}
                     </motion.div>
 
                     {/* Bottom: Recent History Table */}

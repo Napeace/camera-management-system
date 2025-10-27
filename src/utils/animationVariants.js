@@ -10,14 +10,14 @@ export const pageTransition = {
   animate: { 
     opacity: 1,
     transition: { 
-      duration: 0.3,
+      duration: 0.1,
       ease: 'easeInOut'
     }
   },
   exit: { 
     opacity: 0,
     transition: { 
-      duration: 0.3,
+      duration: 0.1,
       ease: 'easeInOut'
     }
   }
@@ -36,7 +36,7 @@ export const staggerContainer = (staggerDelay = 0.1, delayChildren = 0.1) => ({
 });
 
 // ========== ITEM ANIMATIONS ==========
-export const fadeInUp = (duration = 0.4, delay = 0) => ({
+export const fadeInUp = (duration = 0.1, delay = 0) => ({
   hidden: { 
     opacity: 0, 
     y: 20 
@@ -52,7 +52,7 @@ export const fadeInUp = (duration = 0.4, delay = 0) => ({
   }
 });
 
-export const fadeIn = (duration = 0.4, delay = 0) => ({
+export const fadeIn = (duration = 0.1, delay = 0) => ({
   hidden: { 
     opacity: 0 
   },
@@ -66,7 +66,7 @@ export const fadeIn = (duration = 0.4, delay = 0) => ({
   }
 });
 
-export const slideFromLeft = (duration = 0.3, delay = 0) => ({
+export const slideFromLeft = (duration = 0.1, delay = 0) => ({
   hidden: { 
     opacity: 0, 
     x: -20 
@@ -83,7 +83,7 @@ export const slideFromLeft = (duration = 0.3, delay = 0) => ({
 });
 
 // ========== HEIGHT ANIMATIONS ==========
-export const expandHeight = (duration = 0.6, delay = 0) => ({
+export const expandHeight = (duration = 0.1, delay = 0) => ({
   initial: { 
     opacity: 0, 
     height: 0 
@@ -101,7 +101,7 @@ export const expandHeight = (duration = 0.6, delay = 0) => ({
     opacity: 0, 
     height: 0,
     transition: {
-      duration: duration * 0.5,
+      duration: duration * 0.1,
       ease: [0.4, 0, 0.2, 1]
     }
   }
@@ -128,14 +128,14 @@ export const tableRow = (enableHover = false) => ({
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.3,
+      duration: 0.1,
       ease: [0.4, 0, 0.2, 1]
     }
   },
   ...(enableHover && {
     hover: {
       scale: 1.005,
-      transition: { duration: 0.2 }
+      transition: { duration: 0.1 }
     }
   })
 });
@@ -150,7 +150,7 @@ export const cardVariants = {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.4,
+      duration: 0.1,
       ease: [0.4, 0, 0.2, 1]
     }
   }
@@ -180,7 +180,7 @@ export const modalContent = {
     scale: 1,
     y: 0,
     transition: { 
-      duration: 0.3,
+      duration: 0.1,
       ease: [0.4, 0, 0.2, 1]
     }
   },
@@ -188,7 +188,7 @@ export const modalContent = {
     opacity: 0, 
     scale: 0.95,
     y: 20,
-    transition: { duration: 0.2 }
+    transition: { duration: 0.1 }
   }
 };
 
@@ -199,7 +199,7 @@ export const statCardGrid = {
     opacity: 1,
     transition: {
       staggerChildren: 0.1,
-      delayChildren: 0.2
+      delayChildren: 0.1
     }
   }
 };
@@ -213,7 +213,7 @@ export const statCard = {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.4,
+      duration: 0.1,
       ease: [0.4, 0, 0.2, 1]
     }
   }
@@ -226,7 +226,7 @@ export const listContainer = (staggerDelay = 0.1) => ({
     opacity: 1,
     transition: {
       staggerChildren: staggerDelay,
-      delayChildren: 0.2
+      delayChildren: 0.1
     }
   }
 });
@@ -240,7 +240,7 @@ export const listItem = {
     opacity: 1,
     x: 0,
     transition: {
-      duration: 0.3,
+      duration: 0.1,
       ease: [0.4, 0, 0.2, 1]
     }
   }
@@ -251,7 +251,7 @@ export const spinnerVariants = {
   animate: {
     rotate: 360,
     transition: {
-      duration: 1,
+      duration: 0.1,
       repeat: Infinity,
       ease: "linear"
     }
@@ -263,7 +263,7 @@ export const pulseVariants = {
     scale: [1, 1.05, 1],
     opacity: [1, 0.8, 1],
     transition: {
-      duration: 2,
+      duration: 0.1,
       repeat: Infinity,
       ease: "easeInOut"
     }
@@ -297,7 +297,7 @@ export const createStaggerContainer = (options = {}) => {
   const {
     staggerDelay = 0.1,
     delayChildren = 0.1,
-    duration = 0.4
+    duration = 0.1
   } = options;
 
   return {
@@ -315,7 +315,7 @@ export const createStaggerContainer = (options = {}) => {
 
 export const createItemVariant = (options = {}) => {
   const {
-    duration = 0.4,
+    duration = 0.1,
     delay = 0,
     yOffset = 20,
     xOffset = 0,

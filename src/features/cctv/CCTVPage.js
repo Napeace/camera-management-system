@@ -5,7 +5,7 @@ import MainLayout from '../../components/layout/MainLayout';
 import Sidebar from '../../components/layout/Sidebar';
 import CCTVStatistics from './components/CCTVStatistics';
 import CCTVFilters from './components/CCTVFilters';
-import CCTVList from './CCTVList';
+import CCTVList from './components/CCTVList';
 import CCTVModals from './components/CCTVModals';
 import useCCTVPage from './hooks/useCCTVPage';
 import useStaggerAnimation from '../../hooks/useStaggerAnimation';
@@ -133,16 +133,6 @@ const CCTVPage = () => {
                             totalItems={filteredCctvData.length}
                         />
                     </motion.div>
-
-                    {/* Results Count */}
-                    {!loading && allCctvData.length > 0 && (
-                        <motion.div 
-                            variants={animations.item}
-                            className="text-sm text-gray-500 dark:text-gray-400 text-center"
-                        >
-                            Menampilkan {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, filteredCctvData.length)} dari {filteredCctvData.length} CCTV yang difilter ({allCctvData.length} total).
-                        </motion.div>
-                    )}
 
                     <div ref={bottomRef} className="h-1" />
                 </motion.div>

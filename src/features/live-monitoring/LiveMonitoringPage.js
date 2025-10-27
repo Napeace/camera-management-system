@@ -61,7 +61,7 @@ const LiveMonitoringPage = () => {
             <MainLayout
                 Sidebar={props => <Sidebar {...props} onPageChange={handlePageChange} />}
                 navbarTitle="Live Monitoring"
-                navbarSubtitle="Monitor kamera keamanan secara real-time"
+                navbarSubtitle="Pantau segala aktivitas Rumah Sakit Citra Husada"
             >
                 <motion.div 
                     className="space-y-6"

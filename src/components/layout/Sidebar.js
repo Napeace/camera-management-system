@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useTheme } from '../../contexts/ThemeContext';
 import useNavigateWithScroll from '../../hooks/useNavigateWithScroll';
+import { useNavigation } from '../../contexts/NavigationContext';
 import ConfirmDialog from '../common/ConfirmDialog';
 import ExportDataModal from '../../features/backup/export/ExportDataModal';
+import ImportDataModal from '../../features/backup/import/ImportDataModal';
 import {
   HomeIcon,
   ComputerDesktopIcon,
@@ -16,42 +17,37 @@ import {
   ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline';
 
-const Sidebar = ({ 
-  user = { nama: 'Admin', role: 'superadmin' }, 
-  onLogout = () => {}, 
-  activePage = 'dashboard', 
-  onPageChange = () => {}, 
+const Sidebar = ({
+  user = { nama: 'Admin', role: 'superadmin' },
+  onLogout = () => {},
+  activePage = 'dashboard',
+  onPageChange = () => {},
   onToggle = () => {},
   isCollapsed = false
 }) => {
   const location = useLocation();
   
-  // ✅ SIMPLIFIED: Just use the hook normally
-  const { navigateWithScroll, isNavigating, isNavigatingRef } = useNavigateWithScroll({ 
-    scrollDuration: 600,
+  const { isNavigating } = useNavigation();
+  
+  const { navigateWithScroll } = useNavigateWithScroll({
     scrollThreshold: 200
   });
 
-  // ✅ Debug: Monitor isNavigating changes
-  useEffect(() => {
-    console.log('🔴 [Sidebar] isNavigating changed:', isNavigating);
-  }, [isNavigating]);
-
+  const buttonRef = useRef(null);
   
   const [expandedMenus, setExpandedMenus] = useState({
     backup: false
   });
+  
   const [isMobile, setIsMobile] = useState(false);
   
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const [hoveredItem, setHoveredItem] = useState(null);
   const [hoveredSubItem, setHoveredSubItem] = useState(null);
-  
-  // ✅ Local lock ref untuk immediate blocking
-  const localLockRef = useRef(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -168,69 +164,29 @@ const Sidebar = ({
     !item.roleRequired || user.role === item.roleRequired
   );
 
-  // ✅ SIMPLIFIED: Standard navigation handler
   const handleMenuClick = async (item) => {
-    const wasLocked = localLockRef.current || isNavigatingRef.current || isNavigating;
-    
-    if (wasLocked) {
-      console.log('⛔ Already navigating, BLOCKED!', {
-        localLock: localLockRef.current,
-        isNavigatingRef: isNavigatingRef.current,
-        isNavigating
-      });
+    if (isNavigating) {
       return;
     }
-
-    localLockRef.current = true;
-    isNavigatingRef.current = true;
-
-    console.log('🔵 [Button Click]', {
-      item: item.id,
-      path: item.path,
-      timestamp: new Date().toISOString()
-    });
 
     if (isCollapsed && !isMobile) {
       onToggle(false); 
     }
 
     if (item.hasSubmenu) {
-      localLockRef.current = false;
-      isNavigatingRef.current = false;
       toggleMenu(item.id);
     } else {
-      console.log('🔒 Starting navigation to:', item.path);
+      onPageChange(item.id, item.path);
+      await navigateWithScroll(item.path);
       
-      try {
-        onPageChange(item.id, item.path);
-        // ✅ Hook will handle: scroll → wait → navigate → exit animation
-        await navigateWithScroll(item.path);
-        
-        if (isMobile && !isCollapsed) {
-          onToggle(true);
-        }
-      } catch (error) {
-        console.error('Navigation error in handleMenuClick:', error);
-        localLockRef.current = false;
-        isNavigatingRef.current = false;
-      } finally {
-        setTimeout(() => {
-          localLockRef.current = false;
-        }, 700);
+      if (isMobile && !isCollapsed) {
+        onToggle(true);
       }
     }
   };
 
-  // ✅ SIMPLIFIED: Standard submenu handler
   const handleSubmenuClick = async (parentId, subItem) => {
-    console.log('🔵 [Submenu Click]', {
-      subItem: subItem.id,
-      path: subItem.path,
-      timestamp: new Date().toISOString()
-    });
-    
-    if (localLockRef.current || isNavigatingRef.current || isNavigating) {
-      console.log('⛔ Already navigating, BLOCKED!');
+    if (isNavigating) {
       return;
     }
     
@@ -238,34 +194,24 @@ const Sidebar = ({
       setShowExportModal(true);
       return;
     }
+    if (subItem.id === 'import-data') {
+      setShowImportModal(true);
+      return;
+    }
     
-    localLockRef.current = true;
-    isNavigatingRef.current = true;
-    console.log('🔒 Starting navigation to:', subItem.path);
+    onPageChange(subItem.id, subItem.path);
+    await navigateWithScroll(subItem.path);
     
-    try {
-      onPageChange(subItem.id, subItem.path);
-      await navigateWithScroll(subItem.path);
-      
-      if (isMobile && !isCollapsed) {
-        onToggle(true);
-      }
-    } catch (error) {
-      console.error('Navigation error in handleSubmenuClick:', error);
-      localLockRef.current = false;
-      isNavigatingRef.current = false;
-    } finally {
-      setTimeout(() => {
-        localLockRef.current = false;
-      }, 700);
+    if (isMobile && !isCollapsed) {
+      onToggle(true);
     }
   };
 
   const DefaultAvatar = ({ size = 'w-8 h-8' }) => (
     <div className={`${size} rounded-full bg-gray-400 dark:bg-gray-500 flex items-center justify-center flex-shrink-0`}>
-      <svg 
-        className={`${size === 'w-8 h-8' ? 'w-5 h-5' : 'w-4 h-4'} text-gray-100 dark:text-gray-200`} 
-        fill="currentColor" 
+      <svg
+        className={`${size === 'w-8 h-8' ? 'w-5 h-5' : 'w-4 h-4'} text-gray-100 dark:text-gray-200`}
+        fill="currentColor"
         viewBox="0 0 20 20"
       >
         <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
@@ -281,7 +227,7 @@ const Sidebar = ({
     };
 
     return (
-      <Icon 
+      <Icon
         className={`${className} transition-all duration-200 ${getColorClass()}`}
       />
     );
@@ -297,7 +243,7 @@ const Sidebar = ({
   return (
     <>
       {isMobile && !isCollapsed && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-sidebar-overlay md:hidden"
           onClick={() => onToggle(true)}
         />
@@ -332,9 +278,9 @@ const Sidebar = ({
             <button
               onClick={toggleSidebar}
               className="
-                absolute -right-4 top-1/2 transform -translate-y-1/2 
+                absolute -right-4 top-1/2 transform -translate-y-1/2
                 w-6 h-6 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600
-                rounded-full flex items-center justify-center 
+                rounded-full flex items-center justify-center
                 transition-all duration-300 shadow-lg border border-slate-400/50 dark:border-slate-500/50
                 hover:scale-110
               "
@@ -356,6 +302,7 @@ const Sidebar = ({
             {filteredMenuItems.map((item) => (
               <div key={item.id} className={`${isCollapsed ? 'px-2' : 'px-4'}`}>
                 <button
+                  ref={item.id === 'cctv' ? buttonRef : null}
                   onClick={() => handleMenuClick(item)}
                   onMouseEnter={() => setHoveredItem(item.id)}
                   onMouseLeave={() => setHoveredItem(null)}
@@ -372,7 +319,7 @@ const Sidebar = ({
                   title={isCollapsed ? item.label : ''}
                 >
                   <div className="flex items-center flex-shrink-0">
-                    <IconComponent 
+                    <IconComponent
                       IconComponent={item.icon}
                       className="w-5 h-5 flex-shrink-0"
                       isActive={currentActivePage === item.id}
@@ -390,13 +337,13 @@ const Sidebar = ({
                     </span>
                     
                     {item.hasSubmenu && (
-                      <svg 
+                      <svg
                         className={`
                           w-4 h-4 transition-transform duration-200 flex-shrink-0
                           ${expandedMenus[item.id] ? 'rotate-90' : ''}
                         `}
-                        fill="none" 
-                        stroke="currentColor" 
+                        fill="none"
+                        stroke="currentColor"
                         viewBox="0 0 24 24"
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -415,7 +362,7 @@ const Sidebar = ({
                         onMouseLeave={() => setHoveredSubItem(null)}
                         disabled={isNavigating}
                         className={`
-                          w-full flex items-center px-4 py-2 rounded-lg 
+                          w-full flex items-center px-4 py-2 rounded-lg
                           text-sm transition-all duration-200 hover:transform hover:scale-[0.98]
                           ${currentActivePage === subItem.id
                             ? 'bg-blue-100 dark:bg-white text-blue-600'
@@ -424,9 +371,9 @@ const Sidebar = ({
                           ${isNavigating ? 'opacity-50 cursor-not-allowed' : ''}
                         `}
                       >
-                        <IconComponent 
+                        <IconComponent
                           IconComponent={subItem.icon}
-                          className="w-4 h-4 flex-shrink-0" 
+                          className="w-4 h-4 flex-shrink-0"
                           isActive={currentActivePage === subItem.id}
                           isHovered={hoveredSubItem === subItem.id && currentActivePage !== subItem.id}
                         />
@@ -445,7 +392,7 @@ const Sidebar = ({
             onClick={handleLogoutClick}
             className={`
               w-full flex items-center rounded-xl
-              hover:bg-red-100 dark:hover:bg-red-600/20 text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 
+              hover:bg-red-100 dark:hover:bg-red-600/20 text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300
               transition-all duration-200 group hover:transform hover:scale-[0.98]
               ${isCollapsed ? 'px-3 py-3 justify-center' : 'px-4 py-3'}
             `}
@@ -478,7 +425,7 @@ const Sidebar = ({
               <p className="font-medium text-sm text-slate-800 dark:text-white truncate">
                 {user.nama}
               </p>
-              <p className="text-xs text-slate-500 dark:text-gray-400 capitalize truncate">
+              <p className="text-xs text-slate-500 dark:text-gray-40m0 capitalize truncate">
                 {user.role === 'superadmin' ? 'Super Admin' : user.role}
               </p>
             </div>
@@ -490,9 +437,9 @@ const Sidebar = ({
         <button
           onClick={() => onToggle(false)}
           className="
-            fixed top-4 left-4 z-sidebar-toggle w-10 h-10 
-            bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-white rounded-xl 
-            flex items-center justify-center 
+            fixed top-4 left-4 z-sidebar-toggle w-10 h-10
+            bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-white rounded-xl
+            flex items-center justify-center
             shadow-lg border border-slate-400/50 dark:border-slate-500/50 md:hidden
           "
           aria-label="Open sidebar"
@@ -507,7 +454,7 @@ const Sidebar = ({
         isOpen={showLogoutDialog}
         onClose={handleCancelLogout}
         onConfirm={handleConfirmLogout}
-        title="Konfirmasi Logout"
+        title="Logout"
         message="Apakah Anda yakin untuk keluar ?"
         confirmText="Iya"
         cancelText="Tidak"
@@ -518,6 +465,10 @@ const Sidebar = ({
       <ExportDataModal
         isOpen={showExportModal}
         onClose={() => setShowExportModal(false)}
+      />
+      <ImportDataModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
       />
     </>
   );

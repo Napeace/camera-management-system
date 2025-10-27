@@ -8,21 +8,19 @@ import DashboardPage from './features/dashboard/DashboardPage';
 import UserPage from './features/user/UserPage';
 import CCTVPage from './features/cctv/CCTVPage';
 import LiveMonitoringPage from './features/live-monitoring/LiveMonitoringPage';
-import HistoryPage from './pages/HistoryPage';
+import HistoryPage from './features/history/HistoryPage';
 import { ToastProvider } from './contexts/ToastContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { NavigationProvider } from './contexts/NavigationContext';
 
-// ✅ SIMPLIFIED: Just basic AnimatePresence, scroll logic handled in hook
 const AnimatedRoutes = () => {
   const location = useLocation();
 
   return (
     <AnimatePresence mode="wait" initial={false}>
       <Routes location={location} key={location.pathname}>
-        {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />
         
-        {/* Protected Routes */}
         <Route 
           path="/dashboard" 
           element={
@@ -32,7 +30,6 @@ const AnimatedRoutes = () => {
           } 
         />
         
-        {/* CCTV Management Routes */}
         <Route 
           path="/cctv" 
           element={
@@ -42,7 +39,6 @@ const AnimatedRoutes = () => {
           } 
         />
         
-        {/* Live Monitoring Routes */}
         <Route 
           path="/live-monitoring" 
           element={
@@ -52,7 +48,6 @@ const AnimatedRoutes = () => {
           } 
         />
         
-        {/* User Management Routes - Only for Super Admin */}
         <Route 
           path="/users" 
           element={
@@ -62,7 +57,6 @@ const AnimatedRoutes = () => {
           } 
         />
         
-        {/* History Route */}
         <Route 
           path="/history" 
           element={
@@ -72,7 +66,6 @@ const AnimatedRoutes = () => {
           } 
         />
         
-        {/* Settings Routes */}
         <Route 
           path="/backup/export" 
           element={
@@ -98,10 +91,8 @@ const AnimatedRoutes = () => {
           } 
         />
         
-        {/* Default redirect */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         
-        {/* Catch all - redirect to dashboard */}
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </AnimatePresence>
@@ -113,11 +104,13 @@ const App = () => {
     <ThemeProvider>
       <AuthProvider>
         <ToastProvider>
-          <Router>
-            <div className="app-container" style={{ minHeight: '100vh' }}>
-              <AnimatedRoutes />
-            </div>
-          </Router>
+          <NavigationProvider>
+            <Router>
+              <div className="app-container" style={{ minHeight: '100vh' }}>
+                <AnimatedRoutes />
+              </div>
+            </Router>
+          </NavigationProvider>
         </ToastProvider>
       </AuthProvider>
     </ThemeProvider>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import HLSVideoPlayer from '../../components/common/HLSVideoPlayer';
+import HLSVideoPlayer from '../live-monitoring/components/HLSVideoPlayer';
 
 const LiveMonitoringModal = ({ camera, onClose }) => {
     const [playerState, setPlayerState] = useState('loading');

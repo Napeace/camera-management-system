@@ -14,7 +14,7 @@ import {
  */
 
 // ========== FADE IN SECTION ==========
-export const FadeInSection = ({ children, delay = 0, duration = 0.4, className = '' }) => (
+export const FadeInSection = ({ children, delay = 0, duration = 0.1, className = '' }) => (
   <motion.div
     variants={fadeIn(duration, delay)}
     initial="hidden"
@@ -27,7 +27,7 @@ export const FadeInSection = ({ children, delay = 0, duration = 0.4, className =
 );
 
 // ========== FADE IN UP SECTION ==========
-export const FadeInUpSection = ({ children, delay = 0, duration = 0.4, className = '' }) => (
+export const FadeInUpSection = ({ children, delay = 0, duration = 0.1, className = '' }) => (
   <motion.div
     variants={fadeInUp(duration, delay)}
     initial="hidden"
@@ -43,7 +43,7 @@ export const FadeInUpSection = ({ children, delay = 0, duration = 0.4, className
 export const ExpandHeightSection = ({ 
   children, 
   delay = 0, 
-  duration = 0.6, 
+  duration = 0.1, 
   className = '' 
 }) => (
   <motion.div
@@ -81,7 +81,7 @@ export const PageTransition = ({ children, className = '' }) => (
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
-    transition={{ duration: 0.3 }}
+    transition={{ duration: 0.1 }}
     className={className}
   >
     {children}
@@ -114,7 +114,7 @@ export const AnimatedCard = ({
 export const StaggerGrid = ({ 
   children, 
   staggerDelay = 0.1,
-  delayChildren = 0.2,
+  delayChildren = 0.1,
   className = '' 
 }) => (
   <motion.div
@@ -149,7 +149,7 @@ export const AnimatedListItem = ({
         opacity: 1,
         x: 0,
         transition: {
-          duration: 0.3,
+          duration: 0.1,
           delay: delay,
           ease: [0.4, 0, 0.2, 1]
         }
@@ -174,7 +174,7 @@ export const AnimatedTableRow = ({
         opacity: 1,
         y: 0,
         transition: {
-          duration: 0.3,
+          duration: 0.1,
           ease: [0.4, 0, 0.2, 1]
         }
       }

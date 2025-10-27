@@ -9,16 +9,26 @@ const apiClient = axios.create({
   },
 });
 
-// Interceptor untuk request
+// Interceptor untuk request - inject token di query params
 apiClient.interceptors.request.use(
   (config) => {
+    // Skip untuk login endpoint
     if (config.url.includes('/auth/login')) {
       return config;
     }
+    
+    // Ambil token dari localStorage
     const token = localStorage.getItem('access_token');
+    
     if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+      // Inject token ke query params (sesuai backend)
+      const url = new URL(config.url, config.baseURL);
+      url.searchParams.append('token', token);
+      
+      // Update config dengan URL yang sudah ada token
+      config.url = url.pathname + url.search;
     }
+    
     return config;
   },
   (error) => Promise.reject(error)

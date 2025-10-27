@@ -8,9 +8,7 @@ const NotificationItem = ({ notification, onNotificationClick, getNotificationIc
   return (
     <div
       onClick={handleClick}
-      className={`p-4 border-b border-gray-200 dark:border-slate-600 hover:bg-gray-100 dark:hover:bg-slate-600/50 cursor-pointer transition-colors duration-150 ${
-        !notification.read ? 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-l-blue-600 dark:border-l-blue-500' : ''
-      }`}
+      className="p-4 hover:bg-slate-100/80 dark:hover:bg-slate-700/60 cursor-pointer transition-colors duration-150 relative z-10 bg-white/50 dark:bg-transparent"
     >
       <div className="flex items-start space-x-3">
         <span className="text-lg flex-shrink-0 mt-0.5">
@@ -23,7 +21,7 @@ const NotificationItem = ({ notification, onNotificationClick, getNotificationIc
           <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{notification.time}</p>
         </div>
         {!notification.read && (
-          <div className="w-2 h-2 bg-blue-600 dark:bg-blue-500 rounded-full flex-shrink-0 mt-2"></div>
+          <div className="w-2 h-2 bg-red-500 rounded-full flex-shrink-0 mt-2"></div>
         )}
       </div>
     </div>

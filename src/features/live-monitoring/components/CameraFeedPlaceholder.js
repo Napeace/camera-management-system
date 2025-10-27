@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import HLSVideoPlayer from '../../../components/common/HLSVideoPlayer';
+import HLSVideoPlayer from '../components/HLSVideoPlayer';
 
 const CameraFeedPlaceholder = ({ camera, onClick }) => {
     const [playerState, setPlayerState] = useState('idle'); // idle, loading, ready, error

@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import MainLayout from '../../components/layout/MainLayout';
 import Sidebar from '../../components/layout/Sidebar';
-import UserList from './UserList';
+import UserList from './components/UserList';
 import UserCreateModal from './UserCreateModal';
 import UserEditModal from './UserEditModal';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
@@ -80,7 +80,7 @@ const UserPage = () => {
                     />
                 )}
                 navbarTitle="Manajemen User"
-                navbarSubtitle="Kelola user sistem dan role mereka"
+                navbarSubtitle="Kelola data user dalam sistem"
             >
                 <motion.div
                     className="space-y-6"

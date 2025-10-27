@@ -1,8 +1,8 @@
 // CCTVList.js
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import useTableAnimation from '../../hooks/useTableAnimation';
-import AnimatedSection from '../../components/common/AnimatedSection';
+import useTableAnimation from '../../../hooks/useTableAnimation';
+import AnimatedSection from '../../../components/common/AnimatedSection';
 import { 
   PencilIcon, 
   TrashIcon, 
@@ -13,9 +13,11 @@ import {
   MapPinIcon,
   SignalIcon,
   CogIcon,
-  ClipboardDocumentListIcon
+  ClipboardDocumentListIcon,
+  ChevronUpIcon,
+  ChevronDownIcon
 } from '@heroicons/react/24/outline';
-import Pagination from '../../components/common/Pagination';
+import Pagination from '../../../components/common/Pagination';
 
 const CCTVList = ({ 
   cctvData = [],
@@ -32,13 +34,43 @@ const CCTVList = ({
   itemsPerPage = 10
 }) => {
   const [actionLoading, setActionLoading] = useState({});
+  const [sortOrder, setSortOrder] = useState(null); // null, 'asc', 'desc'
   
   // Gunakan custom hook untuk table animation tanpa hover scale
   const tableAnimations = useTableAnimation({
     staggerDelay: 0.05,
     duration: 0.3,
-    enableHover: false // Disable hover animation untuk mencegah scroll
+    enableHover: false
   });
+  
+  // Sorting logic menggunakan useMemo untuk performance
+  const sortedCCTVData = useMemo(() => {
+    if (!sortOrder) return cctvData;
+    
+    const sorted = [...cctvData].sort((a, b) => {
+      const nameA = (a.titik_letak || '').toLowerCase();
+      const nameB = (b.titik_letak || '').toLowerCase();
+      
+      if (sortOrder === 'asc') {
+        return nameA.localeCompare(nameB);
+      } else {
+        return nameB.localeCompare(nameA);
+      }
+    });
+    
+    return sorted;
+  }, [cctvData, sortOrder]);
+  
+  // Toggle sorting
+  const handleSortToggle = () => {
+    if (sortOrder === null) {
+      setSortOrder('asc');
+    } else if (sortOrder === 'asc') {
+      setSortOrder('desc');
+    } else {
+      setSortOrder(null);
+    }
+  };
   
   const getStatusBadge = (status) => {
     if (status) {
@@ -123,7 +155,6 @@ const CCTVList = ({
     );
   }
 
-  // ✅ Main Table SEKARANG MENGGUNAKAN AnimatedSection.ExpandHeight
   return (
     <AnimatedSection.ExpandHeight 
       duration={0.6} 
@@ -144,10 +175,26 @@ const CCTVList = ({
           <thead className="bg-gray-100 dark:bg-slate-900/30">
             <tr>
               <th className="px-6 py-4 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                <div className="flex items-center gap-2">
+                <button
+                  onClick={handleSortToggle}
+                  className="flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 group"
+                  title="Klik untuk mengurutkan (A-Z / Z-A) - Hanya berlaku untuk halaman ini"
+                >
                   <VideoCameraIcon className="w-4 h-4" />
-                  Kamera
-                </div>
+                  <span>Kamera</span>
+                  <div className="flex flex-col ml-1">
+                    {sortOrder === 'asc' ? (
+                      <ChevronUpIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    ) : sortOrder === 'desc' ? (
+                      <ChevronDownIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    ) : (
+                      <div className="flex flex-col opacity-30 group-hover:opacity-60 transition-opacity">
+                        <ChevronUpIcon className="w-3 h-3 -mb-1" />
+                        <ChevronDownIcon className="w-3 h-3" />
+                      </div>
+                    )}
+                  </div>
+                </button>
               </th>
               <th className="px-6 py-4 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                 <div className="flex items-center gap-2">
@@ -181,8 +228,9 @@ const CCTVList = ({
             variants={tableAnimations.tbody}
             initial="hidden"
             animate="visible"
+            key={sortOrder} // Re-trigger animation saat sorting berubah
           >
-            {cctvData.map((cctv, index) => (
+            {sortedCCTVData.map((cctv, index) => (
               <React.Fragment key={cctv.id_cctv}>
                 <motion.tr 
                   variants={tableAnimations.row}
@@ -228,7 +276,7 @@ const CCTVList = ({
                     </div>
                   </td>
                 </motion.tr>
-                {index !== cctvData.length - 1 && (
+                {index !== sortedCCTVData.length - 1 && (
                   <tr>
                     <td colSpan="5" className="px-0 py-0">
                       <div className="mx-6 h-px bg-gray-200 dark:bg-slate-700/50"></div>

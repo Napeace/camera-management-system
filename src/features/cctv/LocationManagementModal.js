@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { XMarkIcon, ExclamationCircleIcon, PlusIcon, MapPinIcon, PencilSquareIcon, TrashIcon, CheckIcon } from '@heroicons/react/24/outline';
 import locationService from '../../services/locationService';
 import { useToast } from '../../contexts/ToastContext';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 
 const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
     const { showSuccess, showError } = useToast();
@@ -443,68 +444,18 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
                 </div>
             </div>
 
-            {/* Delete Confirmation Modal */}
-            {deleteConfirm && (
-                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-                    <div className="w-full max-w-md transform overflow-hidden rounded-2xl bg-gradient-to-b from-blue-50 via-blue-100 to-blue-200 dark:from-slate-950 dark:via-indigo-950 dark:to-indigo-800 shadow-2xl transition-all">
-                        {/* Header */}
-                        <div className="flex items-center justify-between px-6 py-6 mx-4">
-                            <h2 className="text-2xl text-gray-900 dark:text-white font-semibold">
-                                Konfirmasi Hapus
-                            </h2>
-                            <button 
-                                onClick={handleCancelDelete} 
-                                disabled={loading} 
-                                className="text-gray-600 hover:text-gray-900 dark:text-white/70 dark:hover:text-white disabled:opacity-50 transition-colors"
-                            >
-                                <XMarkIcon className="w-7 h-7" />
-                            </button>
-                        </div>
-                        
-                        {/* Border persegi panjang setelah header */}
-                        <div className="mx-6 h-1 bg-gray-300 dark:bg-white/10"></div>
-
-                        {/* Content */}
-                        <div className="p-6">
-                            <p className="text-gray-800 dark:text-white text-lg leading-relaxed">
-                                Apakah Anda yakin ingin menghapus lokasi <strong>{deleteConfirm.nama_lokasi}</strong>?
-                            </p>
-                            
-                            {/* Buttons */}
-                            <div className="mt-9 pb-2">
-                                <div className="flex gap-3 justify-end">
-                                    <button
-                                        type="button" 
-                                        onClick={handleCancelDelete} 
-                                        disabled={loading}
-                                        className="w-28 px-1 py-3 bg-white/60 dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white font-medium hover:bg-white/80 dark:hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                    >
-                                        Tidak
-                                    </button>
-                                    <button
-                                        type="button" 
-                                        onClick={handleConfirmDelete}
-                                        disabled={loading}
-                                        className="w-28 px-1 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-sm border border-blue-700 dark:border-white/20 rounded-xl text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
-                                    >
-                                        {loading ? (
-                                            <>
-                                                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                </svg>
-                                                Processing...
-                                            </>
-                                        ) : (
-                                            'Iya'
-                                        )}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Delete Confirmation Dialog */}
+            <ConfirmDialog
+                isOpen={deleteConfirm !== null}
+                onClose={handleCancelDelete}
+                onConfirm={handleConfirmDelete}
+                title="Hapus Lokasi"
+                message="Apakah Anda yakin ingin menghapus lokasi ini?"
+                itemName={deleteConfirm?.nama_lokasi}
+                confirmText="Iya"
+                cancelText="Tidak"
+                loading={loading}
+            />
         </>
     );
 };

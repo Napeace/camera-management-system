@@ -1,7 +1,35 @@
-import React, { memo } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
-const SearchInput = memo(({ value, onChange, placeholder = "Search...", disabled }) => {
+const SearchInput = memo(({ 
+  value, 
+  onChange, 
+  placeholder = "Search...", 
+  disabled,
+  debounceDelay = 500
+}) => {
+  const [localValue, setLocalValue] = useState(value);
+
+  // Sync with external value changes
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  // Debounce onChange
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (localValue !== value) {
+        onChange({ target: { value: localValue } });
+      }
+    }, debounceDelay);
+
+    return () => clearTimeout(timeoutId);
+  }, [localValue, debounceDelay]);
+
+  const handleInputChange = (e) => {
+    setLocalValue(e.target.value);
+  };
+
   return (
     <div className="relative">
       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -10,8 +38,8 @@ const SearchInput = memo(({ value, onChange, placeholder = "Search...", disabled
       <input 
         type="text" 
         placeholder={placeholder} 
-        value={value} 
-        onChange={onChange}
+        value={localValue} 
+        onChange={handleInputChange}
         disabled={disabled}
         className="block w-full p-2 pl-10 bg-white dark:bg-slate-800/70 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 transition-colors duration-200" 
       />

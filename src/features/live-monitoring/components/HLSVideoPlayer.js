@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import Hls from 'hls.js';
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 const HLSVideoPlayer = ({ 
   streamUrls, 
@@ -17,7 +18,6 @@ const HLSVideoPlayer = ({
   const retryTimeoutRef = useRef(null);
   const [playerStatus, setPlayerStatus] = useState('loading');
   const [errorMessage, setErrorMessage] = useState('');
-  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -49,13 +49,13 @@ const HLSVideoPlayer = ({
         backBufferLength: 90,
         maxBufferLength: 30,
         maxMaxBufferLength: 60,
-        manifestLoadingTimeOut: 15000, // Increased timeout
-        manifestLoadingMaxRetry: 5, // More retries
-        levelLoadingTimeOut: 15000,
-        fragLoadingTimeOut: 15000,
-        manifestLoadingRetryDelay: 1000,
-        levelLoadingRetryDelay: 1000,
-        fragLoadingRetryDelay: 1000,
+        manifestLoadingTimeOut: 5000, // ✅ 5 detik timeout
+        manifestLoadingMaxRetry: 1, // ✅ Cuma 1x retry
+        levelLoadingTimeOut: 5000,
+        fragLoadingTimeOut: 5000,
+        manifestLoadingRetryDelay: 500,
+        levelLoadingRetryDelay: 500,
+        fragLoadingRetryDelay: 500,
       });
 
       hlsRef.current = hls;
@@ -69,7 +69,6 @@ const HLSVideoPlayer = ({
       hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
         console.log(`✅ [${cameraName}] Manifest parsed`, data.levels?.length, 'quality levels');
         setPlayerStatus('playing');
-        setRetryCount(0);
         onLoadComplete && onLoadComplete(true);
         
         if (autoPlay) {
@@ -81,7 +80,6 @@ const HLSVideoPlayer = ({
               })
               .catch(e => {
                 console.log(`⚠️ [${cameraName}] Autoplay prevented:`, e.message);
-                // Autoplay blocked but stream is ready - not an error
               });
           }
         }
@@ -100,23 +98,18 @@ const HLSVideoPlayer = ({
         if (data.fatal) {
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
-              console.log(`🔄 [${cameraName}] Network error, attempting recovery...`);
+              console.log(`🔴 [${cameraName}] Network error - Camera Offline`);
               
-              // Don't show error immediately, try to recover
-              if (retryCount < 3) {
-                setRetryCount(prev => prev + 1);
-                retryTimeoutRef.current = setTimeout(() => {
-                  if (hlsRef.current) {
-                    console.log(`🔄 [${cameraName}] Retrying... (${retryCount + 1}/3)`);
-                    hls.startLoad();
-                  }
-                }, 2000 * (retryCount + 1)); // Exponential backoff
-              } else {
-                // After 3 retries, show error
-                const errorMsg = 'Masalah koneksi jaringan';
-                setPlayerStatus('error');
-                setErrorMessage(errorMsg);
-                onError && onError(errorMsg);
+              // ✅ LANGSUNG SHOW OFFLINE - NO RETRY
+              const errorMsg = 'Camera Offline';
+              setPlayerStatus('error');
+              setErrorMessage(errorMsg);
+              onError && onError(errorMsg);
+              
+              // Cleanup HLS
+              if (hlsRef.current) {
+                hlsRef.current.destroy();
+                hlsRef.current = null;
               }
               break;
               
@@ -127,10 +120,10 @@ const HLSVideoPlayer = ({
               
             default:
               console.log(`❌ [${cameraName}] Fatal error, cannot recover`);
-              const errorMsg = getErrorMessage(data);
+              const defaultErrorMsg = getErrorMessage(data);
               setPlayerStatus('error');
-              setErrorMessage(errorMsg);
-              onError && onError(errorMsg);
+              setErrorMessage(defaultErrorMsg);
+              onError && onError(defaultErrorMsg);
               hls.destroy();
               hlsRef.current = null;
               break;
@@ -164,8 +157,8 @@ const HLSVideoPlayer = ({
       video.addEventListener('error', (e) => {
         console.error(`❌ [${cameraName}] Native video error:`, e);
         setPlayerStatus('error');
-        setErrorMessage('Gagal memuat stream video');
-        onError && onError('Gagal memuat stream video');
+        setErrorMessage('Camera Offline');
+        onError && onError('Camera Offline');
       });
 
       if (autoPlay) {
@@ -197,13 +190,13 @@ const HLSVideoPlayer = ({
   const getErrorMessage = (data) => {
     switch (data.type) {
       case Hls.ErrorTypes.NETWORK_ERROR:
-        return 'Masalah koneksi jaringan';
+        return 'Camera Offline';
       case Hls.ErrorTypes.MEDIA_ERROR:
         return 'Masalah media stream';
       case Hls.ErrorTypes.OTHER_ERROR:
         return 'Masalah teknis lainnya';
       default:
-        return 'Gagal memuat stream';
+        return 'Camera Offline';
     }
   };
 
@@ -220,16 +213,11 @@ const HLSVideoPlayer = ({
 
   const handleRetry = () => {
     console.log(`🔄 [${cameraName}] Manual retry triggered`);
-    setRetryCount(0);
     setPlayerStatus('loading');
     setErrorMessage('');
     
-    if (hlsRef.current) {
-      hlsRef.current.startLoad();
-    } else {
-      // Re-initialize
-      window.location.reload();
-    }
+    // Re-trigger useEffect by forcing re-render
+    window.location.reload();
   };
 
   // Render different states
@@ -263,30 +251,19 @@ const HLSVideoPlayer = ({
           <div className="text-center text-white">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white mx-auto mb-3"></div>
             <p className="text-sm">Loading stream...</p>
-            {retryCount > 0 && (
-              <p className="text-xs text-gray-400 mt-1">Retry {retryCount}/3</p>
-            )}
           </div>
         </div>
       )}
 
-      {/* Error Overlay */}
+      {/* Error Overlay - Clean, no retry button */}
       {playerStatus === 'error' && (
         <div className="absolute inset-0 bg-black flex items-center justify-center">
           <div className="text-center text-white p-4 max-w-md">
-            <svg className="w-12 h-12 mx-auto mb-3 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <ExclamationTriangleIcon className="w-12 h-12 mx-auto mb-3 text-red-500" />
             <p className="text-sm mb-1 font-medium">{errorMessage}</p>
             <p className="text-xs text-gray-400 mb-3">
-              Pastikan kamera online dan jaringan stabil
+              Kamera sedang offline
             </p>
-            <button 
-              onClick={handleRetry}
-              className="text-sm bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Coba Lagi
-            </button>
           </div>
         </div>
       )}

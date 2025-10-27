@@ -1,5 +1,5 @@
 // services/historyService.js
-import apiClient from './apiClient';
+import apiClient from './api';
 
 const historyService = {
   // Get all history records
@@ -10,6 +10,69 @@ const historyService = {
     } catch (error) {
       console.error('Error fetching history:', error);
       throw error;
+    }
+  },
+
+  // Create new history record
+  async createHistory(historyData) {
+    try {
+      const response = await apiClient.post('/history', historyData);
+      
+      if (response.data && response.data.status === 'success') {
+        return response.data.data;
+      }
+      
+      throw new Error(response.data?.message || 'Failed to create history');
+    } catch (error) {
+      console.error('Error creating history:', error);
+      
+      // Handle specific error messages from backend
+      if (error.response?.data?.detail) {
+        // Jika detail adalah array (validation error dari FastAPI)
+        if (Array.isArray(error.response.data.detail)) {
+          const errorMsg = error.response.data.detail
+            .map(err => `${err.loc[1]}: ${err.msg}`)
+            .join(', ');
+          throw new Error(errorMsg);
+        }
+        // Jika detail adalah string
+        throw new Error(error.response.data.detail);
+      }
+      
+      if (error.response?.status === 404) {
+        throw new Error('CCTV tidak ditemukan');
+      }
+      
+      if (error.response?.status === 400) {
+        throw new Error('Data tidak valid. Periksa kembali input Anda');
+      }
+      
+      throw new Error(error.message || 'Gagal membuat history');
+    }
+  },
+
+  // Update history record
+  async updateHistory(historyId, historyData) {
+    try {
+      const response = await apiClient.put(`/history/${historyId}`, historyData);
+      
+      if (response.data && response.data.status === 'success') {
+        return response.data.data;
+      }
+      
+      throw new Error(response.data?.message || 'Failed to update history');
+    } catch (error) {
+      console.error('Error updating history:', error);
+      
+      if (error.response?.data?.detail) {
+        throw new Error(error.response.data.detail);
+      }
+      
+      if (error.response?.status === 404) {
+        throw new Error('History tidak ditemukan');
+      }
+      
+      throw new Error(error.message || 'Gagal mengupdate history');
     }
   },
 
@@ -82,7 +145,7 @@ const historyService = {
     try {
       const response = await apiClient.get('/history/export/pdf', {
         params: filters,
-        responseType: 'blob' // Important for file download
+        responseType: 'blob'
       });
       return response;
     } catch (error) {
@@ -96,7 +159,7 @@ const historyService = {
     try {
       const response = await apiClient.get('/history/export/excel', {
         params: filters,
-        responseType: 'blob' // Important for file download
+        responseType: 'blob'
       });
       return response;
     } catch (error) {

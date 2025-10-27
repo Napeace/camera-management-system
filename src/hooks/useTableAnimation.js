@@ -14,9 +14,9 @@ import { useMemo } from 'react';
  * @returns {Object} Animation variants untuk tbody dan tr
  */
 const useTableAnimation = ({
-  staggerDelay = 0.05,
+  staggerDelay = 0.1,
   initialDelay = 0.1,
-  duration = 0.3,
+  duration = 0.1,
   enableHover = true
 } = {}) => {
   

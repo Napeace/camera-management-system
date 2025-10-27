@@ -7,7 +7,6 @@ const Pagination = ({
   itemsPerPage,
   onPageChange,
   itemName = 'items',
-  showFirstLast = true,
   maxPageButtons = 5
 }) => {
   if (totalPages <= 1) {
@@ -88,22 +87,12 @@ const Pagination = ({
         
         {/* Buttons */}
         <div className="flex items-center gap-2 flex-wrap justify-center">
-          {showFirstLast && (
-            <button
-              onClick={() => onPageChange(1)}
-              disabled={currentPage === 1}
-              className="px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-slate-600 hover:scale-105 active:scale-95 hover:shadow-md disabled:hover:scale-100 disabled:hover:shadow-none"
-            >
-              First
-            </button>
-          )}
-          
           <button
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className="px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-slate-600 hover:scale-105 active:scale-95 hover:shadow-md disabled:hover:scale-100 disabled:hover:shadow-none"
+            className="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-slate-600 hover:scale-105 active:scale-95 hover:shadow-md disabled:hover:scale-100 disabled:hover:shadow-none border border-blue-400 dark:border-blue-500"
           >
-            Prev
+            &lt;
           </button>
           
           {/* Page Numbers */}
@@ -121,10 +110,10 @@ const Pagination = ({
                 <button
                   key={pageNum}
                   onClick={() => onPageChange(pageNum)}
-                  className={`px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95 border ${
                     currentPage === pageNum
-                      ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-lg scale-105 ring-2 ring-blue-300 dark:ring-blue-400/50'
-                      : 'bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-slate-600 hover:shadow-md'
+                      ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-lg scale-105 ring-2 ring-blue-300 dark:ring-blue-400/50 border-blue-400 dark:border-blue-500'
+                      : 'bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-slate-600 hover:shadow-md border-blue-400 dark:border-blue-500'
                   }`}
                 >
                   {pageNum}
@@ -136,20 +125,10 @@ const Pagination = ({
           <button
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-slate-600 hover:scale-105 active:scale-95 hover:shadow-md disabled:hover:scale-100 disabled:hover:shadow-none"
+            className="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-slate-600 hover:scale-105 active:scale-95 hover:shadow-md disabled:hover:scale-100 disabled:hover:shadow-none border border-blue-400 dark:border-blue-500"
           >
-            Next
+            &gt;
           </button>
-          
-          {showFirstLast && (
-            <button
-              onClick={() => onPageChange(totalPages)}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-slate-600 hover:scale-105 active:scale-95 hover:shadow-md disabled:hover:scale-100 disabled:hover:shadow-none"
-            >
-              Last
-            </button>
-          )}
         </div>
       </div>
     </>
