@@ -26,6 +26,9 @@ export default function ConfirmDialog({
     }
   }
 
+  // Check if message is a React element or string
+  const isReactElement = typeof message === 'object' && message !== null;
+
   return (
     <Transition appear show={Boolean(isOpen)} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={handleClose}>
@@ -79,9 +82,15 @@ export default function ConfirmDialog({
 
                 {/* Content */}
                 <div className="p-6">
-                  <p className="text-gray-800 dark:text-white text-lg leading-relaxed">
-                    {message}
-                  </p>
+                  {/* Render message - support both string and React element */}
+                  {isReactElement ? (
+                    message
+                  ) : (
+                    <p className="text-gray-800 dark:text-white text-lg leading-relaxed">
+                      {message}
+                    </p>
+                  )}
+                  
                   {itemName && (
                     <p className="mt-3 text-gray-700 dark:text-white/90 font-medium">
                       "{itemName}"

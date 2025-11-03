@@ -1,4 +1,4 @@
-// services/historyService.js
+// services/historyService.js - Fixed with better error handling
 import apiClient from './api';
 
 const historyService = {
@@ -54,7 +54,14 @@ const historyService = {
   // Update history record
   async updateHistory(historyId, historyData) {
     try {
+      console.log('📤 Sending update request:', {
+        historyId,
+        data: historyData
+      });
+      
       const response = await apiClient.put(`/history/${historyId}`, historyData);
+      
+      console.log('📥 Update response:', response);
       
       if (response.data && response.data.status === 'success') {
         return response.data.data;
@@ -62,14 +69,39 @@ const historyService = {
       
       throw new Error(response.data?.message || 'Failed to update history');
     } catch (error) {
-      console.error('Error updating history:', error);
+      console.error('❌ Error updating history:', error);
+      console.error('❌ Error response:', error.response);
       
       if (error.response?.data?.detail) {
-        throw new Error(error.response.data.detail);
+        console.error('❌ Error detail:', error.response.data.detail);
+        
+        // Jika detail adalah array (validation error dari FastAPI)
+        if (Array.isArray(error.response.data.detail)) {
+          const errorMsg = error.response.data.detail
+            .map(err => {
+              const field = err.loc ? err.loc[err.loc.length - 1] : 'unknown';
+              const msg = err.msg || err.message || 'validation error';
+              return `${field}: ${msg}`;
+            })
+            .join(', ');
+          throw new Error(errorMsg);
+        }
+        
+        // Jika detail adalah string
+        if (typeof error.response.data.detail === 'string') {
+          throw new Error(error.response.data.detail);
+        }
+        
+        // Jika detail adalah object
+        throw new Error(JSON.stringify(error.response.data.detail));
       }
       
       if (error.response?.status === 404) {
         throw new Error('History tidak ditemukan');
+      }
+      
+      if (error.response?.status === 422) {
+        throw new Error('Data tidak valid. Periksa format data yang dikirim.');
       }
       
       throw new Error(error.message || 'Gagal mengupdate history');

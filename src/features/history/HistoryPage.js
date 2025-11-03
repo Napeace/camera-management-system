@@ -1,13 +1,12 @@
-// features/history/HistoryPage.js
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+// features/history/HistoryPage.js - WITH AUTO SCROLL TO HIGHLIGHTED ROW
+import React, { useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import MainLayout from '../../components/layout/MainLayout';
 import Sidebar from '../../components/layout/Sidebar';
 import HistoryList from './HistoryList';
 import HistoryFilters from './components/HistoryFilters';
-import HistoryStatistics from './components/HistoryStatistics';
 import HistoryCreateModal from './HistoryCreateModal';
 import Pagination from '../../components/common/Pagination';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
@@ -17,6 +16,8 @@ import useHistoryPage from './hooks/useHistoryPage';
 const HistoryPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const scrollAttempted = useRef(false);
   
   const animations = useStaggerAnimation({
     staggerDelay: 0.08,
@@ -64,8 +65,56 @@ const HistoryPage = () => {
     handleHistoryCreated,
     handleConfirmAction,
     handleCloseConfirmDialog,
-    getConfirmButtonText
+    getConfirmButtonText,
+    
+    // Fungsi untuk refresh data
+    handleRefreshData
   } = useHistoryPage();
+
+  // 🔥 AUTO SCROLL & HIGHLIGHT LOGIC
+  useEffect(() => {
+    // Parse query param ?highlight=5
+    const searchParams = new URLSearchParams(location.search);
+    const highlightId = searchParams.get('highlight');
+    
+    if (highlightId && !loading && paginatedHistory.length > 0 && !scrollAttempted.current) {
+      console.log(`🎯 Attempting to scroll to history ID: ${highlightId}`);
+      
+      // Tunggu sebentar supaya DOM sudah ready
+      const scrollTimer = setTimeout(() => {
+        const targetRow = document.querySelector(`[data-history-id="${highlightId}"]`);
+        
+        if (targetRow) {
+          console.log('✅ Target row found, scrolling...');
+          
+          // Scroll dengan smooth behavior
+          targetRow.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+          });
+          
+          // Tambahkan highlight class
+          targetRow.classList.add('history-row-highlight');
+          
+          // Remove highlight setelah 3 detik
+          setTimeout(() => {
+            targetRow.classList.remove('history-row-highlight');
+          }, 3000);
+          
+          scrollAttempted.current = true;
+        } else {
+          console.warn('⚠️ Target row not found in current page');
+        }
+      }, 500); // Delay 500ms untuk memastikan render selesai
+      
+      return () => clearTimeout(scrollTimer);
+    }
+  }, [location.search, loading, paginatedHistory]);
+
+  // Reset scroll attempt saat pindah halaman atau clear filter
+  useEffect(() => {
+    scrollAttempted.current = false;
+  }, [currentPage, searchTerm, startDate, endDate]);
 
   const handlePageChange = (pageId, path) => {
     navigate(path);
@@ -88,16 +137,6 @@ const HistoryPage = () => {
           animate="visible"
           exit="hidden"
         >
-          {/* Statistics */}
-          <motion.div variants={animations.item}>
-            <HistoryStatistics 
-              stats={stats} 
-              onExportPDF={handleExportToPDF}
-              isExporting={isExporting}
-              onAddHistory={handleOpenCreateModal}
-            />
-          </motion.div>
-          
           {/* Filters */}
           <motion.div variants={animations.item}>
             <HistoryFilters
@@ -112,12 +151,16 @@ const HistoryPage = () => {
             />
           </motion.div>
           
-          {/* History List */}
+          {/* History List - dengan buttons di header */}
           <motion.div variants={animations.item}>
             <HistoryList 
               historyData={paginatedHistory}
               loading={loading} 
-              error={error} 
+              error={error}
+              onDataUpdated={handleRefreshData}
+              onExportPDF={handleExportToPDF}
+              isExporting={isExporting}
+              onAddHistory={handleOpenCreateModal}
             />
           </motion.div>
 

@@ -1,4 +1,4 @@
-// features/history/hooks/useHistoryPage.js
+// features/history/hooks/useHistoryPage.js - FIXED WITH created_at
 import { useState, useCallback, useMemo } from 'react';
 import { useToast } from '../../../contexts/ToastContext';
 import useHistory from './useHistory';
@@ -32,6 +32,30 @@ const useHistoryPage = () => {
     fetchHistory
   } = useHistory();
 
+  // Helper function untuk parse date
+  const parseHistoryDate = (dateString) => {
+    if (!dateString) return null;
+    
+    try {
+      // Handle format: "2025-10-27 06:10:47.14..." (PostgreSQL/MySQL timestamp)
+      // Handle format: "30/10/2025 19:07"
+      // Handle ISO format: "2025-10-30T19:07:00"
+      
+      if (dateString.includes('/')) {
+        const [datePart] = dateString.split(' ');
+        const [day, month, year] = datePart.split('/');
+        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      }
+      
+      // For ISO or SQL timestamp format
+      const parsed = new Date(dateString);
+      return isNaN(parsed.getTime()) ? null : parsed;
+    } catch (err) {
+      console.error('Failed to parse date:', dateString, err);
+      return null;
+    }
+  };
+
   // Memoized filtered history
   const filteredHistory = useMemo(() => {
     let filtered = historyData;
@@ -46,23 +70,30 @@ const useHistoryPage = () => {
     }
 
     // Date range filter
-    if (startDate) {
+    if (startDate || endDate) {
       filtered = filtered.filter(item => {
-        const itemDate = new Date(item.error_time);
-        const filterStartDate = new Date(startDate);
-        itemDate.setHours(0, 0, 0, 0);
-        filterStartDate.setHours(0, 0, 0, 0);
-        return itemDate >= filterStartDate;
-      });
-    }
-
-    if (endDate) {
-      filtered = filtered.filter(item => {
-        const itemDate = new Date(item.error_time);
-        const filterEndDate = new Date(endDate);
-        itemDate.setHours(0, 0, 0, 0);
-        filterEndDate.setHours(23, 59, 59, 999);
-        return itemDate <= filterEndDate;
+        // 🔥 FIX: Gunakan created_at instead of error_time
+        if (!item.created_at) return false;
+        
+        const itemDate = parseHistoryDate(item.created_at);
+        if (!itemDate || isNaN(itemDate.getTime())) return false;
+        
+        // Set to midnight for comparison
+        const itemDateOnly = new Date(itemDate.getFullYear(), itemDate.getMonth(), itemDate.getDate());
+        
+        // Start date filter
+        if (startDate) {
+          const filterStartDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+          if (itemDateOnly < filterStartDate) return false;
+        }
+        
+        // End date filter
+        if (endDate) {
+          const filterEndDate = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+          if (itemDateOnly > filterEndDate) return false;
+        }
+        
+        return true;
       });
     }
 
@@ -80,15 +111,27 @@ const useHistoryPage = () => {
   // Statistics
   const stats = useMemo(() => {
     const today = new Date();
-    const todayStr = today.toDateString();
+    today.setHours(0, 0, 0, 0);
+    const todayTime = today.getTime();
+    
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toDateString();
+    const yesterdayTime = yesterday.getTime();
 
     return {
       total: filteredHistory.length,
-      today: filteredHistory.filter(item => new Date(item.error_time).toDateString() === todayStr).length,
-      yesterday: filteredHistory.filter(item => new Date(item.error_time).toDateString() === yesterdayStr).length
+      today: filteredHistory.filter(item => {
+        const itemDate = parseHistoryDate(item.created_at);
+        if (!itemDate) return false;
+        itemDate.setHours(0, 0, 0, 0);
+        return itemDate.getTime() === todayTime;
+      }).length,
+      yesterday: filteredHistory.filter(item => {
+        const itemDate = parseHistoryDate(item.created_at);
+        if (!itemDate) return false;
+        itemDate.setHours(0, 0, 0, 0);
+        return itemDate.getTime() === yesterdayTime;
+      }).length
     };
   }, [filteredHistory]);
 
@@ -158,6 +201,18 @@ const useHistoryPage = () => {
       console.error('Error after creating history:', error);
     }
   }, [showSuccess, fetchHistory]);
+
+  // Handler untuk refresh data dari child components
+  const handleRefreshData = useCallback(async () => {
+    console.log('🔄 Refreshing history data from backend...');
+    try {
+      await fetchHistory();
+      console.log('✅ History data refreshed successfully');
+    } catch (error) {
+      console.error('❌ Error refreshing history data:', error);
+      showError('Refresh Failed', 'Gagal memuat ulang data history');
+    }
+  }, [fetchHistory, showError]);
 
   // Confirm dialog handlers
   const handleConfirmAction = useCallback(async () => {
@@ -243,7 +298,8 @@ const useHistoryPage = () => {
     handleHistoryCreated,
     handleConfirmAction,
     handleCloseConfirmDialog,
-    getConfirmButtonText
+    getConfirmButtonText,
+    handleRefreshData
   };
 };
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import NotificationDropdown from '../../features/notification/NotificationDropdown';
+import NotificationDropdown from '../../features/notification/components/NotificationDropdown';
 import ThemeToggle from '../common/ThemeToggle';
 
 const Navbar = ({ user, notifications = [], title, subtitle }) => {

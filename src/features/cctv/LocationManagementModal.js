@@ -218,7 +218,7 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
                 }`}
             >
                 <div 
-                    className={`bg-gradient-to-b from-slate-950 via-indigo-950 to-indigo-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden transform transition-all duration-300 ${
+                    className={`bg-gradient-to-b from-slate-50 via-blue-50 to-blue-100 dark:from-slate-950 dark:via-indigo-950 dark:to-indigo-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden transform transition-all duration-300 ${
                         shouldShow ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
                     }`}
                 >
@@ -226,20 +226,20 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
                     <div className="flex items-center justify-between px-6 py-6 mx-4">
                         <div className="flex items-center gap-3">
                             <div className="p-2 rounded-lg bg-blue-500/20">
-                                <MapPinIcon className="w-6 h-6 text-blue-400" />
+                                <MapPinIcon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                             </div>
-                            <h2 className="text-2xl text-white font-semibold">Kelola Lokasi DVR</h2>
+                            <h2 className="text-2xl text-gray-900 dark:text-white font-semibold">Kelola Lokasi DVR</h2>
                         </div>
                         <button 
                             onClick={handleClose} 
                             disabled={loading} 
-                            className="text-white/70 hover:text-white disabled:opacity-50 transition-colors"
+                            className="text-gray-600 hover:text-gray-900 dark:text-white/70 dark:hover:text-white disabled:opacity-50 transition-colors"
                         >
                             <XMarkIcon className="w-7 h-7" />
                         </button>
                     </div>
                     
-                    <div className="mx-6 h-1 bg-white/10"></div>
+                    <div className="mx-6 h-1 bg-gray-300 dark:bg-white/10"></div>
 
                     {/* Content - Scrollable */}
                     <div className="p-6 space-y-5 overflow-y-auto max-h-[calc(90vh-180px)]">
@@ -256,23 +256,23 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
 
                         {/* Form Section */}
                         {showForm && (
-                            <div className="bg-white/5 backdrop-blur-sm border border-white/20 rounded-xl p-5 space-y-4">
+                            <div className="bg-white/50 dark:bg-white/5 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl p-5 space-y-4">
                                 <div className="flex items-center justify-between">
-                                    <h3 className="text-lg font-semibold text-white">Tambah Lokasi Baru</h3>
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Tambah Lokasi Baru</h3>
                                 </div>
 
                                 {error && (
-                                    <div className="bg-red-500/20 border border-red-400/40 rounded-xl p-4 backdrop-blur-sm">
+                                    <div className="bg-red-100 dark:bg-red-500/20 border border-red-300 dark:border-red-400/40 rounded-xl p-4 backdrop-blur-sm">
                                         <div className="flex items-center">
-                                            <ExclamationCircleIcon className="w-5 h-5 text-red-300 mr-2 flex-shrink-0" />
-                                            <p className="text-sm text-red-200">{error}</p>
+                                            <ExclamationCircleIcon className="w-5 h-5 text-red-600 dark:text-red-300 mr-2 flex-shrink-0" />
+                                            <p className="text-sm text-red-700 dark:text-red-200">{error}</p>
                                         </div>
                                     </div>
                                 )}
 
                                 <div className="space-y-4">
                                     <div>
-                                        <label htmlFor="nama_lokasi" className="block text-sm font-medium text-white mb-2">
+                                        <label htmlFor="nama_lokasi" className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
                                             Nama Lokasi
                                         </label>
                                         <input
@@ -282,10 +282,10 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
                                             value={formData.nama_lokasi} 
                                             onChange={handleInputChange} 
                                             disabled={loading}
-                                            className="block w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-white/50 focus:ring-2 focus:ring-white/30 focus:border-white/30 disabled:opacity-50 transition-all"
+                                            className="block w-full px-4 py-3 bg-white dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-white/30 focus:border-blue-500 dark:focus:border-white/30 disabled:opacity-50 transition-all"
                                             placeholder="Server Monitoring Lantai 1"
                                         />
-                                        <p className="mt-1 text-xs text-gray-400">
+                                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                                             Minimal 5 karakter, maksimal 200 karakter
                                         </p>
                                     </div>
@@ -295,7 +295,7 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
                                             type="button" 
                                             onClick={toggleForm} 
                                             disabled={loading}
-                                            className="px-6 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white font-medium hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                            className="px-6 py-2 bg-gray-200 dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-700 dark:text-white font-medium hover:bg-gray-300 dark:hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                         >
                                             Batal
                                         </button>
@@ -303,7 +303,7 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
                                             type="button"
                                             onClick={handleSubmit}
                                             disabled={loading}
-                                            className="px-6 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white font-medium hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                                            className="px-6 py-2 bg-blue-600 dark:bg-white/10 backdrop-blur-sm border border-blue-600 dark:border-white/20 rounded-xl text-white font-medium hover:bg-blue-700 dark:hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
                                         >
                                             {loading && (
                                                 <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -320,9 +320,9 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
 
                         {/* Locations List */}
                         <div className="space-y-3">
-                            <h3 className="text-sm font-semibold text-gray-300 flex items-center gap-2">
+                            <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-300 flex items-center gap-2">
                                 <span>Daftar Lokasi</span>
-                                <span className="text-xs bg-blue-900/30 text-blue-300 px-2 py-1 rounded-full">
+                                <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full">
                                     {locations.length} lokasi
                                 </span>
                             </h3>
@@ -330,15 +330,15 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
                             {loadingLocations ? (
                                 <div className="space-y-2">
                                     {[1, 2, 3].map((i) => (
-                                        <div key={i} className="bg-white/5 backdrop-blur-sm border border-white/20 rounded-xl p-4 animate-pulse">
-                                            <div className="h-5 bg-white/10 rounded w-3/4"></div>
+                                        <div key={i} className="bg-white/50 dark:bg-white/5 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl p-4 animate-pulse">
+                                            <div className="h-5 bg-gray-200 dark:bg-white/10 rounded w-3/4"></div>
                                         </div>
                                     ))}
                                 </div>
                             ) : locations.length === 0 ? (
-                                <div className="bg-white/5 backdrop-blur-sm border border-white/20 rounded-xl p-8 text-center">
-                                    <MapPinIcon className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                                    <p className="text-gray-400 text-sm">
+                                <div className="bg-white/50 dark:bg-white/5 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl p-8 text-center">
+                                    <MapPinIcon className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
+                                    <p className="text-gray-500 dark:text-gray-400 text-sm">
                                         Belum ada lokasi. Tambahkan lokasi baru untuk memulai.
                                     </p>
                                 </div>
@@ -347,15 +347,15 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
                                     {locations.map((location) => (
                                         <div 
                                             key={location.id_location}
-                                            className="bg-white/5 backdrop-blur-sm border border-white/20 rounded-xl p-4 hover:bg-white/10 transition-all"
+                                            className="bg-white/50 dark:bg-white/5 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl p-4 hover:bg-white/70 dark:hover:bg-white/10 transition-all"
                                         >
                                             {editingLocationId === location.id_location ? (
                                                 <div className="space-y-3">
                                                     {error && (
-                                                        <div className="bg-red-500/20 border border-red-400/40 rounded-lg p-3 backdrop-blur-sm">
+                                                        <div className="bg-red-100 dark:bg-red-500/20 border border-red-300 dark:border-red-400/40 rounded-lg p-3 backdrop-blur-sm">
                                                             <div className="flex items-center">
-                                                                <ExclamationCircleIcon className="w-4 h-4 text-red-300 mr-2 flex-shrink-0" />
-                                                                <p className="text-xs text-red-200">{error}</p>
+                                                                <ExclamationCircleIcon className="w-4 h-4 text-red-600 dark:text-red-300 mr-2 flex-shrink-0" />
+                                                                <p className="text-xs text-red-700 dark:text-red-200">{error}</p>
                                                             </div>
                                                         </div>
                                                     )}
@@ -364,21 +364,21 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
                                                         value={formData.nama_lokasi}
                                                         onChange={handleInputChange}
                                                         disabled={loading}
-                                                        className="block w-full px-3 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/50 focus:ring-2 focus:ring-white/30 focus:border-white/30 disabled:opacity-50 transition-all text-sm"
+                                                        className="block w-full px-3 py-2 bg-white dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-white/30 focus:border-blue-500 dark:focus:border-white/30 disabled:opacity-50 transition-all text-sm"
                                                         placeholder="Nama lokasi"
                                                     />
                                                     <div className="flex items-center gap-2">
                                                         <button
                                                             onClick={handleCancelEdit}
                                                             disabled={loading}
-                                                            className="flex-1 px-3 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white font-medium hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
+                                                            className="flex-1 px-3 py-2 bg-gray-200 dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-lg text-gray-700 dark:text-white font-medium hover:bg-gray-300 dark:hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
                                                         >
                                                             Batal
                                                         </button>
                                                         <button
                                                             onClick={() => handleUpdateLocation(location.id_location)}
                                                             disabled={loading}
-                                                            className="flex-1 px-3 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white font-medium hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 text-sm"
+                                                            className="flex-1 px-3 py-2 bg-blue-600 dark:bg-white/10 backdrop-blur-sm border border-blue-600 dark:border-white/20 rounded-lg text-white font-medium hover:bg-blue-700 dark:hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 text-sm"
                                                         >
                                                             {loading ? (
                                                                 <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -395,10 +395,10 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
                                             ) : (
                                                 <div className="flex items-center gap-3">
                                                     <div className="p-2 rounded-lg bg-blue-500/20">
-                                                        <MapPinIcon className="w-4 h-4 text-blue-400" />
+                                                        <MapPinIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <p className="font-medium text-white">
+                                                        <p className="font-medium text-gray-900 dark:text-white">
                                                             {location.nama_lokasi}
                                                         </p>
                                                     </div>
@@ -409,7 +409,7 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
                                                             className="p-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 transition-all group disabled:opacity-50"
                                                             title="Edit Lokasi"
                                                         >
-                                                            <PencilSquareIcon className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
+                                                            <PencilSquareIcon className="w-4 h-4 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform" />
                                                         </button>
                                                         <button
                                                             onClick={() => handleDeleteClick(location)}
@@ -417,7 +417,7 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
                                                             className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 transition-all group disabled:opacity-50"
                                                             title="Hapus Lokasi"
                                                         >
-                                                            <TrashIcon className="w-4 h-4 text-red-400 group-hover:scale-110 transition-transform" />
+                                                            <TrashIcon className="w-4 h-4 text-red-600 dark:text-red-400 group-hover:scale-110 transition-transform" />
                                                         </button>
                                                     </div>
                                                 </div>
@@ -429,14 +429,14 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
                         </div>
                     </div>
 
-                    <div className="mx-6 h-1 bg-white/10"></div>
+                    <div className="mx-6 h-1 bg-gray-300 dark:bg-white/10"></div>
 
                     {/* Footer */}
                     <div className="p-6">
                         <button
                             onClick={handleClose}
                             disabled={loading}
-                            className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white font-medium hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                            className="w-full px-4 py-3 bg-gray-200 dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-700 dark:text-white font-medium hover:bg-gray-300 dark:hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                         >
                             Tutup
                         </button>

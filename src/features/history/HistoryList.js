@@ -1,15 +1,118 @@
-// features/history/HistoryList.js - Refactored
-import React from 'react';
+// features/history/HistoryList.js - UPDATED WITH HEADER BUTTONS
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { 
+  FolderIcon, 
+  VideoCameraIcon, 
+  ServerIcon, 
+  BuildingOfficeIcon, 
+  CalendarIcon, 
+  SignalIcon, 
+  AdjustmentsVerticalIcon,
+  PlusIcon,
+  DocumentArrowDownIcon
+} from '@heroicons/react/24/outline';
 import useTableAnimation from '../../hooks/useTableAnimation';
 import HistoryListItem from './components/HistoryListItem';
+import HistoryNoteModal from './components/HistoryNoteModal';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
+import historyService from '../../services/historyService';
 
-const HistoryList = ({ historyData, loading, error }) => {
+const HistoryList = ({ 
+  historyData, 
+  loading, 
+  error, 
+  onDataUpdated,
+  onExportPDF,
+  isExporting,
+  onAddHistory 
+}) => {
+  const [selectedHistory, setSelectedHistory] = useState(null);
+  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
+  const [isRepairConfirmOpen, setIsRepairConfirmOpen] = useState(false);
+  const [repairLoading, setRepairLoading] = useState(false);
+
   const tableAnimations = useTableAnimation({
     staggerDelay: 0.05,
     duration: 0.3,
     enableHover: false
   });
+
+  // Handler for note button click
+  const handleNoteClick = (item) => {
+    console.log('📝 Note clicked for:', item);
+    setSelectedHistory(item);
+    setIsNoteModalOpen(true);
+  };
+
+  // Handler for repair button click
+  const handleRepairClick = (item) => {
+    console.log('🔧 Repair clicked for:', item);
+    setSelectedHistory(item);
+    setIsRepairConfirmOpen(true);
+  };
+
+  // Handler untuk close note modal - refresh data di sini
+  const handleNoteModalClose = async () => {
+    console.log('🔄 Note modal closing, refreshing data...');
+    
+    // Close modal dulu
+    setIsNoteModalOpen(false);
+    setSelectedHistory(null);
+    
+    // Refresh data dari backend
+    if (onDataUpdated) {
+      console.log('🔄 Calling onDataUpdated to refresh data...');
+      await onDataUpdated();
+      console.log('✅ Data refresh completed after modal close');
+    }
+  };
+
+  // Handler for repair confirmation
+  const handleRepairConfirm = async () => {
+    if (!selectedHistory) return;
+
+    setRepairLoading(true);
+    try {
+      const updateData = {
+        service: true
+      };
+      
+      console.log('🔧 Marking as repaired:', selectedHistory.id_history);
+      
+      await historyService.updateHistory(selectedHistory.id_history, updateData);
+      
+      console.log('✅ Marked as repaired successfully');
+      
+      // Close modal
+      setIsRepairConfirmOpen(false);
+      setSelectedHistory(null);
+      
+      // Refresh data setelah close modal
+      if (onDataUpdated) {
+        console.log('🔄 Calling onDataUpdated to refresh data...');
+        await onDataUpdated();
+        console.log('✅ Data refresh completed after repair');
+      }
+    } catch (error) {
+      console.error('❌ Error marking as repaired:', error);
+      alert('Gagal menandai sebagai diperbaiki: ' + error.message);
+    } finally {
+      setRepairLoading(false);
+    }
+  };
+
+  // Custom message for repair confirmation
+  const repairConfirmMessage = (
+    <div className="space-y-3">
+      <p className="text-gray-800 dark:text-white text-lg leading-relaxed">
+        Apakah anda yakin untuk mengkonfirmasi perbaikan CCTV ini ?
+      </p>
+      <p className="text-sm text-gray-600 dark:text-white/70 leading-relaxed">
+        *Status perbaikan tidak dapat diubah kembali setelah dikonfirmasi harap pastikan bahwa CCTV sudah benar-benar diperbaiki !
+      </p>
+    </div>
+  );
 
   if (loading) {
     return (
@@ -18,9 +121,11 @@ const HistoryList = ({ historyData, loading, error }) => {
           <div className="space-y-4">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="flex items-center space-x-4">
+                <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-1/6"></div>
+                <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-1/6"></div>
                 <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-1/4"></div>
-                <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-1/3"></div>
-                <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-1/4"></div>
+                <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-1/5"></div>
+                <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-1/6"></div>
                 <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-1/6"></div>
               </div>
             ))}
@@ -59,57 +164,154 @@ const HistoryList = ({ historyData, loading, error }) => {
   }
 
   return (
-    <motion.div 
-      className="bg-white dark:bg-slate-950/50 rounded-lg shadow-sm border border-gray-200 dark:border-slate-600/30 overflow-hidden"
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: "auto" }}
-      exit={{ opacity: 0, height: 0 }}
-      transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
-    >
-      <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-600/30">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white">Error History Records</h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">List of CCTV camera errors and incidents</p>
-      </div>
+    <>
+      <motion.div 
+        className="bg-white dark:bg-slate-950/80 rounded-lg shadow-sm border border-gray-200 dark:border-slate-600/30 overflow-hidden"
+        initial={{ opacity: 0, height: 0 }}
+        animate={{ opacity: 1, height: "auto" }}
+        exit={{ opacity: 0, height: 0 }}
+        transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+      >
+        {/* Header dengan Title dan Buttons */}
+        <div className="px-6 py-4 border-b bg-white dark:bg-slate-400/10 border-gray-200 dark:border-slate-600/30">
+          <div className="flex items-center justify-between">
+            {/* Title */}
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white flex items-center">
+              <FolderIcon className="w-5 h-5 mr-2" />
+              Riwayat Aktivitas Kamera CCTV
+            </h3>
 
-      <div className="w-full">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-600/30">
-          <thead className="bg-gray-50 dark:bg-slate-900/20">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Camera Info
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Location
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Error Date & Time
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Duration
-              </th>
-            </tr>
-          </thead>
-          
-          <motion.tbody 
-            className="bg-white dark:bg-slate-950/50 divide-y divide-gray-200 dark:divide-slate-600/30"
-            variants={tableAnimations.tbody}
-            initial="hidden"
-            animate="visible"
-          >
-            {historyData.map((item) => (
-              <HistoryListItem 
-                key={item.id_history}
-                item={item}
-                rowVariants={tableAnimations.row}
-              />
-            ))}
-          </motion.tbody>
-        </table>
-      </div>
-    </motion.div>
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3">
+              {/* Button Tambahkan Riwayat */}
+              <button
+                onClick={onAddHistory}
+                className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-white transition-all duration-200 hover:opacity-90"
+                style={{ 
+                  background: 'linear-gradient(to right, #FF8C04, #000000)'
+                }}
+              >
+                <div className="relative mr-2">
+                  <FolderIcon className="w-4 h-4" />
+                  <PlusIcon className="w-3 h-3 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" strokeWidth={3} />
+                </div>
+                Tambahkan Riwayat
+              </button>
+
+              {/* Button Laporan Kerusakan */}
+              <button
+                onClick={onExportPDF}
+                disabled={isExporting}
+                className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-white transition-all duration-200 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ 
+                  background: 'linear-gradient(to right, #A31116, #000000)'
+                }}
+              >
+                {isExporting ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Exporting...
+                  </>
+                ) : (
+                  <>
+                    <DocumentArrowDownIcon className="w-4 h-4 mr-2" />
+                    Laporan Kerusakan
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="w-full overflow-x-auto px-6">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-600/30">
+            <thead>
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white uppercase tracking-wider">
+                  <div className="flex items-center">
+                    <VideoCameraIcon className="w-4 h-4 mr-2" />
+                    Kamera
+                  </div>
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white uppercase tracking-wider">
+                  <div className="flex items-center">
+                    <ServerIcon className="w-4 h-4 mr-2" />
+                    IP Address
+                  </div>
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white uppercase tracking-wider">
+                  <div className="flex items-center">
+                    <BuildingOfficeIcon className="w-4 h-4 mr-2" />
+                    Lokasi
+                  </div>
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white uppercase tracking-wider">
+                  <div className="flex items-center">
+                    <CalendarIcon className="w-4 h-4 mr-2" />
+                    Tanggal
+                  </div>
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white uppercase tracking-wider">
+                  <div className="flex items-center">
+                    <SignalIcon className="w-4 h-4 mr-2" />
+                    Status
+                  </div>
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white uppercase tracking-wider">
+                  <div className="flex items-center">
+                    <AdjustmentsVerticalIcon className="w-4 h-4 mr-2" />
+                    Aksi
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            
+            <motion.tbody 
+              className="bg-transparent divide-y divide-gray-200 dark:divide-slate-600/30"
+              variants={tableAnimations.tbody}
+              initial="hidden"
+              animate="visible"
+            >
+              {historyData.map((item) => (
+                <HistoryListItem 
+                  key={item.id_history}
+                  item={item}
+                  rowVariants={tableAnimations.row}
+                  onNoteClick={handleNoteClick}
+                  onRepairClick={handleRepairClick}
+                />
+              ))}
+            </motion.tbody>
+          </table>
+        </div>
+      </motion.div>
+
+      {/* Note Modal */}
+      <HistoryNoteModal
+        isOpen={isNoteModalOpen}
+        onClose={handleNoteModalClose}
+        historyItem={selectedHistory}
+      />
+
+      {/* Repair Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={isRepairConfirmOpen}
+        onClose={() => {
+          setIsRepairConfirmOpen(false);
+          setSelectedHistory(null);
+        }}
+        onConfirm={handleRepairConfirm}
+        title="Konfirmasi Perbaikan"
+        message={repairConfirmMessage}
+        confirmText="Iya"
+        cancelText="Tidak"
+        type="info"
+        loading={repairLoading}
+      />
+    </>
   );
 };
 

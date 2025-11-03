@@ -1,138 +1,63 @@
+// src/features/notification/components/NotificationDropdown.js
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { SignalSlashIcon, BellIcon } from '@heroicons/react/24/outline';
+import { BellIcon } from '@heroicons/react/24/outline';
+import NotificationItem from './NotificationItem';
+import notificationService from '../../../services/notificationService';
 
-const NotificationItem = ({ notification, onNotificationClick, getNotificationIcon }) => {
-  const handleClick = () => {
-    onNotificationClick(notification.id);
-  };
-
-  return (
-    <div
-      onClick={handleClick}
-      className="p-4 border-b-2 dark:border-b-[#0A1537] hover:bg-slate-100/80 dark:hover:bg-slate-700/60 cursor-pointer transition-colors duration-150 relative z-10 bg-white/50 dark:bg-transparent"
-    >
-      <div className="flex items-start space-x-3">
-        <span className="text-lg flex-shrink-0 mt-0.5">
-          {getNotificationIcon(notification.type)}
-        </span>
-        <div className="flex-1 min-w-0">
-          <p className={`text-sm text-slate-800 dark:text-gray-200 ${!notification.read ? 'font-medium' : ''}`}>
-            {notification.message}
-          </p>
-          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{notification.time}</p>
-        </div>
-        {!notification.read && (
-          <div className="w-2 h-2 bg-red-500 rounded-full flex-shrink-0 mt-2"></div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-const NotificationDropdown = ({ notifications = [] }) => {
+const NotificationDropdown = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const buttonRef = useRef(null);
   
-  // Default static notifications if none provided
-  const defaultNotifications = [
-    {
-      id: 1,
-      type: 'camera',
-      message: 'Kamera [Lokasi A] telah Offline',
-      subtitle: 'Harap cek ke lokasi lalu tambahkan ke catatan',
-      time: '2 detik lalu',
-      read: false
-    },
-    {
-      id: 2,
-      type: 'camera',
-      message: 'Kamera [Lokasi B] telah Offline',
-      subtitle: 'Harap cek ke lokasi lalu tambahkan ke catatan',
-      time: '5 menit lalu',
-      read: false
-    },
-    {
-      id: 3,
-      type: 'camera',
-      message: 'Kamera [Lokasi C] telah Offline',
-      subtitle: 'Harap cek ke lokasi lalu tambahkan ke catatan',
-      time: '10 menit lalu',
-      read: false
-    },
-    {
-      id: 4,
-      type: 'camera',
-      message: 'Kamera [Lokasi D] telah Offline',
-      subtitle: 'Harap cek ke lokasi lalu tambahkan ke catatan',
-      time: '15 menit lalu',
-      read: false
-    },
-    {
-      id: 5,
-      type: 'camera',
-      message: 'Kamera [Lokasi E] telah Offline',
-      subtitle: 'Harap cek ke lokasi lalu tambahkan ke catatan',
-      time: '20 menit lalu',
-      read: true
-    },
-    {
-      id: 6,
-      type: 'camera',
-      message: 'Kamera [Lokasi F] telah Offline',
-      subtitle: 'Harap cek ke lokasi lalu tambahkan ke catatan',
-      time: '25 menit lalu',
-      read: true
-    },
-    {
-      id: 7,
-      type: 'camera',
-      message: 'Kamera [Lokasi G] telah Offline',
-      subtitle: 'Harap cek ke lokasi lalu tambahkan ke catatan',
-      time: '30 menit lalu',
-      read: true
-    }
-  ];
-  
-  const [notificationList, setNotificationList] = useState(
-    notifications.length > 0 ? notifications : defaultNotifications
-  );
-  
-  useEffect(() => {
-    if (notifications.length > 0) {
-      setNotificationList(notifications);
-    }
-  }, [notifications]);
-  
-  const unreadCount = notificationList.filter(n => !n.read).length;
-  
-  const markAsRead = (id) => {
-    setNotificationList(prev => 
-      prev.map(n => n.id === id ? { ...n, read: true } : n)
-    );
-  };
-  
-  const getNotificationIcon = (type) => {
-    switch(type) {
-      case 'camera':
-        return (
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center">
-            <SignalSlashIcon className="w-6 h-6 text-red-500 dark:text-red-400" />
-          </div>
-        );
-      default:
-        return (
-          <div className="w-10 h-10 rounded-lg bg-blue-500/20 dark:bg-blue-500/30 flex items-center justify-center">
-            <svg className="w-6 h-6 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-        );
+  // Fetch notifications dari backend
+  const fetchNotifications = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await notificationService.getNotifications();
+      
+      // Response structure: { message, data: [...] }
+      if (response && response.data) {
+        setNotifications(response.data);
+      }
+    } catch (err) {
+      console.error('Error fetching notifications:', err);
+      setError('Gagal memuat notifikasi');
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Update dropdown position when opened and on scroll/resize
+  // Initial fetch saat component mount
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  // Auto-refresh setiap 40 detik
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchNotifications();
+    }, 40000); // 40 detik
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Handle delete notification
+  const handleNotificationDelete = (notificationId) => {
+    // Optimistic UI update - hapus dari list langsung
+    setNotifications(prev => 
+      prev.filter(n => n.id_notification !== notificationId)
+    );
+  };
+
+  // Jumlah notifikasi (semua notifikasi dianggap unread sampai di-delete)
+  const unreadCount = notifications.length;
+
+  // Update dropdown position when opened
   useEffect(() => {
     const updatePosition = (event) => {
       const dropdownElement = document.getElementById('notification-dropdown-portal');
@@ -184,10 +109,11 @@ const NotificationDropdown = ({ notifications = [] }) => {
 
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
-  };
-
-  const handleNotificationClick = (notificationId) => {
-    markAsRead(notificationId);
+    
+    // Refresh notifications saat dropdown dibuka
+    if (!showNotifications) {
+      fetchNotifications();
+    }
   };
 
   const DropdownPortal = () => {
@@ -213,14 +139,14 @@ const NotificationDropdown = ({ notifications = [] }) => {
           backgroundRepeat: 'no-repeat'
         }}
       >
-        {/* Header - No Background Image */}
+        {/* Header */}
         <div className="p-3 bg-slate-100/70 dark:bg-[#091230]">
           <h3 className="font-semibold text-slate-900 dark:text-white text-center text-lg">
             Notifikasi
           </h3>
         </div>
 
-        {/* Content and Footer Wrapper */}
+        {/* Content */}
         <div className="flex-1 overflow-hidden flex flex-col relative">
           {/* Notification List */}
           <div 
@@ -229,21 +155,47 @@ const NotificationDropdown = ({ notifications = [] }) => {
               maxHeight: '400px'
             }}
           >
-            {notificationList.length > 0 ? (
-              notificationList.map((notification) => (
-                <NotificationItem
-                  key={notification.id}
-                  notification={notification}
-                  onNotificationClick={handleNotificationClick}
-                  getNotificationIcon={getNotificationIcon}
-                />
+            {loading ? (
+              // Loading state
+              <div className="p-8 text-center flex flex-col justify-center items-center h-full">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-3"></div>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">Memuat notifikasi...</p>
+              </div>
+            ) : error ? (
+              // Error state
+              <div className="p-8 text-center flex flex-col justify-center items-center h-full">
+                <svg className="w-12 h-12 mx-auto text-red-400 dark:text-red-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-red-500 dark:text-red-400 text-sm mb-2">{error}</p>
+                <button
+                  onClick={fetchNotifications}
+                  className="text-xs text-blue-500 hover:text-blue-600 underline"
+                >
+                  Coba lagi
+                </button>
+              </div>
+            ) : notifications.length > 0 ? (
+              // Notification list
+              notifications.map((notification, index) => (
+                <div key={notification.id_notification}>
+                  <NotificationItem
+                    notification={notification}
+                    onDelete={handleNotificationDelete}
+                  />
+                  {/* Border bottom kecuali item terakhir */}
+                  {index < notifications.length - 1 && (
+                    <div className="border-b border-slate-700/30 dark:border-slate-700/30"></div>
+                  )}
+                </div>
               ))
             ) : (
+              // Empty state
               <div className="p-8 text-center flex flex-col justify-center items-center h-full">
                 <svg className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">No notifications</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">Tidak ada notifikasi</p>
               </div>
             )}
           </div>
