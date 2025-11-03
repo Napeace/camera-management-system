@@ -71,16 +71,41 @@ const HistoryPage = () => {
     handleRefreshData
   } = useHistoryPage();
 
-  // 🔥 AUTO SCROLL & HIGHLIGHT LOGIC
+  // 🔥 AUTO SCROLL & HIGHLIGHT LOGIC WITH PAGINATION DETECTION
   useEffect(() => {
     // Parse query param ?highlight=5
     const searchParams = new URLSearchParams(location.search);
     const highlightId = searchParams.get('highlight');
     
-    if (highlightId && !loading && paginatedHistory.length > 0 && !scrollAttempted.current) {
-      console.log(`🎯 Attempting to scroll to history ID: ${highlightId}`);
+    if (highlightId && !loading && filteredHistory.length > 0 && !scrollAttempted.current) {
+      console.log(`🎯 Attempting to find history ID: ${highlightId}`);
       
-      // Tunggu sebentar supaya DOM sudah ready
+      // 1️⃣ Cari index row di filteredHistory (data lengkap)
+      const targetIndex = filteredHistory.findIndex(
+        item => item.id_history === parseInt(highlightId)
+      );
+      
+      if (targetIndex === -1) {
+        console.warn(`⚠️ History ID ${highlightId} not found in filtered data`);
+        scrollAttempted.current = true;
+        return;
+      }
+      
+      // 2️⃣ Hitung halaman yang benar
+      const targetPage = Math.floor(targetIndex / itemsPerPage) + 1;
+      console.log(`📄 Target is on page ${targetPage} (current: ${currentPage})`);
+      
+      // 3️⃣ Jika beda halaman, navigate dulu
+      if (targetPage !== currentPage) {
+        console.log(`🔄 Navigating to page ${targetPage}...`);
+        handlePageNavigation(targetPage);
+        // Jangan set scrollAttempted di sini, biar bisa scroll setelah pagination selesai
+        return;
+      }
+      
+      // 4️⃣ Jika sudah di halaman yang benar, scroll ke row
+      console.log(`✅ Already on correct page, scrolling to row...`);
+      
       const scrollTimer = setTimeout(() => {
         const targetRow = document.querySelector(`[data-history-id="${highlightId}"]`);
         
@@ -103,13 +128,14 @@ const HistoryPage = () => {
           
           scrollAttempted.current = true;
         } else {
-          console.warn('⚠️ Target row not found in current page');
+          console.warn('⚠️ Target row not found in DOM');
+          scrollAttempted.current = true;
         }
-      }, 500); // Delay 500ms untuk memastikan render selesai
+      }, 600); // Delay 600ms untuk memastikan render selesai
       
       return () => clearTimeout(scrollTimer);
     }
-  }, [location.search, loading, paginatedHistory]);
+  }, [location.search, loading, filteredHistory, currentPage, itemsPerPage, handlePageNavigation]);
 
   // Reset scroll attempt saat pindah halaman atau clear filter
   useEffect(() => {

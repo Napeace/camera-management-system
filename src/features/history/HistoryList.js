@@ -1,4 +1,4 @@
-// features/history/HistoryList.js - UPDATED WITH HEADER BUTTONS
+// features/history/HistoryList.js - RESPONSIVE THEME BUTTONS
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
@@ -181,46 +181,63 @@ const HistoryList = ({
               Riwayat Aktivitas Kamera CCTV
             </h3>
 
-            {/* Action Buttons */}
+            {/* Action Buttons - RESPONSIVE THEME */}
             <div className="flex items-center gap-3">
-              {/* Button Tambahkan Riwayat */}
+              {/* Button Tambahkan Riwayat - Responsive Gradient */}
               <button
                 onClick={onAddHistory}
-                className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-white transition-all duration-200 hover:opacity-90"
-                style={{ 
-                  background: 'linear-gradient(to right, #FF8C04, #000000)'
-                }}
+                className="group relative inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95"
               >
-                <div className="relative mr-2">
-                  <FolderIcon className="w-4 h-4" />
-                  <PlusIcon className="w-3 h-3 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" strokeWidth={3} />
+                {/* Gradient Background - Light Mode (Lighter colors) */}
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-200 opacity-100 dark:opacity-0 transition-opacity duration-300"></div>
+                
+                {/* Gradient Background - Dark Mode (Darker colors) */}
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-black opacity-0 dark:opacity-100 transition-opacity duration-300"></div>
+                
+                {/* Hover Overlay */}
+                <div className="absolute inset-0 bg-black/10 dark:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                
+                {/* Content */}
+                <div className="relative flex items-center text-white dark:text-white z-10">
+                  <div className="relative mr-2">
+                    <PlusIcon className="w-3 h-3 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" strokeWidth={3} />
+                  </div>
+                  <span>Tambahkan Riwayat</span>
                 </div>
-                Tambahkan Riwayat
               </button>
 
-              {/* Button Laporan Kerusakan */}
+              {/* Button Laporan Kerusakan - Responsive Gradient */}
               <button
                 onClick={onExportPDF}
                 disabled={isExporting}
-                className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-white transition-all duration-200 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ 
-                  background: 'linear-gradient(to right, #A31116, #000000)'
-                }}
+                className="group relative inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
-                {isExporting ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Exporting...
-                  </>
-                ) : (
-                  <>
-                    <DocumentArrowDownIcon className="w-4 h-4 mr-2" />
-                    Laporan Kerusakan
-                  </>
-                )}
+                {/* Gradient Background - Light Mode (Lighter colors) */}
+                <div className="absolute inset-0 bg-gradient-to-r from-red-400 to-rose-300 opacity-100 dark:opacity-0 transition-opacity duration-300"></div>
+                
+                {/* Gradient Background - Dark Mode (Darker colors) */}
+                <div className="absolute inset-0 bg-gradient-to-r from-red-700 to-black opacity-0 dark:opacity-100 transition-opacity duration-300"></div>
+                
+                {/* Hover Overlay */}
+                <div className="absolute inset-0 bg-black/10 dark:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                
+                {/* Content */}
+                <div className="relative flex items-center text-white dark:text-white z-10">
+                  {isExporting ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Exporting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <DocumentArrowDownIcon className="w-4 h-4 mr-2" />
+                      <span>Laporan Kerusakan</span>
+                    </>
+                  )}
+                </div>
               </button>
             </div>
           </div>
@@ -230,7 +247,7 @@ const HistoryList = ({
           <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-600/30">
             <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white uppercase tracking-wider w-48">
                   <div className="flex items-center">
                     <VideoCameraIcon className="w-4 h-4 mr-2" />
                     Kamera
@@ -238,11 +255,11 @@ const HistoryList = ({
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white uppercase tracking-wider">
                   <div className="flex items-center">
-                    <ServerIcon className="w-4 h-4 mr-2" />
+                    <ServerIcon className="w-4 h-4 mr-1" />
                     IP Address
                   </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white uppercase tracking-wider w-48">
                   <div className="flex items-center">
                     <BuildingOfficeIcon className="w-4 h-4 mr-2" />
                     Lokasi

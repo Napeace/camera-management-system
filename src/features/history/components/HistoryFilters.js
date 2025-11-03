@@ -15,22 +15,23 @@ const HistoryFilters = ({
 }) => {
   return (
     <div className="bg-white dark:bg-slate-950/50 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-slate-600/30">
-      <div className="flex flex-col lg:flex-row gap-4">
-        {/* Search Input - Takes more space */}
-        <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Search History
+      {/* Grid responsif - 2 kolom untuk filter, auto untuk clear button */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_auto] gap-4">
+        {/* Search Input - Left Column */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            Cari CCTV
           </label>
           <SearchInput 
             value={searchTerm}
             onChange={onSearch}
-            placeholder="Search by IP address or location..."
+            placeholder="Cari berdasarkan titik letak atau IP Address"
           />
         </div>
 
-        {/* Date Range Filter - Single input */}
-        <div className="lg:w-80">
-          <DateRangeFilter 
+        {/* Date Range Filter - Middle Column */}
+        <div>
+          <DateRangeFilter
             startDate={startDate}
             endDate={endDate}
             onStartDateChange={onStartDateChange}
@@ -38,14 +39,14 @@ const HistoryFilters = ({
           />
         </div>
 
-        {/* Clear Button */}
+        {/* Clear Button - Right Column (only shows when filters active) */}
         {hasActiveFilters && (
-          <div className="lg:w-32 flex items-end">
+          <div className="flex items-end">
             <button 
               onClick={onClearFilters} 
-              className="w-full px-4 py-2 text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors duration-200 font-medium text-sm"
+              className="px-6 py-2.5 text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors duration-200 font-medium text-sm whitespace-nowrap"
             >
-              Clear
+              Clear Filters
             </button>
           </div>
         )}

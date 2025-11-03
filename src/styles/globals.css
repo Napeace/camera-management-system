@@ -418,6 +418,25 @@ nav *,
   display: none;
 }
 
+/* Perbesar lebar popup calendar dropdown */
+.custom-calendar-dropdown {
+  min-width: 400px !important;
+}
+
+/* Pastikan header dan toggle buttons mengikuti lebar popup */
+.custom-datepicker-header {
+  width: 100% !important;
+}
+
+.custom-datepicker-header > div {
+  width: 100% !important;
+}
+
+/* Calendar container mengikuti lebar parent */
+.react-datepicker__month-container {
+  width: 100% !important;
+}
+
 /* 🎨 Highlight Animation untuk Row yang Diklik dari Notifikasi */
 
 .history-row {

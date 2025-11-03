@@ -1,8 +1,7 @@
-// features/history/components/HistoryListItem.js - WITH DATA ATTRIBUTE FOR SCROLL TARGET
+// features/history/components/HistoryListItem.js - WITH TEXT TRUNCATE
 import React from 'react';
 import { motion } from 'framer-motion';
 import { DocumentCheckIcon, DocumentPlusIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
-import { CheckCircleIcon as CheckCircleIconSolid } from '@heroicons/react/24/solid';
 
 const HistoryListItem = ({ item, rowVariants, onNoteClick, onRepairClick }) => {
   const formatDateTime = (dateTimeString) => {
@@ -87,9 +86,9 @@ const HistoryListItem = ({ item, rowVariants, onNoteClick, onRepairClick }) => {
       className="transition-colors duration-150 history-row"
       data-history-id={item.id_history}
     >
-      {/* Kamera */}
+      {/* Kamera - dengan truncate */}
       <td className="px-6 py-4 whitespace-nowrap">
-        <div className="text-sm font-medium text-gray-900 dark:text-white">
+        <div className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-[180px]" title={item.cctv_name || 'Unknown Camera'}>
           {item.cctv_name || 'Unknown Camera'}
         </div>
       </td>
@@ -101,9 +100,9 @@ const HistoryListItem = ({ item, rowVariants, onNoteClick, onRepairClick }) => {
         </div>
       </td>
       
-      {/* Lokasi */}
+      {/* Lokasi - dengan truncate */}
       <td className="px-6 py-4 whitespace-nowrap">
-        <div className="text-sm text-gray-900 dark:text-white">
+        <div className="text-sm text-gray-900 dark:text-white truncate max-w-[160px]" title={item.location_name || '-'}>
           {item.location_name || '-'}
         </div>
       </td>
@@ -128,7 +127,7 @@ const HistoryListItem = ({ item, rowVariants, onNoteClick, onRepairClick }) => {
             className={`p-2 rounded-lg transition-all duration-200 ${
               hasNote
                 ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50'
-                : 'bg-green-700 dark:bg-green-800 text-white dark:text-green-200 hover:bg-green-800 dark:hover:bg-green-900'
+                : 'bg-green-100 dark:bg-green-800 text-green-600 dark:text-green-200 hover:bg-green-200 dark:hover:bg-green-900'
             }`}
             title={hasNote ? 'Lihat/Edit Catatan' : 'Tambah Catatan'}
           >
@@ -150,11 +149,7 @@ const HistoryListItem = ({ item, rowVariants, onNoteClick, onRepairClick }) => {
             }`}
             title={isRepaired ? 'Sudah Diperbaiki' : 'Tandai Sudah Diperbaiki'}
           >
-            {isRepaired ? (
-              <CheckCircleIcon className="w-5 h-5" />
-            ) : (
-              <CheckCircleIconSolid className="w-5 h-5" />
-            )}
+            <CheckCircleIcon className="w-5 h-5" />
           </button>
         </div>
       </td>
