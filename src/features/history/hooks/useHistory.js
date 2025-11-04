@@ -1,5 +1,4 @@
-// hooks/useHistory.js
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import historyService from '../../../services/historyService';
 
 const useHistory = () => {
@@ -7,7 +6,8 @@ const useHistory = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchHistory = async () => {
+  // ✅ FIX: Wrap dengan useCallback agar function stable
+  const fetchHistory = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -24,7 +24,6 @@ const useHistory = () => {
       if (response.data && response.data.status === 'success') {
         const histories = response.data.data;
         
-        // Sort by created_at descending (newest first)
         const sortedData = [...histories].sort(
           (a, b) => new Date(b.created_at) - new Date(a.created_at)
         );
@@ -40,11 +39,11 @@ const useHistory = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []); // ✅ Empty dependency karena tidak depend pada apapun
 
   useEffect(() => {
     fetchHistory();
-  }, []);
+  }, [fetchHistory]); // ✅ Sekarang aman untuk include di dependency
 
   return {
     historyData,

@@ -1,4 +1,4 @@
-// features/history/HistoryPage.js - WITH AUTO SCROLL TO HIGHLIGHTED ROW
+// features/history/HistoryPage.js - FIXED: Remove query param after highlight
 import React, { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -18,6 +18,7 @@ const HistoryPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const scrollAttempted = useRef(false);
+  const highlightProcessed = useRef(false); // ✅ Track jika highlight sudah diproses
   
   const animations = useStaggerAnimation({
     staggerDelay: 0.08,
@@ -71,13 +72,18 @@ const HistoryPage = () => {
     handleRefreshData
   } = useHistoryPage();
 
-  // 🔥 AUTO SCROLL & HIGHLIGHT LOGIC WITH PAGINATION DETECTION
+  // 🔥 AUTO SCROLL & HIGHLIGHT LOGIC WITH QUERY PARAM CLEANUP
   useEffect(() => {
     // Parse query param ?highlight=5
     const searchParams = new URLSearchParams(location.search);
     const highlightId = searchParams.get('highlight');
     
-    if (highlightId && !loading && filteredHistory.length > 0 && !scrollAttempted.current) {
+    // ✅ Skip jika highlight sudah pernah diproses untuk ID ini
+    if (!highlightId || highlightProcessed.current === highlightId) {
+      return;
+    }
+    
+    if (!loading && filteredHistory.length > 0 && !scrollAttempted.current) {
       console.log(`🎯 Attempting to find history ID: ${highlightId}`);
       
       // 1️⃣ Cari index row di filteredHistory (data lengkap)
@@ -88,6 +94,10 @@ const HistoryPage = () => {
       if (targetIndex === -1) {
         console.warn(`⚠️ History ID ${highlightId} not found in filtered data`);
         scrollAttempted.current = true;
+        highlightProcessed.current = highlightId;
+        
+        // ✅ Hapus query param karena data tidak ditemukan
+        navigate('/history', { replace: true });
         return;
       }
       
@@ -121,26 +131,50 @@ const HistoryPage = () => {
           // Tambahkan highlight class
           targetRow.classList.add('history-row-highlight');
           
-          // Remove highlight setelah 3 detik
+          // ✅ Remove highlight dan hapus query param setelah 2 detik
           setTimeout(() => {
             targetRow.classList.remove('history-row-highlight');
-          }, 3000);
+            
+            // ✅ Hapus query parameter dari URL
+            console.log('🧹 Cleaning up query parameter...');
+            navigate('/history', { replace: true });
+            
+            // Mark as processed
+            highlightProcessed.current = highlightId;
+          }, 2000); // 2 detik
           
           scrollAttempted.current = true;
         } else {
           console.warn('⚠️ Target row not found in DOM');
           scrollAttempted.current = true;
+          highlightProcessed.current = highlightId;
+          
+          // ✅ Hapus query param jika row tidak ditemukan
+          navigate('/history', { replace: true });
         }
       }, 600); // Delay 600ms untuk memastikan render selesai
       
       return () => clearTimeout(scrollTimer);
     }
-  }, [location.search, loading, filteredHistory, currentPage, itemsPerPage, handlePageNavigation]);
+  }, [location.search, loading, filteredHistory, currentPage, itemsPerPage, handlePageNavigation, navigate]);
 
-  // Reset scroll attempt saat pindah halaman atau clear filter
+  // ✅ Reset scroll attempt HANYA saat filter berubah (bukan saat pagination)
   useEffect(() => {
+    // Jangan reset jika hanya currentPage yang berubah
+    // Reset hanya jika filter aktif berubah
     scrollAttempted.current = false;
-  }, [currentPage, searchTerm, startDate, endDate]);
+  }, [searchTerm, startDate, endDate]);
+
+  // ✅ Reset highlightProcessed saat URL berubah ke highlight baru
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const currentHighlightId = searchParams.get('highlight');
+    
+    // Reset jika ada highlight ID baru yang berbeda
+    if (currentHighlightId && highlightProcessed.current !== currentHighlightId) {
+      scrollAttempted.current = false;
+    }
+  }, [location.search]);
 
   const handlePageChange = (pageId, path) => {
     navigate(path);

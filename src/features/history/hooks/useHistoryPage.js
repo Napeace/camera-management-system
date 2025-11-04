@@ -1,4 +1,4 @@
-// features/history/hooks/useHistoryPage.js - FIXED WITH created_at
+// features/history/hooks/useHistoryPage.js
 import { useState, useCallback, useMemo } from 'react';
 import { useToast } from '../../../contexts/ToastContext';
 import useHistory from './useHistory';
@@ -37,17 +37,12 @@ const useHistoryPage = () => {
     if (!dateString) return null;
     
     try {
-      // Handle format: "2025-10-27 06:10:47.14..." (PostgreSQL/MySQL timestamp)
-      // Handle format: "30/10/2025 19:07"
-      // Handle ISO format: "2025-10-30T19:07:00"
-      
       if (dateString.includes('/')) {
         const [datePart] = dateString.split(' ');
         const [day, month, year] = datePart.split('/');
         return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
       }
       
-      // For ISO or SQL timestamp format
       const parsed = new Date(dateString);
       return isNaN(parsed.getTime()) ? null : parsed;
     } catch (err) {
@@ -63,31 +58,35 @@ const useHistoryPage = () => {
     // Search filter
     if (searchTerm.trim()) {
       const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(item => 
-        (item.ip_address && item.ip_address.toLowerCase().includes(searchLower)) ||
-        (item.location_name && item.location_name.toLowerCase().includes(searchLower))
-      );
+      
+      filtered = filtered.filter(item => {
+        const cctvIp = item.cctv_ip || '';
+        const cctvName = item.cctv_name || '';
+        const locationName = item.location_name || '';
+        
+        const matchesIP = cctvIp.toLowerCase().includes(searchLower);
+        const matchesCCTVName = cctvName.toLowerCase().includes(searchLower);
+        const matchesLocation = locationName.toLowerCase().includes(searchLower);
+        
+        return matchesIP || matchesCCTVName || matchesLocation;
+      });
     }
 
     // Date range filter
     if (startDate || endDate) {
       filtered = filtered.filter(item => {
-        // 🔥 FIX: Gunakan created_at instead of error_time
         if (!item.created_at) return false;
         
         const itemDate = parseHistoryDate(item.created_at);
         if (!itemDate || isNaN(itemDate.getTime())) return false;
         
-        // Set to midnight for comparison
         const itemDateOnly = new Date(itemDate.getFullYear(), itemDate.getMonth(), itemDate.getDate());
         
-        // Start date filter
         if (startDate) {
           const filterStartDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
           if (itemDateOnly < filterStartDate) return false;
         }
         
-        // End date filter
         if (endDate) {
           const filterEndDate = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
           if (itemDateOnly > filterEndDate) return false;
@@ -169,7 +168,6 @@ const useHistoryPage = () => {
     setIsExporting(true);
     try {
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
       showSuccess('Export Successful', 'History data has been exported to PDF successfully');
     } catch (error) {
       console.error('Export error:', error);
@@ -191,11 +189,7 @@ const useHistoryPage = () => {
   const handleHistoryCreated = useCallback(async (newHistory) => {
     try {
       showSuccess('History Created', 'History berhasil ditambahkan');
-      
-      // Refresh history data
       await fetchHistory();
-      
-      // Reset to first page to see the new history
       setCurrentPage(1);
     } catch (error) {
       console.error('Error after creating history:', error);
@@ -204,21 +198,16 @@ const useHistoryPage = () => {
 
   // Handler untuk refresh data dari child components
   const handleRefreshData = useCallback(async () => {
-    console.log('🔄 Refreshing history data from backend...');
     try {
       await fetchHistory();
-      console.log('✅ History data refreshed successfully');
     } catch (error) {
-      console.error('❌ Error refreshing history data:', error);
+      console.error('Error refreshing history data:', error);
       showError('Refresh Failed', 'Gagal memuat ulang data history');
     }
   }, [fetchHistory, showError]);
 
   // Confirm dialog handlers
   const handleConfirmAction = useCallback(async () => {
-    const { action } = confirmDialog;
-    console.log('Confirm action triggered:', action);
-    
     setConfirmDialog(prev => ({ ...prev, loading: true }));
     
     try {
@@ -236,7 +225,7 @@ const useHistoryPage = () => {
       setConfirmDialog(prev => ({ ...prev, loading: false }));
       showError('Action Failed', 'An error occurred while processing your request');
     }
-  }, [confirmDialog, showError]);
+  }, [showError]);
 
   const handleCloseConfirmDialog = useCallback(() => {
     if (!confirmDialog.loading) {

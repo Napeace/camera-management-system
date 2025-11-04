@@ -1,4 +1,4 @@
-// features/history/components/HistoryNoteModal.js - No Minimum Validation
+// features/history/components/HistoryNoteModal.js - Fixed Validation
 import React, { useState, useEffect, useRef } from 'react';
 import historyService from '../../../services/historyService';
 import { XMarkIcon, VideoCameraIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
@@ -10,12 +10,15 @@ const HistoryNoteModal = ({ isOpen, onClose, historyItem }) => {
     const [note, setNote] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const [showSavedIndicator, setShowSavedIndicator] = useState(false);
+    const [originalNote, setOriginalNote] = useState(''); // Track original note
     const saveTimeoutRef = useRef(null);
 
     // Initialize note when modal opens
     useEffect(() => {
         if (isOpen && historyItem) {
-            setNote(historyItem.note || '');
+            const initialNote = historyItem.note || '';
+            setNote(initialNote);
+            setOriginalNote(initialNote); // Save original note
             setError('');
             setShowSavedIndicator(false);
         }
@@ -63,11 +66,31 @@ const HistoryNoteModal = ({ isOpen, onClose, historyItem }) => {
     const handleAutoSave = async () => {
         if (!historyItem) return;
 
-        // 🔥 REMOVED: Validasi minimal 5 karakter dihapus
-        // Sekarang benar-benar opsional, bisa kosong atau isi berapa aja
+        // Skip if note hasn't changed from original
+        if (note === (historyItem.note || '')) {
+            return;
+        }
+
+        const trimmedNote = note.trim();
+        const hadOriginalNote = originalNote && originalNote.trim().length > 0;
+
+        // ✅ VALIDASI: Jika awalnya ada isi, tidak boleh dihapus atau < 5 karakter
+        if (hadOriginalNote) {
+            if (trimmedNote.length === 0) {
+                setError('Catatan tidak boleh dikosongkan. Minimal 5 karakter.');
+                setShowSavedIndicator(false);
+                return;
+            }
+            
+            if (trimmedNote.length < 5) {
+                setError('Isi catatan minimal 5 karakter');
+                setShowSavedIndicator(false);
+                return;
+            }
+        }
 
         // Validasi maksimal 255 karakter
-        if (note.trim().length > 255) {
+        if (trimmedNote.length > 255) {
             setError('Catatan maksimal 255 karakter');
             setShowSavedIndicator(false);
             return;
@@ -80,7 +103,7 @@ const HistoryNoteModal = ({ isOpen, onClose, historyItem }) => {
         try {
             const updateData = {
                 service: historyItem.service,
-                note: note.trim().length > 0 ? note.trim() : null
+                note: trimmedNote.length > 0 ? trimmedNote : null
             };
 
             console.log('💾 Auto-saving note for history:', historyItem.id_history, updateData);

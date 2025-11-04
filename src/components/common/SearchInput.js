@@ -10,15 +10,19 @@ const SearchInput = memo(({
 }) => {
   const [localValue, setLocalValue] = useState(value);
 
-  // Sync with external value changes
+  // ADD THIS
+  console.log('🔍 SearchInput render:', { value, localValue });
+
   useEffect(() => {
+    console.log('🔄 Value prop changed:', value);
     setLocalValue(value);
   }, [value]);
 
-  // Debounce onChange
   useEffect(() => {
+    console.log('⏱️ Debouncing...', localValue);
     const timeoutId = setTimeout(() => {
       if (localValue !== value) {
+        console.log('✅ Calling onChange with:', localValue);
         onChange({ target: { value: localValue } });
       }
     }, debounceDelay);
@@ -27,6 +31,7 @@ const SearchInput = memo(({
   }, [localValue, debounceDelay]);
 
   const handleInputChange = (e) => {
+    console.log('⌨️ Input changed:', e.target.value);
     setLocalValue(e.target.value);
   };
 
