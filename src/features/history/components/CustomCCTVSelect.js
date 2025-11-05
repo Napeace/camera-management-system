@@ -84,7 +84,7 @@ const CustomCCTVSelect = memo(({ value, onChange, disabled, cctvList = [], loadi
         type="button"
         onClick={handleToggle}
         disabled={disabled || loading}
-        className="w-full px-4 py-3 bg-white dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-left text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-white/30 focus:border-blue-500 dark:focus:border-white/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-between"
+        className="w-full px-4 py-3 bg-white dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-md text-left text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-white/30 focus:border-blue-500 dark:focus:border-white/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-between"
       >
         <span className={selectedCCTV ? '' : 'text-gray-400 dark:text-white/50'}>
           {loading ? (

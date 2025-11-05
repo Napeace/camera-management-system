@@ -1,4 +1,4 @@
-// features/history/HistoryList.js - FIXED: No vertical scroll during animation
+// features/history/HistoryList.js - SMART REFRESH VERSION
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
@@ -25,7 +25,9 @@ const HistoryList = ({
   onDataUpdated,
   onExportPDF,
   isExporting,
-  onAddHistory 
+  onAddHistory,
+  showSuccess,
+  showError
 }) => {
   const [selectedHistory, setSelectedHistory] = useState(null);
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
@@ -52,19 +54,35 @@ const HistoryList = ({
     setIsRepairConfirmOpen(true);
   };
 
-  // Handler untuk close note modal - refresh data di sini
-  const handleNoteModalClose = async () => {
-    console.log('🔄 Note modal closing, refreshing data...');
+  // ✅ UPDATED: Handler untuk close note modal - HANYA refresh jika ada update
+  const handleNoteModalClose = async (wasUpdated = false) => {
+    console.log('🔄 Note modal closing, wasUpdated:', wasUpdated);
+    
+    // Simpan info history sebelum reset
+    const historyName = selectedHistory?.cctv_name || 'CCTV';
     
     // Close modal dulu
     setIsNoteModalOpen(false);
     setSelectedHistory(null);
     
-    // Refresh data dari backend
-    if (onDataUpdated) {
-      console.log('🔄 Calling onDataUpdated to refresh data...');
-      await onDataUpdated();
-      console.log('✅ Data refresh completed after modal close');
+    // ✅ HANYA refresh data jika benar-benar ada update yang tersimpan
+    if (wasUpdated) {
+      console.log('✅ Ada update, refreshing data...');
+      
+      if (onDataUpdated) {
+        await onDataUpdated();
+        console.log('✅ Data refresh completed after note update');
+      }
+
+      // Show toast success
+      if (showSuccess) {
+        showSuccess(
+          'Catatan Berhasil Disimpan',
+          `Catatan untuk ${historyName} telah diperbarui`
+        );
+      }
+    } else {
+      console.log('ℹ️ Tidak ada update, skip refresh');
     }
   };
 
@@ -84,6 +102,8 @@ const HistoryList = ({
       
       console.log('✅ Marked as repaired successfully');
       
+      const cctvName = selectedHistory.cctv_name || 'CCTV';
+      
       // Close modal
       setIsRepairConfirmOpen(false);
       setSelectedHistory(null);
@@ -94,9 +114,24 @@ const HistoryList = ({
         await onDataUpdated();
         console.log('✅ Data refresh completed after repair');
       }
+
+      // Show success toast
+      if (showSuccess) {
+        showSuccess(
+          'Perbaikan Berhasil Dikonfirmasi',
+          `${cctvName} telah ditandai sebagai diperbaiki`
+        );
+      }
     } catch (error) {
       console.error('❌ Error marking as repaired:', error);
-      alert('Gagal menandai sebagai diperbaiki: ' + error.message);
+      
+      // Show error toast
+      if (showError) {
+        showError(
+          'Gagal Konfirmasi Perbaikan',
+          error.message || 'Terjadi kesalahan saat mengkonfirmasi perbaikan'
+        );
+      }
     } finally {
       setRepairLoading(false);
     }

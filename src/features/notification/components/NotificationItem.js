@@ -43,7 +43,7 @@ const NotificationItem = ({ notification, onDelete }) => {
         {/* Content */}
         <div className="flex-1 min-w-0">
           {/* Title dengan lokasi dinamis */}
-          <p className="text-sm font-medium text-white dark:text-gray-200 mb-1">
+          <p className="text-sm font-medium text-black dark:text-gray-200 mb-1">
             Kamera {notification.titik_letak} telah Offline
           </p>
           
