@@ -158,21 +158,28 @@ const HistoryPage = () => {
     }
   }, [location.search, loading, filteredHistory, currentPage, itemsPerPage, handlePageNavigation, navigate]);
 
-  // ✅ Reset scroll attempt HANYA saat filter berubah (bukan saat pagination)
+  // Reset scroll attempt HANYA saat filter berubah (bukan saat pagination)
   useEffect(() => {
     // Jangan reset jika hanya currentPage yang berubah
     // Reset hanya jika filter aktif berubah
     scrollAttempted.current = false;
   }, [searchTerm, startDate, endDate]);
 
-  // ✅ Reset highlightProcessed saat URL berubah ke highlight baru
+  // Reset highlightProcessed saat URL berubah ke highlight baru
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const currentHighlightId = searchParams.get('highlight');
     
-    // Reset jika ada highlight ID baru yang berbeda
+    // Reset jika ada highlight ID baru yang berbeda ATAU jika tidak ada highlight (cleanup)
     if (currentHighlightId && highlightProcessed.current !== currentHighlightId) {
+      console.log(`🔄 New highlight detected: ${currentHighlightId}, resetting refs...`);
       scrollAttempted.current = false;
+      highlightProcessed.current = null; // ✅ Reset ke null agar bisa diproses lagi
+    } else if (!currentHighlightId && highlightProcessed.current) {
+      // ✅ Jika URL sudah dibersihkan tapi ref masih menyimpan ID lama, reset juga
+      console.log('🧹 Highlight cleared from URL, resetting refs...');
+      scrollAttempted.current = false;
+      highlightProcessed.current = null;
     }
   }, [location.search]);
 

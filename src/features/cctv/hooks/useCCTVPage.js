@@ -7,6 +7,9 @@ const useCCTVPage = () => {
     const { showSuccess, showError, showInfo } = useToast();
     const bottomRef = useRef(null);
     const hasShownErrorRef = useRef(false);
+    
+    // ✅ Flag untuk kontrol auto-scroll
+    const shouldScrollRef = useRef(false);
 
     // State for CCTV data
     const [allCctvData, setAllCctvData] = useState([]);
@@ -42,14 +45,15 @@ const useCCTVPage = () => {
         loading: false
     });
 
-    // Auto-scroll when pagination changes
+    // ✅ Auto-scroll hanya ketika pagination berubah (bukan setelah edit/delete)
     useEffect(() => {
-        if (bottomRef.current && !loading) {
+        if (bottomRef.current && !loading && shouldScrollRef.current) {
             bottomRef.current.scrollIntoView({ 
                 behavior: 'smooth', 
                 block: 'end',
                 inline: 'nearest'
             });
+            shouldScrollRef.current = false; // Reset flag setelah scroll
         }
     }, [currentPage, loading]);
 
@@ -71,7 +75,13 @@ const useCCTVPage = () => {
                 cctvService.getAllCCTV()
             ]);
             setLocationGroups(locations || []);
-            setAllCctvData(cctvResult.data || []);
+            
+            // ✅ Sorting berdasarkan id_cctv agar urutan konsisten
+            const sortedData = (cctvResult.data || []).sort((a, b) => {
+                return a.id_cctv - b.id_cctv;
+            });
+            
+            setAllCctvData(sortedData);
         } catch (err) {
             console.error('Error fetching initial data:', err);
             const errorMessage = extractErrorMessage(err);
@@ -164,6 +174,7 @@ const useCCTVPage = () => {
     }, []);
 
     const handleRefresh = useCallback(() => {
+        shouldScrollRef.current = false; // Jangan scroll saat manual refresh
         fetchAllData();
         showInfo('Refreshing', 'Reloading CCTV data...');
     }, [fetchAllData, showInfo]);
@@ -175,6 +186,7 @@ const useCCTVPage = () => {
         try {
             switch (action) {
                 case 'delete':
+                    shouldScrollRef.current = false; // ✅ Jangan scroll setelah delete
                     await cctvService.deleteCCTV(cctv.id_cctv);
                     setConfirmDialog({ isOpen: false });
                     await fetchAllData();
@@ -208,12 +220,14 @@ const useCCTVPage = () => {
     }, []);
 
     const handleCCTVCreated = useCallback(async (newCCTV) => {
+        shouldScrollRef.current = false; // ✅ Jangan scroll setelah create
         await fetchAllData();
         const cctvName = newCCTV?.titik_letak || newCCTV?.title || 'CCTV baru';
         showSuccess('CCTV Berhasil Dibuat', `${cctvName} berhasil ditambahkan`);
     }, [fetchAllData, showSuccess]);
 
     const handleCCTVUpdated = useCallback(async (updatedCCTV) => {
+        shouldScrollRef.current = false; // ✅ Jangan scroll setelah update
         await fetchAllData();
         const cctvName = updatedCCTV?.titik_letak || updatedCCTV?.title || 'CCTV';
         showSuccess('CCTV Berhasil Diperbarui', `${cctvName} berhasil diperbarui`);
@@ -226,6 +240,12 @@ const useCCTVPage = () => {
         } catch (err) {
             console.error('Error refreshing locations:', err);
         }
+    }, []);
+
+    // ✅ Wrapper untuk setCurrentPage yang mengaktifkan scroll
+    const handlePageChange = useCallback((page) => {
+        shouldScrollRef.current = true; // Aktifkan scroll saat ganti halaman
+        setCurrentPage(page);
     }, []);
 
     const hasActiveFilters = searchTerm || statusFilter || locationFilter;
@@ -255,7 +275,7 @@ const useCCTVPage = () => {
         currentPage,
         totalPages,
         itemsPerPage,
-        setCurrentPage,
+        setCurrentPage: handlePageChange, // ✅ Gunakan wrapper function
         
         // Actions
         handleRefresh,

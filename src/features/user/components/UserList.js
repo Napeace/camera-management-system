@@ -26,11 +26,10 @@ const UserList = ({
 }) => {
   const [actionLoading, setActionLoading] = useState({});
   
-  // ✅ SAMA seperti CCTVList - dengan slide effect dan no hover scale
   const tableAnimations = useTableAnimation({
     staggerDelay: 0.05,
     duration: 0.3,
-    enableHover: false // Disable hover scale seperti CCTVList
+    enableHover: false 
   });
 
   const formatDate = (dateString) => {
@@ -117,7 +116,6 @@ const UserList = ({
     );
   }
 
-  // ✅ Main Table MENGGUNAKAN AnimatedSection.ExpandHeight (SAMA seperti CCTVList)
   return (
     <AnimatedSection.ExpandHeight 
       duration={0.6} 

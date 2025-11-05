@@ -52,6 +52,8 @@ const NotificationDropdown = () => {
     setNotifications(prev => 
       prev.filter(n => n.id_notification !== notificationId)
     );
+    
+    setShowNotifications(false);
   };
 
   // Jumlah notifikasi (semua notifikasi dianggap unread sampai di-delete)

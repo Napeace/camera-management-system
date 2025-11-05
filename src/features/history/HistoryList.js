@@ -243,7 +243,7 @@ const HistoryList = ({
           </div>
         </div>
 
-        <div className="w-full overflow-x-auto px-6">
+        <div className="w-full overflow-x-auto overflow-y-hidden px-6">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-600/30">
             <thead>
               <tr>
