@@ -47,6 +47,7 @@ const CCTVFilters = ({
                         onChange={onLocationFilter} 
                         disabled={loading} 
                         locations={locationGroups} 
+                        variant="default"
                     />
                 </div>
                 {hasActiveFilters && (

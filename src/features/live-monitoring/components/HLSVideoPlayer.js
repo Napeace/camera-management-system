@@ -1,8 +1,8 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import Hls from 'hls.js';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
-const HLSVideoPlayer = ({ 
+const HLSVideoPlayer = forwardRef(({ 
   streamUrls, 
   cameraName, 
   className = '',
@@ -12,12 +12,15 @@ const HLSVideoPlayer = ({
   onError,
   onLoadStart,
   onLoadComplete 
-}) => {
+}, ref) => {
   const videoRef = useRef(null);
   const hlsRef = useRef(null);
   const retryTimeoutRef = useRef(null);
   const [playerStatus, setPlayerStatus] = useState('loading');
   const [errorMessage, setErrorMessage] = useState('');
+
+  // ✅ Expose videoRef ke parent component
+  useImperativeHandle(ref, () => videoRef.current);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -49,8 +52,8 @@ const HLSVideoPlayer = ({
         backBufferLength: 90,
         maxBufferLength: 30,
         maxMaxBufferLength: 60,
-        manifestLoadingTimeOut: 5000, // ✅ 5 detik timeout
-        manifestLoadingMaxRetry: 1, // ✅ Cuma 1x retry
+        manifestLoadingTimeOut: 5000,
+        manifestLoadingMaxRetry: 1,
         levelLoadingTimeOut: 5000,
         fragLoadingTimeOut: 5000,
         manifestLoadingRetryDelay: 500,
@@ -60,8 +63,6 @@ const HLSVideoPlayer = ({
 
       hlsRef.current = hls;
 
-      // ============ Event Listeners ============
-      
       hls.on(Hls.Events.MEDIA_ATTACHED, () => {
         console.log(`✅ [${cameraName}] Media attached`);
       });
@@ -100,13 +101,11 @@ const HLSVideoPlayer = ({
             case Hls.ErrorTypes.NETWORK_ERROR:
               console.log(`🔴 [${cameraName}] Network error - Camera Offline`);
               
-              // ✅ LANGSUNG SHOW OFFLINE - NO RETRY
               const errorMsg = 'Camera Offline';
               setPlayerStatus('error');
               setErrorMessage(errorMsg);
               onError && onError(errorMsg);
               
-              // Cleanup HLS
               if (hlsRef.current) {
                 hlsRef.current.destroy();
                 hlsRef.current = null;
@@ -129,17 +128,14 @@ const HLSVideoPlayer = ({
               break;
           }
         } else {
-          // Non-fatal errors - just log them
           console.warn(`⚠️ [${cameraName}] Non-fatal error:`, data.details);
         }
       });
 
-      // Load and attach
       hls.loadSource(streamUrls.hls_url);
       hls.attachMedia(video);
 
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      // Native HLS support (Safari)
       console.log(`✅ [${cameraName}] Using native HLS support`);
       
       video.src = streamUrls.hls_url;
@@ -174,7 +170,6 @@ const HLSVideoPlayer = ({
       onError && onError('Browser tidak mendukung HLS streaming');
     }
 
-    // Cleanup on unmount
     return () => {
       if (retryTimeoutRef.current) {
         clearTimeout(retryTimeoutRef.current);
@@ -211,16 +206,6 @@ const HLSVideoPlayer = ({
     }
   };
 
-  const handleRetry = () => {
-    console.log(`🔄 [${cameraName}] Manual retry triggered`);
-    setPlayerStatus('loading');
-    setErrorMessage('');
-    
-    // Re-trigger useEffect by forcing re-render
-    window.location.reload();
-  };
-
-  // Render different states
   if (playerStatus === 'no-stream') {
     return (
       <div className={`relative bg-gray-900 flex items-center justify-center ${className}`}>
@@ -243,9 +228,9 @@ const HLSVideoPlayer = ({
         muted={muted}
         playsInline
         onClick={handleVideoClick}
+        crossOrigin="anonymous"
       />
       
-      {/* Loading Overlay */}
       {playerStatus === 'loading' && (
         <div className="absolute inset-0 bg-black flex items-center justify-center">
           <div className="text-center text-white">
@@ -255,7 +240,6 @@ const HLSVideoPlayer = ({
         </div>
       )}
 
-      {/* Error Overlay - Clean, no retry button */}
       {playerStatus === 'error' && (
         <div className="absolute inset-0 bg-black flex items-center justify-center">
           <div className="text-center text-white p-4 max-w-md">
@@ -269,6 +253,8 @@ const HLSVideoPlayer = ({
       )}
     </div>
   );
-};
+});
+
+HLSVideoPlayer.displayName = 'HLSVideoPlayer';
 
 export default HLSVideoPlayer;

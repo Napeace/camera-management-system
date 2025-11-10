@@ -1,3 +1,4 @@
+// src/services/cctvService.js
 import apiClient from './api';
 
 class CCTVService {
@@ -54,12 +55,8 @@ class CCTVService {
   // Get all CCTV cameras
   async getAllCCTV(filters = {}) {
     try {
+      // ✅ Token sudah di-handle oleh interceptor di header
       const params = new URLSearchParams();
-      
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        params.append('token', token);
-      }
       
       params.append('skip', filters.skip || 0);
       params.append('limit', filters.limit || 50);
@@ -127,13 +124,7 @@ class CCTVService {
     try {
       console.log('Fetching locations...');
       
-      const params = new URLSearchParams();
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        params.append('token', token);
-      }
-      
-      const response = await apiClient.get(`/location/?${params.toString()}`);
+      const response = await apiClient.get('/location/');
       console.log('Locations API Response:', response.data);
       
       const locations = Array.isArray(response.data) ? response.data : 
@@ -151,13 +142,7 @@ class CCTVService {
     try {
       console.log('Testing CCTV connection:', cctvId);
       
-      const token = localStorage.getItem('access_token');
-      const params = new URLSearchParams();
-      if (token) {
-        params.append('token', token);
-      }
-      
-      const response = await apiClient.get(`/cctv/${cctvId}/test?${params.toString()}`);
+      const response = await apiClient.get(`/cctv/${cctvId}/test`);
       console.log('Connection test response:', response.data);
       
       return {
@@ -177,13 +162,7 @@ class CCTVService {
   // Test API connection
   async testConnection() {
     try {
-      const params = new URLSearchParams();
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        params.append('token', token);
-      }
-      
-      const response = await apiClient.get(`/?${params.toString()}`);
+      const response = await apiClient.get('/');
       console.log('API Connection Test:', response.data);
       return { success: true, data: response.data };
     } catch (error) {
@@ -197,23 +176,16 @@ class CCTVService {
     try {
       console.log('Creating CCTV with data:', cctvData);
       
-      const token = localStorage.getItem('access_token');
-      
-      const params = new URLSearchParams();
-      if (token) {
-        params.append('token', token);
-      }
-      
       const requestData = {
         titik_letak: cctvData.titik_letak,
         ip_address: cctvData.ip_address,
         id_location: parseInt(cctvData.id_location)
       };
       
-      console.log('POST URL:', `/cctv/?${params.toString()}`);
+      console.log('POST URL:', '/cctv/');
       console.log('Request Data:', requestData);
       
-      const response = await apiClient.post(`/cctv/?${params.toString()}`, requestData);
+      const response = await apiClient.post('/cctv/', requestData);
       
       console.log('Create CCTV Response:', response.data);
       return response.data;
@@ -255,13 +227,7 @@ class CCTVService {
 
       console.log('Updating CCTV', cctvId, 'with data:', updateData);
 
-      const token = localStorage.getItem('access_token');
-      const params = new URLSearchParams();
-      if (token) {
-        params.append('token', token);
-      }
-
-      const response = await apiClient.put(`/cctv/${cctvId}?${params.toString()}`, updateData);
+      const response = await apiClient.put(`/cctv/${cctvId}`, updateData);
       return response.data;
     } catch (error) {
       console.error('Error updating CCTV:', error);
@@ -295,17 +261,10 @@ class CCTVService {
   // Delete CCTV
   async deleteCCTV(cctvId) {
     try {
-      const token = localStorage.getItem('access_token');
-      const params = new URLSearchParams();
-      if (token) {
-        params.append('token', token);
-      }
-
       console.log('=== DELETE CCTV DEBUG ===');
       console.log('CCTV ID:', cctvId);
-      console.log('Token:', token ? 'Present' : 'Missing');
       
-      const response = await apiClient.delete(`/cctv/${cctvId}?${params.toString()}`, {
+      const response = await apiClient.delete(`/cctv/${cctvId}`, {
         timeout: 15000,
         headers: {
           'Content-Type': 'application/json'

@@ -44,7 +44,6 @@ const DashboardPage = () => {
     });
 
     // Fetch dashboard data using custom hook
-    // ✅ UPDATED: Destructure lastLoginData dari hook
     const { cctvData, userData, lastLoginData, loading, error } = useDashboardData({
         showError,
         isSuperAdmin
@@ -189,7 +188,7 @@ const DashboardPage = () => {
                         {/* Right Side: Conditional - Last Login (SuperAdmin) or Offline Chart (Security) */}
                         {isSuperAdmin ? (
                             <LastLoginSection
-                                lastLoginData={lastLoginData} // ✅ UPDATED: Pass real data dari hook
+                                lastLoginData={lastLoginData}
                                 onSeeMore={handleSeeMoreLastLogin}
                             />
                         ) : (

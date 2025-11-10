@@ -35,22 +35,35 @@ const MainLayout = ({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-blue-500 to-[#0a1628] flex items-center justify-center">
-        <div className="text-white text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
-          <p>Loading...</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className={`animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-4 ${
+            isDarkMode ? 'border-white' : 'border-gray-800'
+          }`}></div>
+          <p className={isDarkMode ? 'text-white' : 'text-gray-800'}>Loading...</p>
         </div>
       </div>
     );
   }
 
+  // 🎯 RESPONSIVE WIDTH CALCULATION - PC/Laptop focus
+  const getContentMargin = () => {
+    if (sidebarCollapsed) {
+      return 'ml-20'; // 80px - collapsed sidebar + 8px gap
+    }
+    return 'ml-72'; // 288px - expanded sidebar (256px + 32px gap)
+  };
+
+  const getContentMaxWidth = () => {
+    if (sidebarCollapsed) {
+      return 'max-w-[calc(100vw-5rem)]'; // 100vw - 80px
+    }
+    return 'max-w-[calc(100vw-18rem)]'; // 100vw - 288px
+  };
+
   return (
-    <div className={`min-h-screen ${
-      isDarkMode 
-        ? 'bg-gradient-to-b from-[#0a1628] via-blue-500 to-[#0a1628]' 
-        : 'bg-gradient-to-b from-blue-50 via-blue-100 to-blue-200'
-    }`}>
-      <div className="flex">        
+    <div className="min-h-screen w-full">
+      <div className="flex min-h-screen w-full">        
         {Sidebar && (
           <Sidebar
             user={user}
@@ -60,10 +73,14 @@ const MainLayout = ({
           />
         )}
         
+        {/* 🔥 FIXED: Responsive content area with proper width constraint */}
         <div 
-          className={`flex-1 min-h-screen transition-all duration-500 ${
-            sidebarCollapsed ? 'ml-20' : 'ml-72'
-          }`}
+          className={`
+            flex-1 min-h-screen w-full
+            transition-all duration-500 ease-in-out
+            ${getContentMargin()}
+            ${getContentMaxWidth()}
+          `}
         >
           <motion.div 
             key={`navbar-${location.pathname}`}
@@ -89,8 +106,11 @@ const MainLayout = ({
             </div>
           </motion.div>
           
-          <main className="p-6">
-            {children}
+          {/* 🔥 FIXED: Content wrapper dengan width constraint */}
+          <main className="p-6 w-full">
+            <div className="w-full">
+              {children}
+            </div>
           </main>
         </div>
       </div>

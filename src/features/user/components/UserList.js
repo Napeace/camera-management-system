@@ -126,20 +126,20 @@ const UserList = ({
         <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-600/30">
           <thead className="bg-gray-50 dark:bg-slate-900/20">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
                 User
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
                 Username
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
                 Role
               </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                Actions
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
                 Last Login
+              </th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400">
+                Aksi
               </th>
             </tr>
           </thead>
@@ -179,11 +179,14 @@ const UserList = ({
                     {user.user_role_name}
                   </span>
                 </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  {formatDate(user.last_login)}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                   <div className="flex justify-center items-center space-x-3">
                     <button 
                       onClick={() => handleEdit(user)} 
-                      className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 p-2 hover:bg-indigo-50 dark:hover:bg-indigo-400/10 rounded-lg transition-colors duration-200" 
+                      className="text-yellow-600 dark:text-yellow-400 bg-yellow-600/30 dark:bg-yellow-800/30 hover:text-yellow-900 dark:hover:text-yellow-300 p-2 hover:bg-yellow-100 dark:hover:bg-yellow-400/10 rounded-md transition-colors duration-200" 
                       title="Edit User"
                     >
                       <PencilIcon className="w-5 h-5" />
@@ -191,16 +194,12 @@ const UserList = ({
                     
                     <button 
                       onClick={() => handleDelete(user, true)} 
-                      className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 p-2 hover:bg-red-50 dark:hover:bg-red-400/10 rounded-lg transition-colors duration-200" 
+                      className="text-red-600 dark:text-red-400 bg-red-600/30 dark:bg-red-800/30 hover:text-red-900 dark:hover:text-red-300 p-2 hover:bg-red-100 dark:hover:bg-red-400/10 rounded-md transition-colors duration-200" 
                       title="Permanently Delete User"
                     >
                       <TrashIcon className="w-5 h-5" />
                     </button>
                   </div>
-                </td>
-                {/* ✅ FIXED: Ganti user.updated_at menjadi user.last_login */}
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                  {formatDate(user.last_login)}
                 </td>
               </motion.tr>
             ))}

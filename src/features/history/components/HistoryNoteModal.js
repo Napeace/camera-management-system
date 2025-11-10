@@ -183,17 +183,17 @@ const HistoryNoteModal = ({ isOpen, onClose, historyItem }) => {
         >
             {/* Outer Container */}
             <div 
-                className={`rounded-md shadow-2xl max-w-xl w-full overflow-hidden bg-white dark:bg-gradient-to-b dark:from-slate-950 dark:to-blue-800 p-5 transform transition-all duration-300 ${
+                className={`rounded-lg shadow-2xl max-w-xl w-full overflow-hidden bg-white dark:bg-gradient-to-b dark:from-slate-950 dark:to-blue-800 border border-blue-300 dark:border-slate-800 p-5 transform transition-all duration-300 ${
                     shouldShow ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
                 }`}
             >
                 {/* Inner Container */}
-                <div className="bg-gray-50/80 dark:bg-white/5 backdrop-blur-sm rounded-md p-5 space-y-4">
+                <div className="bg-gray-50/80 dark:bg-white/5 backdrop-blur-sm rounded-lg p-5 space-y-4">
                     
                     {/* Header */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 flex items-center justify-center border rounded-md ${
+                            <div className={`w-8 h-8 flex items-center justify-center border rounded-lg ${
                                 isInitiallyEmpty 
                                     ? 'bg-orange-100 dark:bg-orange-800/30 border-orange-300 dark:border-orange-800/30' 
                                     : 'bg-blue-100 dark:bg-blue-800/30 border-blue-300 dark:border-blue-800/30'
@@ -210,7 +210,7 @@ const HistoryNoteModal = ({ isOpen, onClose, historyItem }) => {
                         </div>
                         <button
                             onClick={handleClose}
-                            className="text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-white/10 rounded-md p-1.5 transition-all"
+                            className="text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-white/10 rounded-lg p-1.5 transition-all"
                         >
                             <XMarkIcon className="w-6 h-6" />
                         </button>
@@ -226,7 +226,7 @@ const HistoryNoteModal = ({ isOpen, onClose, historyItem }) => {
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                                 Kamera
                             </label>
-                            <div className="block w-full px-4 py-3 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-md text-gray-900 dark:text-gray-100">
+                            <div className="block w-full px-4 py-3 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100">
                                 {historyItem.cctv_name || 'Unknown Camera'}
                             </div>
                         </div>
@@ -236,7 +236,7 @@ const HistoryNoteModal = ({ isOpen, onClose, historyItem }) => {
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                                 IP Address
                             </label>
-                            <div className="block w-full px-4 py-3 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-md text-gray-900 dark:text-gray-100">
+                            <div className="block w-full px-4 py-3 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100">
                                 {historyItem.cctv_ip || '-'}
                             </div>
                         </div>
@@ -246,14 +246,14 @@ const HistoryNoteModal = ({ isOpen, onClose, historyItem }) => {
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                                 Lokasi
                             </label>
-                            <div className="block w-full px-4 py-3 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-md text-gray-900 dark:text-gray-100">
+                            <div className="block w-full px-4 py-3 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100">
                                 {historyItem.location_name || '-'}
                             </div>
                         </div>
 
                         {/* Error Message */}
                         {error && (
-                            <div className="bg-red-100 dark:bg-red-500/20 border border-red-300 dark:border-red-400/40 rounded-md p-4">
+                            <div className="bg-red-100 dark:bg-red-500/20 border border-red-300 dark:border-red-400/40 rounded-lg p-4">
                                 <p className="text-sm text-red-700 dark:text-red-200">{error}</p>
                             </div>
                         )}
@@ -270,14 +270,14 @@ const HistoryNoteModal = ({ isOpen, onClose, historyItem }) => {
                                     rows={4}
                                     value={note}
                                     onChange={handleInputChange}
-                                    className="block w-full px-4 py-3 pb-8 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-md text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all resize-none"
+                                    className="block w-full px-4 py-3 pb-8 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all resize-none"
                                     placeholder="Jelaskan masalah yang terjadi pada CCTV (minimal 5 karakter)"
                                 />
 
                                 {/* Auto-save Indicators */}
                                 <div className="absolute bottom-2 right-3 flex items-center gap-2">
                                     {isSaving && (
-                                        <div className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 px-2 py-1 rounded-md shadow-sm">
+                                        <div className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 px-2 py-1 rounded-lg shadow-sm">
                                             <svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -287,7 +287,7 @@ const HistoryNoteModal = ({ isOpen, onClose, historyItem }) => {
                                     )}
 
                                     {showSavedIndicator && !isSaving && (
-                                        <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400 px-2 py-1 rounded-md shadow-sm">
+                                        <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400 px-2 py-1 rounded-lg shadow-sm">
                                             <CheckCircleIcon className="h-4 w-4" />
                                             <span>Catatan Telah Tersimpan</span>
                                         </div>

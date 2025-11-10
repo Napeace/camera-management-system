@@ -5,13 +5,38 @@ import {
     ChevronDownIcon 
 } from '@heroicons/react/24/outline';
 
-const CustomLocationSelect = ({ value, onChange, disabled, locations }) => {
+const CustomLocationSelect = ({ 
+    value, 
+    onChange, 
+    disabled, 
+    locations,
+    variant = 'default' // 'default' untuk filter halaman, 'form' untuk popup/modal
+}) => {
     const [isOpen, setIsOpen] = useState(false);
     const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
     const buttonRef = useRef(null);
 
     const selectedLocation = locations.find(loc => loc.id_location === parseInt(value));
     const displayLabel = selectedLocation ? selectedLocation.nama_lokasi : 'Pilih Lokasi';
+    const hasValue = selectedLocation !== undefined;
+
+    // Define styling variants
+    const variantStyles = {
+        default: {
+            button: "text-gray-500 dark:text-gray-400 rounded-xl bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 hover:border-gray-400 dark:hover:border-slate-500 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-blue-500 dark:focus:border-blue-600 shadow-sm",
+            dropdown: "rounded-xl bg-white dark:bg-gradient-to-b dark:from-slate-950 dark:to-blue-800 border border-gray-300 dark:border-slate-800",
+            selectedItem: "bg-blue-50 dark:bg-slate-700",
+            hoverItem: "hover:bg-gray-50 dark:hover:bg-slate-700/50"
+        },
+        form: {
+            button: "text-gray-500 dark:text-gray-400 rounded-lg bg-gray-50 dark:bg-white/15 border-2 border-gray-400 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400",
+            dropdown: "rounded-lg bg-white dark:bg-gradient-to-b dark:from-slate-950 dark:to-blue-800 border-2 border-gray-400 dark:border-white/10",
+            selectedItem: "bg-blue-50 dark:bg-slate-700/80",
+            hoverItem: "hover:bg-gray-50 dark:hover:bg-white/10"
+        }
+    };
+
+    const styles = variantStyles[variant];
 
     // Update dropdown position when opened and on scroll/resize
     useEffect(() => {
@@ -80,7 +105,7 @@ const CustomLocationSelect = ({ value, onChange, disabled, locations }) => {
         return createPortal(
             <div 
                 id="location-dropdown-portal"
-                className="fixed bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 rounded-xl shadow-xl overflow-hidden max-h-60 overflow-y-auto animate-slideDown"
+                className={`fixed ${styles.dropdown} shadow-xl overflow-hidden max-h-44 overflow-y-auto animate-slideDown`}
                 style={{
                     top: `${dropdownPosition.top}px`,
                     left: `${dropdownPosition.left}px`,
@@ -105,8 +130,8 @@ const CustomLocationSelect = ({ value, onChange, disabled, locations }) => {
                                 onClick={() => handleSelect(location.id_location)}
                                 className={`w-full flex items-center justify-between gap-2 px-4 py-3 text-left transition-colors duration-150 ${
                                     isSelected 
-                                        ? 'bg-blue-50 dark:bg-slate-700' 
-                                        : 'hover:bg-gray-50 dark:hover:bg-slate-700/50'
+                                        ? styles.selectedItem
+                                        : styles.hoverItem
                                 }`}
                             >
                                 <span className="text-sm font-medium text-gray-900 dark:text-white truncate flex-1 min-w-0">
@@ -142,10 +167,16 @@ const CustomLocationSelect = ({ value, onChange, disabled, locations }) => {
                     type="button"
                     onClick={() => !disabled && setIsOpen(!isOpen)}
                     disabled={disabled}
-                    className="w-full flex items-center justify-between gap-2 py-2.5 pl-10 pr-3 bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-blue-500 dark:focus:border-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:border-gray-400 dark:hover:border-slate-500 font-medium text-sm shadow-sm text-left"
+                    className={`w-full flex items-center justify-between gap-2 py-2.5 pl-10 pr-3 ${styles.button} focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium text-sm text-left`}
                 >
                     <VideoCameraIcon className="w-5 h-5 absolute left-3 text-gray-500 dark:text-gray-400 flex-shrink-0" />
-                    <span className="truncate flex-1 min-w-0">
+                    <span className={`truncate flex-1 min-w-0 ${
+                        variant === 'form' && !hasValue 
+                            ? 'text-gray-500 dark:text-gray-400'    // Warna placeholder (belum dipilih)
+                            : variant === 'form' && hasValue
+                            ? 'text-gray-900 dark:text-white'       // Warna text (sudah dipilih)
+                            : ''                                        // Variant default tetap ikut button
+                    }`}>
                         {displayLabel}
                     </span>
                     <ChevronDownIcon 

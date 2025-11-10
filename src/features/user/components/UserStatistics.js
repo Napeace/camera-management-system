@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import StatCard, { StatCardWithAction } from '../../../components/common/StatCard';
 import {
     UserGroupIcon,
-    ShieldCheckIcon,
+    ShieldExclamationIcon,
     UserIcon,
     PlusIcon
 } from '@heroicons/react/24/outline';
@@ -24,7 +24,7 @@ const UserStatistics = ({ statistics, loading, onAddUserClick, itemVariants }) =
             <StatCard
                 label="Super Admins"
                 value={String(statistics.superAdmins)}
-                icon={ShieldCheckIcon}
+                icon={ShieldExclamationIcon}
                 color="purple"
                 loading={loading}
             />
@@ -33,7 +33,7 @@ const UserStatistics = ({ statistics, loading, onAddUserClick, itemVariants }) =
                     label="Security Staff"
                     value={String(statistics.security)}
                     icon={UserIcon}
-                    buttonText="Tambah User"
+                    buttonText="Tambah Pengguna"
                     buttonIcon={PlusIcon}
                     onButtonClick={onAddUserClick}
                     loading={loading}

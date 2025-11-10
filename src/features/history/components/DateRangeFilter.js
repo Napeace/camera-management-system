@@ -159,7 +159,7 @@ const DateRangeFilter = ({
             value={getDisplayValue()}
             onClick={() => setIsOpen(!isOpen)}
             placeholder="Tanggal Mulai - Tanggal Akhir"
-            className="w-full pl-10 p-2 bg-white dark:bg-slate-800/70 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent cursor-pointer transition-all"
+            className="w-full pl-10 p-2 bg-white dark:bg-slate-800/70 border-2 border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent cursor-pointer transition-all"
           />
         </div>
 

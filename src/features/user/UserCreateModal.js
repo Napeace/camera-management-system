@@ -1,7 +1,7 @@
 // src/features/user/UserCreateModal.js - Styled with Password Toggle
 import React, { useState, useEffect } from 'react';
 import userService from '../../services/userService';
-import { XMarkIcon, ExclamationCircleIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, ExclamationCircleIcon, EyeIcon, EyeSlashIcon, UserIcon } from '@heroicons/react/24/outline';
 
 const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
   const [loading, setLoading] = useState(false);
@@ -28,11 +28,9 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
       });
       setError('');
       setShowPassword(false);
-      // Small delay to trigger enter animation
       setTimeout(() => setShouldShow(true), 10);
     } else {
       setShouldShow(false);
-      // Delay cleanup to allow exit animation
       const timer = setTimeout(() => setIsAnimating(false), 300);
       return () => clearTimeout(timer);
     }
@@ -106,150 +104,160 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
         shouldShow ? 'opacity-100' : 'opacity-0'
       }`}
     >
+      {/* Outer Container */}
       <div 
-        className={`bg-gradient-to-b from-slate-50 via-blue-50 to-blue-100 dark:from-slate-950 dark:via-indigo-950 dark:to-indigo-800 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all duration-300 ${
+        className={`rounded-lg shadow-2xl max-w-md w-full overflow-hidden bg-white dark:bg-gradient-to-b dark:from-slate-950 dark:to-blue-800 border border-blue-300 dark:border-slate-800 p-5 transform transition-all duration-300 ${
           shouldShow ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
         }`}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-6 mx-4">
-          <h2 className="text-2xl text-gray-900 dark:text-white font-semibold">Tambah User Baru</h2>
-          <button 
-            onClick={handleClose} 
-            disabled={loading} 
-            className="text-gray-600 hover:text-gray-900 dark:text-white/70 dark:hover:text-white disabled:opacity-50 transition-colors"
-          >
-            <XMarkIcon className="w-7 h-7" />
-          </button>
-        </div>
-        
-        {/* Border after header */}
-        <div className="mx-6 h-1 bg-gray-300 dark:bg-white/10"></div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          {error && (
-            <div className="bg-red-100 dark:bg-red-500/20 border border-red-300 dark:border-red-400/40 rounded-xl p-4 backdrop-blur-sm">
-              <div className="flex items-center">
-                <ExclamationCircleIcon className="w-5 h-5 text-red-600 dark:text-red-300 mr-2 flex-shrink-0" />
-                <p className="text-sm text-red-700 dark:text-red-200">{error}</p>
+        {/* Inner Container */}
+        <div className="bg-gray-50/80 dark:bg-white/5 backdrop-blur-sm rounded-lg p-5 space-y-4">
+          
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 flex items-center justify-center bg-blue-100 dark:bg-blue-800/30 border border-blue-300 dark:border-blue-400/30 rounded-lg">
+                <UserIcon className="w-5 h-5 text-blue-600 dark:text-blue-300" />
               </div>
+              <h2 className="text-xl text-gray-900 dark:text-white font-semibold">Tambah User Baru</h2>
             </div>
-          )}
-
-          <div>
-            <label htmlFor="nama" className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
-              Nama Lengkap *
-            </label>
-            <input 
-              type="text" 
-              id="nama" 
-              name="nama" 
-              required 
-              value={formData.nama} 
-              onChange={handleInputChange} 
-              disabled={loading}
-              className="block w-full px-4 py-3 bg-white dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-white/30 focus:border-blue-500 dark:focus:border-white/30 disabled:opacity-50 transition-all"
-              placeholder="Masukkan nama lengkap"
-            />
+            <button 
+              onClick={handleClose} 
+              disabled={loading} 
+              className="text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-white/10 rounded-lg p-1.5 disabled:opacity-50 transition-all"
+            >
+              <XMarkIcon className="w-6 h-6" />
+            </button>
           </div>
+          
+          {/* Border separator */}
+          <div className="h-px bg-gray-200 dark:bg-white/10"></div>
 
-          <div>
-            <label htmlFor="nip" className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
-              NIP *
-            </label>
-            <input 
-              type="text" 
-              id="nip" 
-              name="nip" 
-              required 
-              value={formData.nip} 
-              onChange={handleInputChange} 
-              disabled={loading}
-              className="block w-full px-4 py-3 bg-white dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-white/30 focus:border-blue-500 dark:focus:border-white/30 disabled:opacity-50 transition-all"
-              placeholder="Masukkan NIP"
-            />
-          </div>
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="bg-red-100 dark:bg-red-500/20 border border-red-300 dark:border-red-400/40 rounded-lg p-4">
+                <div className="flex items-center">
+                  <ExclamationCircleIcon className="w-5 h-5 text-red-600 dark:text-red-300 mr-2 flex-shrink-0" />
+                  <p className="text-sm text-red-700 dark:text-red-200">{error}</p>
+                </div>
+              </div>
+            )}
 
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
-              Username *
-            </label>
-            <input 
-              type="text" 
-              id="username" 
-              name="username" 
-              required 
-              value={formData.username} 
-              onChange={handleInputChange} 
-              disabled={loading}
-              className="block w-full px-4 py-3 bg-white dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-white/30 focus:border-blue-500 dark:focus:border-white/30 disabled:opacity-50 transition-all"
-              placeholder="Masukkan username"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
-              Password *
-            </label>
-            <div className="relative">
+            {/* Nama Lengkap */}
+            <div>
+              <label htmlFor="nama" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                Nama Lengkap <span className="text-red-500">*</span>
+              </label>
               <input 
-                type={showPassword ? "text" : "password"}
-                id="password" 
-                name="password" 
+                type="text" 
+                id="nama" 
+                name="nama" 
                 required 
-                value={formData.password} 
+                value={formData.nama} 
                 onChange={handleInputChange} 
                 disabled={loading}
-                minLength="6"
-                className="block w-full px-4 py-3 pr-12 bg-white dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-white/30 focus:border-blue-500 dark:focus:border-white/30 disabled:opacity-50 transition-all"
-                placeholder="Minimal 6 karakter"
+                className="block w-full px-4 py-3 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 disabled:opacity-50 transition-all"
+                placeholder="Masukkan nama lengkap"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                disabled={loading}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white disabled:opacity-50 transition-colors"
-              >
-                {showPassword ? (
-                  <EyeSlashIcon className="w-5 h-5" />
-                ) : (
-                  <EyeIcon className="w-5 h-5" />
-                )}
-              </button>
             </div>
-          </div>
 
-          {/* Border before buttons */}
-          <div className="h-1 bg-gray-300 dark:bg-white/10 mb-6"></div>
-          
-          {/* Buttons */}
-          <div className="pb-6">
-            <div className="flex gap-3 justify-end">
-              <button
-                type="button" 
-                onClick={handleClose} 
+            {/* NIP */}
+            <div>
+              <label htmlFor="nip" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                NIP <span className="text-red-500">*</span>
+              </label>
+              <input 
+                type="text" 
+                id="nip" 
+                name="nip" 
+                required 
+                value={formData.nip} 
+                onChange={handleInputChange} 
                 disabled={loading}
-                className="w-28 px-1 py-3 bg-gray-200 dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-700 dark:text-white font-medium hover:bg-gray-300 dark:hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-              >
-                Batal
-              </button>
-              <button
-                type="submit" 
-                disabled={loading}
-                className="w-48 px-1 py-3 bg-blue-600 dark:bg-white/10 backdrop-blur-sm border border-blue-600 dark:border-white/20 rounded-xl text-white font-medium hover:bg-blue-700 dark:hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
-              >
-                {loading && (
-                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                )}
-                {loading ? 'Menyimpan...' : 'Simpan'}
-              </button>
+                className="block w-full px-4 py-3 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 disabled:opacity-50 transition-all"
+                placeholder="Masukkan NIP"
+              />
             </div>
-          </div>
-        </form>
+
+            {/* Username */}
+            <div>
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                Username <span className="text-red-500">*</span>
+              </label>
+              <input 
+                type="text" 
+                id="username" 
+                name="username" 
+                required 
+                value={formData.username} 
+                onChange={handleInputChange} 
+                disabled={loading}
+                className="block w-full px-4 py-3 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 disabled:opacity-50 transition-all"
+                placeholder="Masukkan username"
+              />
+            </div>
+
+            {/* Password */}
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                Password <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <input 
+                  type={showPassword ? "text" : "password"}
+                  id="password" 
+                  name="password" 
+                  required 
+                  value={formData.password} 
+                  onChange={handleInputChange} 
+                  disabled={loading}
+                  minLength="6"
+                  className="block w-full px-4 py-3 pr-12 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 disabled:opacity-50 transition-all"
+                  placeholder="Minimal 6 karakter"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={loading}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white disabled:opacity-50 transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeSlashIcon className="w-5 h-5" />
+                  ) : (
+                    <EyeIcon className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        {/* Buttons - Outside Inner Container */}
+        <div className="flex gap-3 justify-end mt-4">
+          <button
+            type="button" 
+            onClick={handleClose} 
+            disabled={loading}
+            className="px-6 py-2.5 bg-gray-300 dark:bg-gray-400/30 rounded-lg text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-400 dark:hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            Batal
+          </button>
+          <button
+            type="submit" 
+            onClick={handleSubmit}
+            disabled={loading}
+            className="px-8 py-2.5 bg-gray-300 dark:bg-gray-400/30 rounded-lg text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-400 dark:hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+          >
+            {loading && (
+              <svg className="animate-spin h-5 w-5 text-gray-700 dark:text-gray-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            )}
+            {loading ? 'Menyimpan...' : 'Simpan'}
+          </button>
+        </div>
       </div>
     </div>
   );

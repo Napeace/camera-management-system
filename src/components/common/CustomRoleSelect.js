@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { 
     UserGroupIcon,
-    ShieldCheckIcon,
+    ShieldExclamationIcon,
     UserIcon,
     ChevronDownIcon 
 } from '@heroicons/react/24/outline';
@@ -13,13 +13,12 @@ const CustomRoleSelect = ({ value, onChange, disabled }) => {
     const buttonRef = useRef(null);
 
     const options = [
-        { value: 'all', label: 'Semua Role', icon: UserGroupIcon, color: 'text-green-600 dark:text-green-400' },
-        { value: 'SuperAdmin', label: 'SuperAdmin', icon: ShieldCheckIcon, color: 'text-purple-600 dark:text-purple-400' },
+        { value: 'SuperAdmin', label: 'SuperAdmin', icon: ShieldExclamationIcon, color: 'text-purple-600 dark:text-purple-400' },
         { value: 'Security', label: 'Security', icon: UserIcon, color: 'text-blue-600 dark:text-blue-400' }
     ];
 
-    // Map empty string to 'all' for backward compatibility
-    const normalizedValue = value === '' ? 'all' : value;
+    // Map empty string or 'all' to null for placeholder
+    const normalizedValue = (value === '' || value === 'all') ? null : value;
     const selectedOption = options.find(opt => opt.value === normalizedValue);
     const displayLabel = selectedOption ? selectedOption.label : 'Pilih Role';
     const DisplayIcon = selectedOption ? selectedOption.icon : UserGroupIcon;
@@ -72,9 +71,7 @@ const CustomRoleSelect = ({ value, onChange, disabled }) => {
     }, [isOpen]);
 
     const handleSelect = (optionValue) => {
-        // Convert 'all' back to empty string for backward compatibility
-        const valueToSend = optionValue === 'all' ? '' : optionValue;
-        onChange({ target: { value: valueToSend } });
+        onChange({ target: { value: optionValue } });
         setIsOpen(false);
     };
 
@@ -84,7 +81,7 @@ const CustomRoleSelect = ({ value, onChange, disabled }) => {
         return createPortal(
             <div 
                 id="role-dropdown-portal"
-                className="fixed bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 rounded-xl shadow-xl overflow-hidden animate-slideDown"
+                className="fixed bg-white dark:bg-gradient-to-b dark:from-slate-950 dark:to-blue-800 border-1 border-gray-300 dark:border-slate-800 rounded-lg shadow-xl overflow-hidden animate-slideDown"
                 style={{
                     top: `${dropdownPosition.top}px`,
                     left: `${dropdownPosition.left}px`,
@@ -92,7 +89,7 @@ const CustomRoleSelect = ({ value, onChange, disabled }) => {
                     zIndex: 999999
                 }}
             >
-                {/* Role Options */}
+                {/* Role Options - No "Pilih Role" option in dropdown */}
                 {options.map((option) => {
                     const Icon = option.icon;
                     const isSelected = option.value === normalizedValue;
@@ -141,7 +138,7 @@ const CustomRoleSelect = ({ value, onChange, disabled }) => {
                     type="button"
                     onClick={() => !disabled && setIsOpen(!isOpen)}
                     disabled={disabled}
-                    className="w-full flex items-center justify-between py-2.5 pl-10 pr-3 bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-blue-500 dark:focus:border-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:border-gray-400 dark:hover:border-slate-500 font-medium text-sm shadow-sm text-left"
+                    className="w-full flex items-center justify-between py-2.5 pl-10 pr-3 bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 rounded-xl text-gray-500 dark:text-gray-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-blue-500 dark:focus:border-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:border-gray-400 dark:hover:border-slate-500 font-medium text-sm shadow-sm text-left"
                 >
                     <span className="flex items-center gap-2 flex-1 mr-2">
                         <DisplayIcon className={`w-5 h-5 absolute left-3 ${displayColor}`} />

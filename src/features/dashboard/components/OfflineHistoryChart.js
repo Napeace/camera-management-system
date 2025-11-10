@@ -2,31 +2,19 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { AreaChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { SignalSlashIcon } from '@heroicons/react/24/outline';
-import { useTheme } from '../../../contexts/ThemeContext'; // Sesuaikan path dengan struktur project Anda
+import { SignalSlashIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { useTheme } from '../../../contexts/ThemeContext';
+import useOfflineChartData from '../hooks/useOfflineChartData';
 
 /**
  * OfflineHistoryChart Component
  * Menampilkan grafik line chart untuk kamera offline 7 hari terakhir (Security role only)
  * Mendukung dark mode dan light mode
- * 
- * @param {Array} data - Array of offline camera data (optional, uses static data if not provided)
+ * Data diambil secara dinamis dari database (tabel history)
  */
-const OfflineHistoryChart = ({ data }) => {
+const OfflineHistoryChart = () => {
     const { isDarkMode } = useTheme();
-    
-    // Static data untuk 7 hari terakhir (Oktober 2025)
-    const defaultData = [
-        { date: '16', offline: 3, fullDate: '16 Oktober 2025' },
-        { date: '17', offline: 3, fullDate: '17 Oktober 2025' },
-        { date: '18', offline: 5, fullDate: '18 Oktober 2025' },
-        { date: '19', offline: 2, fullDate: '19 Oktober 2025' },
-        { date: '20', offline: 4, fullDate: '20 Oktober 2025' },
-        { date: '21', offline: 3, fullDate: '21 Oktober 2025' },
-        { date: '22', offline: 3, fullDate: '22 Oktober 2025' },
-    ];
-
-    const chartData = data || defaultData;
+    const { chartData, loading, error, refetch } = useOfflineChartData();
 
     // Theme-aware colors
     const colors = {
@@ -48,6 +36,8 @@ const OfflineHistoryChart = ({ data }) => {
         cursorStroke: isDarkMode ? 'rgba(239, 68, 68, 0.3)' : 'rgba(239, 68, 68, 0.2)',
         lineStroke: isDarkMode ? '#ef4444' : '#dc2626',
         dotFill: isDarkMode ? '#ef4444' : '#dc2626',
+        loadingText: isDarkMode ? 'text-gray-400' : 'text-gray-600',
+        errorText: isDarkMode ? 'text-red-400' : 'text-red-600',
     };
 
     // Custom Tooltip dengan dynamic label (Hari ini, Kemarin, dst)
@@ -74,6 +64,15 @@ const OfflineHistoryChart = ({ data }) => {
             );
         }
         return null;
+    };
+
+    // Get current month and year from chartData
+    const getCurrentPeriod = () => {
+        if (chartData && chartData.length > 0) {
+            return chartData[chartData.length - 1].fullDate.split(' ').slice(1).join(' ');
+        }
+        const now = new Date();
+        return now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
     };
 
     return (
@@ -109,121 +108,160 @@ const OfflineHistoryChart = ({ data }) => {
                         Grafik Kamera Offline
                     </h3>
                 </div>
-                <div className="rounded-lg px-3 py-1">
-                    <p className={`${colors.subtitle} text-sm`}>
-                        Oktober 2025
-                    </p>
+                <div className="flex items-center gap-2">
+                    <div className="rounded-lg px-3 py-1">
+                        <p className={`${colors.subtitle} text-sm`}>
+                            {getCurrentPeriod()}
+                        </p>
+                    </div>
+                    {!loading && (
+                        <button
+                            onClick={refetch}
+                            className={`p-1.5 rounded-lg ${colors.icon} hover:bg-red-500/10 transition-colors`}
+                            title="Refresh data"
+                        >
+                            <ArrowPathIcon className="w-4 h-4" />
+                        </button>
+                    )}
                 </div>
             </div>
 
             {/* Chart Container */}
             <motion.div
-                className="flex-grow min-h-[250px]"
+                className="flex-grow min-h-[250px] flex items-center justify-center"
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
             >
-                <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart
-                        data={chartData}
-                        margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                    >
-                        {/* Gradient Definition untuk Area - Shadow dengan adaptasi tema */}
-                        <defs>
-                            <linearGradient id="shadowGradient" x1="0" y1="0" x2="0" y2="1">
-                                <stop 
-                                    offset="0%" 
-                                    stopColor={isDarkMode ? "#000000" : "#ef4444"} 
-                                    stopOpacity={isDarkMode ? 0.6 : 0.3} 
-                                />
-                                <stop 
-                                    offset="50%" 
-                                    stopColor={isDarkMode ? "#000000" : "#ef4444"} 
-                                    stopOpacity={isDarkMode ? 0.3 : 0.15} 
-                                />
-                                <stop 
-                                    offset="100%" 
-                                    stopColor={isDarkMode ? "#000000" : "#ef4444"} 
-                                    stopOpacity={0} 
-                                />
-                            </linearGradient>
-                        </defs>
+                {loading ? (
+                    // Loading State
+                    <div className="flex flex-col items-center justify-center gap-3">
+                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-red-500"></div>
+                        <p className={`${colors.loadingText} text-sm`}>Memuat data...</p>
+                    </div>
+                ) : error ? (
+                    // Error State
+                    <div className="flex flex-col items-center justify-center gap-2 text-center px-4">
+                        <SignalSlashIcon className={`w-12 h-12 ${colors.errorText} opacity-50`} />
+                        <p className={`${colors.errorText} text-sm font-medium`}>Gagal memuat data</p>
+                        <p className={`${colors.loadingText} text-xs`}>{error}</p>
+                        <button
+                            onClick={refetch}
+                            className={`mt-2 px-3 py-1.5 rounded-lg ${colors.icon} bg-red-500/10 hover:bg-red-500/20 transition-colors text-sm`}
+                        >
+                            Coba Lagi
+                        </button>
+                    </div>
+                ) : chartData.length === 0 ? (
+                    // No Data State
+                    <div className="flex flex-col items-center justify-center gap-2">
+                        <SignalSlashIcon className={`w-12 h-12 ${colors.loadingText} opacity-50`} />
+                        <p className={`${colors.loadingText} text-sm`}>Tidak ada data tersedia</p>
+                    </div>
+                ) : (
+                    // Chart
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart
+                            data={chartData}
+                            margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                        >
+                            {/* Gradient Definition untuk Area - Shadow dengan adaptasi tema */}
+                            <defs>
+                                <linearGradient id="shadowGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop 
+                                        offset="0%" 
+                                        stopColor={isDarkMode ? "#000000" : "#ef4444"} 
+                                        stopOpacity={isDarkMode ? 0.6 : 0.3} 
+                                    />
+                                    <stop 
+                                        offset="50%" 
+                                        stopColor={isDarkMode ? "#000000" : "#ef4444"} 
+                                        stopOpacity={isDarkMode ? 0.3 : 0.15} 
+                                    />
+                                    <stop 
+                                        offset="100%" 
+                                        stopColor={isDarkMode ? "#000000" : "#ef4444"} 
+                                        stopOpacity={0} 
+                                    />
+                                </linearGradient>
+                            </defs>
 
-                        <CartesianGrid
-                            strokeDasharray="3 3"
-                            stroke={colors.gridStroke}
-                            opacity={0.2}
-                        />
-                        <XAxis
-                            dataKey="date"
-                            stroke={colors.axisStroke}
-                            tick={{ fill: colors.axisTick, fontSize: 12 }}
-                            axisLine={{ stroke: colors.axisLine }}
-                        />
-                        <YAxis
-                            stroke={colors.axisStroke}
-                            tick={{ fill: colors.axisTick, fontSize: 12 }}
-                            axisLine={{ stroke: colors.axisLine }}
-                        />
-                        <Tooltip
-                            content={<CustomTooltip />}
-                            cursor={{ stroke: colors.cursorStroke, strokeWidth: 2 }}
-                        />
-                        
-                        {/* Area dengan gradient (shadow effect atau colored area) */}
-                        <Area
-                            type="stepBefore"
-                            dataKey="offline"
-                            fill="url(#shadowGradient)"
-                            stroke="none"
-                            fillOpacity={1}
-                            animationDuration={800}
-                            animationEasing="ease-out"
-                        />
-                        
-                        {/* Line Chart merah di atas area */}
-                        <Line
-                            type="stepBefore"
-                            dataKey="offline"
-                            stroke={colors.lineStroke}
-                            strokeWidth={4}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            dot={(props) => {
-                                const { cx, cy, index } = props;
-                                if (index === 0) return null;
-                                
-                                return (
-                                    <rect
-                                        x={cx - 6}
-                                        y={cy - 6}
-                                        width={12}
-                                        height={12}
-                                        rx={3}
-                                        ry={3}
-                                        fill={colors.dotFill}
-                                    />
-                                );
-                            }}
-                            activeDot={(props) => {
-                                const { cx, cy } = props;
-                                return (
-                                    <rect
-                                        x={cx - 8}
-                                        y={cy - 8}
-                                        width={16}
-                                        height={16}
-                                        rx={4}
-                                        ry={4}
-                                        fill={colors.dotFill}
-                                    />
-                                );
-                            }}
-                            animationDuration={800}
-                            animationEasing="ease-out"
-                        />
-                    </AreaChart>
-                </ResponsiveContainer>
+                            <CartesianGrid
+                                strokeDasharray="3 3"
+                                stroke={colors.gridStroke}
+                                opacity={0.2}
+                            />
+                            <XAxis
+                                dataKey="date"
+                                stroke={colors.axisStroke}
+                                tick={{ fill: colors.axisTick, fontSize: 12 }}
+                                axisLine={{ stroke: colors.axisLine }}
+                            />
+                            <YAxis
+                                stroke={colors.axisStroke}
+                                tick={{ fill: colors.axisTick, fontSize: 12 }}
+                                axisLine={{ stroke: colors.axisLine }}
+                            />
+                            <Tooltip
+                                content={<CustomTooltip />}
+                                cursor={{ stroke: colors.cursorStroke, strokeWidth: 2 }}
+                            />
+                            
+                            {/* Area dengan gradient (shadow effect atau colored area) */}
+                            <Area
+                                type="stepBefore"
+                                dataKey="offline"
+                                fill="url(#shadowGradient)"
+                                stroke="none"
+                                fillOpacity={1}
+                                animationDuration={800}
+                                animationEasing="ease-out"
+                            />
+                            
+                            {/* Line Chart merah di atas area */}
+                            <Line
+                                type="stepBefore"
+                                dataKey="offline"
+                                stroke={colors.lineStroke}
+                                strokeWidth={4}
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                dot={(props) => {
+                                    const { cx, cy, index } = props;
+                                    if (index === 0) return null;
+                                    
+                                    return (
+                                        <rect
+                                            x={cx - 6}
+                                            y={cy - 6}
+                                            width={12}
+                                            height={12}
+                                            rx={3}
+                                            ry={3}
+                                            fill={colors.dotFill}
+                                        />
+                                    );
+                                }}
+                                activeDot={(props) => {
+                                    const { cx, cy } = props;
+                                    return (
+                                        <rect
+                                            x={cx - 8}
+                                            y={cy - 8}
+                                            width={16}
+                                            height={16}
+                                            rx={4}
+                                            ry={4}
+                                            fill={colors.dotFill}
+                                        />
+                                    );
+                                }}
+                                animationDuration={800}
+                                animationEasing="ease-out"
+                            />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                )}
             </motion.div>
         </motion.div>
     );

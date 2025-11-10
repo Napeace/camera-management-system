@@ -12,11 +12,11 @@ import {
   PlusIcon,
   DocumentArrowDownIcon
 } from '@heroicons/react/24/outline';
-import useTableAnimation from '../../hooks/useTableAnimation';
-import HistoryListItem from './components/HistoryListItem';
-import HistoryNoteModal from './components/HistoryNoteModal';
-import ConfirmDialog from '../../components/common/ConfirmDialog';
-import historyService from '../../services/historyService';
+import useTableAnimation from '../../../hooks/useTableAnimation';
+import HistoryListItem from './HistoryListItem';
+import HistoryNoteModal from './HistoryNoteModal';
+import ConfirmDialog from '../../../components/common/ConfirmDialog';
+import historyService from '../../../services/historyService';
 
 const HistoryList = ({ 
   historyData, 
@@ -282,37 +282,37 @@ const HistoryList = ({
           <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-600/30">
             <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white uppercase tracking-wider w-48">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider w-48">
                   <div className="flex items-center">
                     <VideoCameraIcon className="w-4 h-4 mr-2" />
                     Kamera
                   </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
                   <div className="flex items-center">
                     <ServerIcon className="w-4 h-4 mr-1" />
                     IP Address
                   </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white uppercase tracking-wider w-48">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider w-48">
                   <div className="flex items-center">
                     <BuildingOfficeIcon className="w-4 h-4 mr-2" />
                     Lokasi
                   </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
                   <div className="flex items-center">
                     <CalendarIcon className="w-4 h-4 mr-2" />
                     Tanggal
                   </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
                   <div className="flex items-center">
                     <SignalIcon className="w-4 h-4 mr-2" />
                     Status
                   </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
                   <div className="flex items-center">
                     <AdjustmentsVerticalIcon className="w-4 h-4 mr-2" />
                     Aksi

@@ -56,6 +56,7 @@ const LiveMonitoringStats = ({
                             onChange={onLocationFilter}
                             disabled={loading}
                             locations={locationGroups}
+                            variant="default"
                         />
                     </div>
                 </div>

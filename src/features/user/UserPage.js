@@ -79,8 +79,8 @@ const UserPage = () => {
                         onPageChange={handlePageChange}
                     />
                 )}
-                navbarTitle="Manajemen User"
-                navbarSubtitle="Kelola data user dalam sistem"
+                navbarTitle="Manajemen Pengguna"
+                navbarSubtitle="Pengaturan Hak Akses dan Otoritas Pengguna"
             >
                 <motion.div
                     className="space-y-6"

@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import HLSVideoPlayer from '../live-monitoring/components/HLSVideoPlayer';
+import React, { useEffect, useState, useRef } from 'react';
+import HLSVideoPlayer from './components/HLSVideoPlayer';
+import RecordingControls from './components/RecordingControls';
 
 const LiveMonitoringModal = ({ camera, onClose }) => {
     const [playerState, setPlayerState] = useState('loading');
+    const videoRef = useRef(null); // ✅ Tambah ref untuk video element
 
     // ✅ SEMUA HOOKS DIPINDAHKAN KE ATAS SINI
     // Prevent body scroll when modal is open
@@ -99,6 +101,7 @@ const LiveMonitoringModal = ({ camera, onClose }) => {
                             </div>
                         ) : (
                             <HLSVideoPlayer
+                                ref={videoRef} // ✅ Pass ref ke player
                                 streamUrls={{
                                     hls_url: streamUrl
                                 }}
@@ -129,20 +132,33 @@ const LiveMonitoringModal = ({ camera, onClose }) => {
                             <p className="text-xs text-gray-500">IP: {camera?.ip_address}</p>
                         </div>
 
-                        {/* Kolom Kanan: Indikator Status */}
-                        <div className="flex flex-col items-end space-y-2.5">
-                            <div className="flex items-center space-x-2 bg-gray-700/50 px-3 py-1.5 rounded-lg">
-                                <div className={`w-2.5 h-2.5 rounded-full ${hasStreamUrls ? 'bg-green-400' : 'bg-red-400'}`}></div>
-                                <span className="text-gray-200 text-sm font-medium">
-                                    {hasStreamUrls ? (playerState === 'ready' ? 'Online' : 'Connecting') : 'Offline'}
-                                </span>
-                            </div>
-                            {hasStreamUrls && playerState === 'ready' && (
-                                <div className="flex items-center space-x-2 bg-red-900/40 px-3 py-1.5 rounded-lg">
-                                    <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-                                    <span className="font-semibold text-red-400 text-sm">LIVE</span>
+                        {/* Kolom Kanan: Status + Recording dalam 1 baris */}
+                        <div className="flex items-center space-x-3">
+                            {/* Recording Controls */}
+                            <RecordingControls
+                                videoRef={videoRef}
+                                cameraName={camera?.name || camera?.titik_letak}
+                                isPlayerReady={playerState === 'ready' && hasStreamUrls}
+                            />
+
+                            {/* Status Indicators */}
+                            <div className="flex items-center space-x-2">
+                                {/* Online/Offline Badge */}
+                                <div className="flex items-center space-x-2 bg-gray-700/50 px-3 py-1.5 rounded-lg">
+                                    <div className={`w-2.5 h-2.5 rounded-full ${hasStreamUrls ? 'bg-green-400' : 'bg-red-400'}`}></div>
+                                    <span className="text-gray-200 text-sm font-medium">
+                                        {hasStreamUrls ? (playerState === 'ready' ? 'Online' : 'Connecting') : 'Offline'}
+                                    </span>
                                 </div>
-                            )}
+
+                                {/* Live Badge */}
+                                {hasStreamUrls && playerState === 'ready' && (
+                                    <div className="flex items-center space-x-2 bg-red-900/40 px-3 py-1.5 rounded-lg">
+                                        <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                                        <span className="font-semibold text-red-400 text-sm">LIVE</span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>

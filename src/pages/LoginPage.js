@@ -81,8 +81,10 @@ function LoginPage() {
     };
   }, [navigate, isAuthenticated, isLoading]);
 
+  // ✅ FIX: Ubah handleSubmit jadi ASYNC dengan AWAIT
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
     if (!formData.username.trim() || !formData.password.trim()) {
       setError('Please enter both username and password');
       return;
@@ -92,24 +94,34 @@ function LoginPage() {
     setError('');
     
     try {
+      console.log('🔐 Login attempt for:', formData.username);
+      
+      // 1. Call backend login
       const result = await authService.login(formData);
       
       if (result.success) {
-        authLogin(result.user, result.token);
+        console.log('✅ Backend login successful:', result.user.username);
         
-        if (result.user.role === 'superadmin') {
-          navigate('/dashboard');
-        } else if (result.user.role === 'security') {
-          navigate('/dashboard-security');
-        } else {
-          navigate('/');
-        }
+        // 2. ✅ CRITICAL FIX: AWAIT authLogin untuk memastikan token tersimpan
+        await authLogin(result.user, result.token);
+        console.log('✅ AuthContext login completed');
+        
+        // 3. ✅ CRITICAL FIX: Delay untuk memastikan state sync
+        await new Promise(resolve => setTimeout(resolve, 300));
+        console.log('✅ State sync completed');
+        
+        // 4. Redirect based on role (both go to /dashboard)
+        console.log('🚀 Redirecting to dashboard...');
+        
+        // ✅ FIX: Semua role redirect ke /dashboard (tidak ada /dashboard-security)
+        navigate('/dashboard', { replace: true });
+        
       } else {
         setError(result.message || 'Login failed. Please check your credentials.');
       }
     } catch (error) {
-      setError('An unexpected error occurred. Please try again.');
-      console.error('Login handleSubmit error:', error);
+      console.error('❌ Login error:', error);
+      setError(error.message || 'An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -192,6 +204,7 @@ function LoginPage() {
                 className="block w-full px-4 py-3 bg-white/90 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 focus:bg-white transition-all duration-200 hover:border-gray-400 shadow-md" 
                 placeholder="Username" 
                 autoFocus
+                disabled={loading}
               />
             </div>
 
@@ -207,11 +220,13 @@ function LoginPage() {
                   onChange={handleInputChange} 
                   className="block w-full px-4 py-3 pr-12 bg-white/90 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 focus:bg-white transition-all duration-200 hover:border-gray-400 shadow-md" 
                   placeholder="Password" 
+                  disabled={loading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:ring-opacity-50 rounded-full p-1"
+                  disabled={loading}
                 >
                   <div className="relative w-5 h-5 overflow-hidden">
                     <EyeIcon 

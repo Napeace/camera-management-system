@@ -217,37 +217,40 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
                     shouldShow ? 'opacity-100' : 'opacity-0'
                 }`}
             >
+                {/* Outer Container */}
                 <div 
-                    className={`bg-gradient-to-b from-slate-50 via-blue-50 to-blue-100 dark:from-slate-950 dark:via-indigo-950 dark:to-indigo-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden transform transition-all duration-300 ${
+                    className={`rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden bg-white dark:bg-gradient-to-b dark:from-slate-950 dark:to-blue-800 border border-blue-300 dark:border-slate-800 p-5 transform transition-all duration-300 ${
                         shouldShow ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
                     }`}
                 >
-                    {/* Header */}
-                    <div className="flex items-center justify-between px-6 py-6 mx-4">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-blue-500/20">
-                                <MapPinIcon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    {/* Inner Container */}
+                    <div className="bg-gray-50/80 dark:bg-white/5 backdrop-blur-sm rounded-lg p-5 space-y-4 max-h-[calc(90vh-40px)] overflow-y-auto">
+                        
+                        {/* Header */}
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 flex items-center justify-center bg-blue-100 dark:bg-blue-800/30 border border-blue-300 dark:border-blue-800/30 rounded-lg">
+                                    <MapPinIcon className="w-5 h-5 text-blue-600 dark:text-blue-800" />
+                                </div>
+                                <h2 className="text-xl text-gray-900 dark:text-white font-semibold">Kelola Lokasi DVR</h2>
                             </div>
-                            <h2 className="text-2xl text-gray-900 dark:text-white font-semibold">Kelola Lokasi DVR</h2>
+                            <button 
+                                onClick={handleClose} 
+                                disabled={loading} 
+                                className="text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-white/10 rounded-lg p-1.5 disabled:opacity-50 transition-all"
+                            >
+                                <XMarkIcon className="w-6 h-6" />
+                            </button>
                         </div>
-                        <button 
-                            onClick={handleClose} 
-                            disabled={loading} 
-                            className="text-gray-600 hover:text-gray-900 dark:text-white/70 dark:hover:text-white disabled:opacity-50 transition-colors"
-                        >
-                            <XMarkIcon className="w-7 h-7" />
-                        </button>
-                    </div>
-                    
-                    <div className="mx-6 h-1 bg-gray-300 dark:bg-white/10"></div>
+                        
+                        {/* Border separator */}
+                        <div className="h-px bg-gray-200 dark:bg-white/10"></div>
 
-                    {/* Content - Scrollable */}
-                    <div className="p-6 space-y-5 overflow-y-auto max-h-[calc(90vh-180px)]">
                         {/* Add Location Button */}
                         {!showForm && !editingLocationId && (
                             <button
                                 onClick={toggleForm}
-                                className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                                className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-600/80 dark:hover:bg-blue-600 text-white px-4 py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
                             >
                                 <PlusIcon className="w-5 h-5" />
                                 Tambah Lokasi Baru
@@ -256,13 +259,13 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
 
                         {/* Form Section */}
                         {showForm && (
-                            <div className="bg-white/50 dark:bg-white/5 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl p-5 space-y-4">
+                            <div className="bg-white/50 dark:bg-white/5 backdrop-blur-sm border-2 border-gray-300 dark:border-white/10 rounded-lg p-4 space-y-4">
                                 <div className="flex items-center justify-between">
-                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Tambah Lokasi Baru</h3>
+                                    <h3 className="text-base font-semibold text-gray-900 dark:text-white">Tambah Lokasi Baru</h3>
                                 </div>
 
                                 {error && (
-                                    <div className="bg-red-100 dark:bg-red-500/20 border border-red-300 dark:border-red-400/40 rounded-xl p-4 backdrop-blur-sm">
+                                    <div className="bg-red-100 dark:bg-red-500/20 border border-red-300 dark:border-red-400/40 rounded-lg p-4">
                                         <div className="flex items-center">
                                             <ExclamationCircleIcon className="w-5 h-5 text-red-600 dark:text-red-300 mr-2 flex-shrink-0" />
                                             <p className="text-sm text-red-700 dark:text-red-200">{error}</p>
@@ -272,8 +275,8 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
 
                                 <div className="space-y-4">
                                     <div>
-                                        <label htmlFor="nama_lokasi" className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
-                                            Nama Lokasi
+                                        <label htmlFor="nama_lokasi" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                                            Nama Lokasi <span className="text-red-500">*</span>
                                         </label>
                                         <input
                                             type="text" 
@@ -282,7 +285,7 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
                                             value={formData.nama_lokasi} 
                                             onChange={handleInputChange} 
                                             disabled={loading}
-                                            className="block w-full px-4 py-3 bg-white dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-white/30 focus:border-blue-500 dark:focus:border-white/30 disabled:opacity-50 transition-all"
+                                            className="block w-full px-4 py-3 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 disabled:opacity-50 transition-all"
                                             placeholder="Server Monitoring Lantai 1"
                                         />
                                         <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -295,7 +298,7 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
                                             type="button" 
                                             onClick={toggleForm} 
                                             disabled={loading}
-                                            className="px-6 py-2 bg-gray-200 dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-700 dark:text-white font-medium hover:bg-gray-300 dark:hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                            className="px-6 py-2.5 bg-gray-300 dark:bg-gray-400/30 rounded-lg text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-400 dark:hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                         >
                                             Batal
                                         </button>
@@ -303,10 +306,10 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
                                             type="button"
                                             onClick={handleSubmit}
                                             disabled={loading}
-                                            className="px-6 py-2 bg-blue-600 dark:bg-white/10 backdrop-blur-sm border border-blue-600 dark:border-white/20 rounded-xl text-white font-medium hover:bg-blue-700 dark:hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                                            className="px-8 py-2.5 bg-gray-300 dark:bg-gray-400/30 rounded-lg text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-400 dark:hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
                                         >
                                             {loading && (
-                                                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <svg className="animate-spin h-5 w-5 text-gray-700 dark:text-gray-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                                 </svg>
@@ -330,13 +333,13 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
                             {loadingLocations ? (
                                 <div className="space-y-2">
                                     {[1, 2, 3].map((i) => (
-                                        <div key={i} className="bg-white/50 dark:bg-white/5 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl p-4 animate-pulse">
+                                        <div key={i} className="bg-white/50 dark:bg-white/5 backdrop-blur-sm border-2 border-gray-300 dark:border-white/10 rounded-lg p-4 animate-pulse">
                                             <div className="h-5 bg-gray-200 dark:bg-white/10 rounded w-3/4"></div>
                                         </div>
                                     ))}
                                 </div>
                             ) : locations.length === 0 ? (
-                                <div className="bg-white/50 dark:bg-white/5 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl p-8 text-center">
+                                <div className="bg-white/50 dark:bg-white/5 backdrop-blur-sm border-2 border-gray-300 dark:border-white/10 rounded-lg p-8 text-center">
                                     <MapPinIcon className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
                                     <p className="text-gray-500 dark:text-gray-400 text-sm">
                                         Belum ada lokasi. Tambahkan lokasi baru untuk memulai.
@@ -347,7 +350,7 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
                                     {locations.map((location) => (
                                         <div 
                                             key={location.id_location}
-                                            className="bg-white/50 dark:bg-white/5 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl p-4 hover:bg-white/70 dark:hover:bg-white/10 transition-all"
+                                            className="bg-white/50 dark:bg-white/5 backdrop-blur-sm border-2 border-gray-300 dark:border-white/10 rounded-lg p-4 hover:bg-white/70 dark:hover:bg-white/10 transition-all"
                                         >
                                             {editingLocationId === location.id_location ? (
                                                 <div className="space-y-3">
@@ -364,24 +367,24 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
                                                         value={formData.nama_lokasi}
                                                         onChange={handleInputChange}
                                                         disabled={loading}
-                                                        className="block w-full px-3 py-2 bg-white dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-white/30 focus:border-blue-500 dark:focus:border-white/30 disabled:opacity-50 transition-all text-sm"
+                                                        className="block w-full px-3 py-2 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 disabled:opacity-50 transition-all text-sm"
                                                         placeholder="Nama lokasi"
                                                     />
                                                     <div className="flex items-center gap-2">
                                                         <button
                                                             onClick={handleCancelEdit}
                                                             disabled={loading}
-                                                            className="flex-1 px-3 py-2 bg-gray-200 dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-lg text-gray-700 dark:text-white font-medium hover:bg-gray-300 dark:hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
+                                                            className="flex-1 px-3 py-2 bg-gray-300 dark:bg-gray-400/30 rounded-lg text-gray-700 dark:text-gray-200 font-medium hover:bg-gray-400 dark:hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
                                                         >
                                                             Batal
                                                         </button>
                                                         <button
                                                             onClick={() => handleUpdateLocation(location.id_location)}
                                                             disabled={loading}
-                                                            className="flex-1 px-3 py-2 bg-blue-600 dark:bg-white/10 backdrop-blur-sm border border-blue-600 dark:border-white/20 rounded-lg text-white font-medium hover:bg-blue-700 dark:hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 text-sm"
+                                                            className="flex-1 px-3 py-2 bg-gray-300 dark:bg-gray-400/30 rounded-lg text-gray-700 dark:text-gray-200 font-medium hover:bg-gray-400 dark:hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 text-sm"
                                                         >
                                                             {loading ? (
-                                                                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                <svg className="animate-spin h-4 w-4 text-gray-700 dark:text-gray-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                                                 </svg>
@@ -427,19 +430,6 @@ const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
                                 </div>
                             )}
                         </div>
-                    </div>
-
-                    <div className="mx-6 h-1 bg-gray-300 dark:bg-white/10"></div>
-
-                    {/* Footer */}
-                    <div className="p-6">
-                        <button
-                            onClick={handleClose}
-                            disabled={loading}
-                            className="w-full px-4 py-3 bg-gray-200 dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-700 dark:text-white font-medium hover:bg-gray-300 dark:hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                        >
-                            Tutup
-                        </button>
                     </div>
                 </div>
             </div>

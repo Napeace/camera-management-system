@@ -9,10 +9,10 @@ import {
   ExclamationTriangleIcon, 
   VideoCameraSlashIcon,
   VideoCameraIcon,
-  GlobeAltIcon,
-  MapPinIcon,
+  ServerIcon,
+  BuildingOfficeIcon,
   SignalIcon,
-  CogIcon,
+  AdjustmentsVerticalIcon,
   ClipboardDocumentListIcon,
   ChevronUpIcon,
   ChevronDownIcon
@@ -174,7 +174,7 @@ const CCTVList = ({
         <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700/50">
           <thead className="bg-gray-100 dark:bg-slate-900/30">
             <tr>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+              <th className="px-6 py-4 text-left text-xs font-medium text-gray-700 dark:text-gray-300 tracking-wider">
                 <button
                   onClick={handleSortToggle}
                   className="flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 group"
@@ -196,27 +196,27 @@ const CCTVList = ({
                   </div>
                 </button>
               </th>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+              <th className="px-6 py-4 text-left text-xs font-medium text-gray-700 dark:text-gray-300 tracking-wider">
                 <div className="flex items-center gap-2">
-                  <GlobeAltIcon className="w-4 h-4" />
+                  <ServerIcon className="w-4 h-4" />
                   IP Address
                 </div>
               </th>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+              <th className="px-6 py-4 text-left text-xs font-medium text-gray-700 dark:text-gray-300 tracking-wider">
                 <div className="flex items-center gap-2">
-                  <MapPinIcon className="w-4 h-4" />
+                  <BuildingOfficeIcon className="w-4 h-4" />
                   Lokasi
                 </div>
               </th>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+              <th className="px-6 py-4 text-left text-xs font-medium text-gray-700 dark:text-gray-300 tracking-wider">
                 <div className="flex items-center gap-2">
                   <SignalIcon className="w-4 h-4" />
                   Status
                 </div>
               </th>
-              <th className="px-6 py-4 text-center text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+              <th className="px-6 py-4 text-center text-xs font-medium text-gray-700 dark:text-gray-300 tracking-wider">
                 <div className="flex items-center justify-center gap-2">
-                  <CogIcon className="w-4 h-4" />
+                  <AdjustmentsVerticalIcon className="w-4 h-4" />
                   Aksi
                 </div>
               </th>

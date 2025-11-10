@@ -159,17 +159,17 @@ const HistoryCreateModal = ({ isOpen, onClose, onHistoryCreated }) => {
         >
             {/* Outer Container */}
             <div 
-                className={`rounded-md shadow-2xl max-w-md w-full overflow-hidden bg-white dark:bg-gradient-to-b dark:from-slate-950 dark:to-blue-800 p-5 transform transition-all duration-300 ${
+                className={`rounded-lg shadow-2xl max-w-md w-full overflow-hidden bg-white dark:bg-gradient-to-b dark:from-slate-950 dark:to-blue-800 border border-blue-300 dark:border-slate-800 p-5 transform transition-all duration-300 ${
                     shouldShow ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
                 }`}
             >
                 {/* Inner Container */}
-                <div className="bg-gray-50/80 dark:bg-white/5 backdrop-blur-sm rounded-md p-5 space-y-4">
+                <div className="bg-gray-50/80 dark:bg-white/5 backdrop-blur-sm rounded-lg p-5 space-y-4">
                     
                     {/* Header */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 flex items-center justify-center bg-blue-100 dark:bg-blue-800/30 border border-blue-300 dark:border-blue-800/30 rounded-md">
+                            <div className="w-8 h-8 flex items-center justify-center bg-blue-100 dark:bg-blue-800/30 border border-blue-300 dark:border-blue-800/30 rounded-lg">
                                 <VideoCameraIcon className="w-5 h-5 text-blue-600 dark:text-blue-800" />
                             </div>
                             <h2 className="text-xl text-gray-900 dark:text-white font-semibold">Tambah History</h2>
@@ -177,7 +177,7 @@ const HistoryCreateModal = ({ isOpen, onClose, onHistoryCreated }) => {
                         <button 
                             onClick={handleClose} 
                             disabled={loading} 
-                            className="text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-white/10 rounded-md p-1.5 disabled:opacity-50 transition-all"
+                            className="text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-white/10 rounded-lg p-1.5 disabled:opacity-50 transition-all"
                         >
                             <XMarkIcon className="w-6 h-6" />
                         </button>
@@ -189,7 +189,7 @@ const HistoryCreateModal = ({ isOpen, onClose, onHistoryCreated }) => {
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="space-y-4">
                         {error && (
-                            <div className="bg-red-100 dark:bg-red-500/20 border border-red-300 dark:border-red-400/40 rounded-md p-4">
+                            <div className="bg-red-100 dark:bg-red-500/20 border border-red-300 dark:border-red-400/40 rounded-lg p-4">
                                 <div className="flex items-center">
                                     <ExclamationCircleIcon className="w-5 h-5 text-red-600 dark:text-red-300 mr-2 flex-shrink-0" />
                                     <p className="text-sm text-red-700 dark:text-red-200">{error}</p>
@@ -227,7 +227,7 @@ const HistoryCreateModal = ({ isOpen, onClose, onHistoryCreated }) => {
                                 value={formData.note} 
                                 onChange={handleInputChange} 
                                 disabled={loading}
-                                className="block w-full px-4 py-3 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-md text-gray-900 dark:text-gray-100  placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 disabled:opacity-50 transition-all resize-none"
+                                className="block w-full px-4 py-3 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100  placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 disabled:opacity-50 transition-all resize-none"
                                 placeholder="Masukkan catatan terkait masalah yang terjadi (min. 5 karakter)"
                             />
                         </div>
@@ -240,7 +240,7 @@ const HistoryCreateModal = ({ isOpen, onClose, onHistoryCreated }) => {
                         type="button" 
                         onClick={handleClose} 
                         disabled={loading}
-                        className="px-6 py-2.5 bg-gray-300 dark:bg-gray-400/30 rounded-md text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-400 dark:hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        className="px-6 py-2.5 bg-gray-300 dark:bg-gray-400/30 rounded-lg text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-400 dark:hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
                         Batal
                     </button>
@@ -248,7 +248,7 @@ const HistoryCreateModal = ({ isOpen, onClose, onHistoryCreated }) => {
                         type="submit" 
                         onClick={handleSubmit}
                         disabled={loading || loadingCCTV}
-                        className="px-8 py-2.5 bg-gray-300 dark:bg-gray-400/30 rounded-md text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-400 dark:hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                        className="px-8 py-2.5 bg-gray-300 dark:bg-gray-400/30 rounded-lg text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-400 dark:hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
                     >
                         {loading && (
                             <svg className="animate-spin h-5 w-5 text-gray-700 dark:text-gray-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

@@ -49,11 +49,11 @@ class UserService {
 
   async getAllUsers(filters = {}) {
     try {
-      const token = this._getAuthToken();
+      // ❌ REMOVED: Manual token validation
+      // const token = this._getAuthToken();
       
       // Build query parameters
       const queryParams = new URLSearchParams({ 
-        token, 
         skip: 0, 
         limit: 1000 // Increase limit to get more users
       });
@@ -70,6 +70,7 @@ class UserService {
       
       console.log('API Call URL:', `/users/?${queryParams.toString()}`);
       
+      // ❌ REMOVED: Token manually appended to URL (handled by interceptor)
       const response = await apiClient.get(`/users/?${queryParams.toString()}`);
       const result = this._handleResponse(response);
 
@@ -84,9 +85,9 @@ class UserService {
 
   async createUser(userData) {
     try {
-      const token = this._getAuthToken();
+      // ❌ REMOVED: Manual token append
       console.log('Creating user with data:', userData);
-      const response = await apiClient.post(`/users/?token=${token}`, userData);
+      const response = await apiClient.post('/users/', userData);
       return this._handleResponse(response);
     } catch (error) {
       this._handleError(error);
@@ -95,9 +96,9 @@ class UserService {
 
   async updateUser(userId, userData) {
     try {
-      const token = this._getAuthToken();
+      // ❌ REMOVED: Manual token append
       console.log('Updating user:', userId, 'with data:', userData);
-      const response = await apiClient.put(`/users/${userId}?token=${token}`, userData);
+      const response = await apiClient.put(`/users/${userId}`, userData);
       return this._handleResponse(response);
     } catch (error) {
       this._handleError(error);
@@ -106,8 +107,8 @@ class UserService {
 
   async softDeleteUser(userId) {
     try {
-      const token = this._getAuthToken();
-      const response = await apiClient.delete(`/users/soft/${userId}?token=${token}`);
+      // ❌ REMOVED: Manual token append
+      const response = await apiClient.delete(`/users/soft/${userId}`);
       return this._handleResponse(response);
     } catch (error) {
       this._handleError(error);
@@ -116,8 +117,8 @@ class UserService {
 
   async hardDeleteUser(userId) {
     try {
-      const token = this._getAuthToken();
-      const response = await apiClient.delete(`/users/hard/${userId}?token=${token}`);
+      // ❌ REMOVED: Manual token append
+      const response = await apiClient.delete(`/users/hard/${userId}`);
       return this._handleResponse(response);
     } catch (error) {
       this._handleError(error);
@@ -127,10 +128,10 @@ class UserService {
   // Export Users to Excel/CSV
   async exportUsers(format = 'xlsx') {
     try {
-      const token = this._getAuthToken();
+      // ❌ REMOVED: Manual token append
       console.log('Exporting users with format:', format);
       
-      const response = await apiClient.get(`/users/export?token=${token}&format=${format}`, {
+      const response = await apiClient.get(`/users/export?format=${format}`, {
         responseType: 'blob', // Important for file download
         timeout: 60000, // 60 seconds timeout for export operations
       });
@@ -145,13 +146,11 @@ class UserService {
   // Import Users from Excel/CSV file
   async importUsers(formData) {
     try {
-      const token = this._getAuthToken();
+      // ❌ REMOVED: Manual token append to formData
       console.log('Importing users from file');
       
-      // Append token to formData
-      formData.append('token', token);
-      
-      const response = await apiClient.post(`/users/import`, formData, {
+      // Token will be automatically injected by interceptor in query params
+      const response = await apiClient.post('/users/import', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

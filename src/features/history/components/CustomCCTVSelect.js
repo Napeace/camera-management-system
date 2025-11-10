@@ -115,7 +115,7 @@ const CustomCCTVSelect = memo(({ value, onChange, disabled, cctvList = [], loadi
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute z-50 w-full mt-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-white/20 rounded-xl shadow-2xl overflow-hidden">
+        <div className="absolute z-[60] w-full mt-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-white/20 rounded-xl shadow-2xl overflow-hidden">
           {/* Search Input */}
           <div className="p-3 border-b border-gray-200 dark:border-white/10">
             <div className="relative">
@@ -132,7 +132,7 @@ const CustomCCTVSelect = memo(({ value, onChange, disabled, cctvList = [], loadi
           </div>
 
           {/* CCTV List */}
-          <div className="max-h-64 overflow-y-auto">
+          <div className="max-h-48 overflow-y-auto">
             {filteredCCTVs.length === 0 ? (
               <div className="px-4 py-8 text-center text-gray-500 dark:text-white/50 text-sm">
                 {searchTerm ? 'Tidak ada CCTV yang ditemukan' : 'Tidak ada data CCTV'}

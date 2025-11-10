@@ -78,7 +78,7 @@ const CustomStatusSelect = ({ value, onChange, disabled }) => {
         return createPortal(
             <div 
                 id="status-dropdown-portal"
-                className="fixed bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 rounded-xl shadow-xl overflow-hidden animate-slideDown"
+                className="fixed bg-white dark:bg-gradient-to-b dark:from-slate-950 dark:to-blue-800 border-1 border-gray-300 dark:border-slate-800 rounded-lg shadow-xl overflow-hidden animate-slideDown"
                 style={{
                     top: `${dropdownPosition.top}px`,
                     left: `${dropdownPosition.left}px`,
@@ -135,7 +135,7 @@ const CustomStatusSelect = ({ value, onChange, disabled }) => {
                     type="button"
                     onClick={() => !disabled && setIsOpen(!isOpen)}
                     disabled={disabled}
-                    className="w-full flex items-center justify-between py-2.5 pl-10 pr-3 bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-blue-500 dark:focus:border-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:border-gray-400 dark:hover:border-slate-500 font-medium text-sm shadow-sm text-left"
+                    className="w-full flex items-center justify-between py-2.5 pl-10 pr-3 bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 rounded-xl text-gray-500 dark:text-gray-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-blue-500 dark:focus:border-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:border-gray-400 dark:hover:border-slate-500 font-medium text-sm shadow-sm text-left"
                 >
                     <span className="flex items-center gap-2 flex-1 mr-2">
                         <DisplayIcon className={`w-5 h-5 absolute left-3 ${displayColor}`} />

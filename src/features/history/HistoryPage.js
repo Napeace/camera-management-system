@@ -6,7 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import MainLayout from '../../components/layout/MainLayout';
 import Sidebar from '../../components/layout/Sidebar';
-import HistoryList from './HistoryList';
+import HistoryList from './components/HistoryList';
 import HistoryFilters from './components/HistoryFilters';
 import HistoryCreateModal from './HistoryCreateModal';
 import Pagination from '../../components/common/Pagination';
@@ -174,6 +174,8 @@ const HistoryPage = () => {
             onPageChange={handlePageChange}
           />
         )}
+        navbarTitle="Riwayat CCTV"
+        navbarSubtitle="Seluruh jejak aktivitas CCTV & Catat Error yang terjadi"
       >
         <motion.div 
           className="space-y-6"
