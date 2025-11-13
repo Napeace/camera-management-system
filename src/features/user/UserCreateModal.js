@@ -119,7 +119,7 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
               <div className="w-8 h-8 flex items-center justify-center bg-blue-100 dark:bg-blue-800/30 border border-blue-300 dark:border-blue-400/30 rounded-lg">
                 <UserIcon className="w-5 h-5 text-blue-600 dark:text-blue-300" />
               </div>
-              <h2 className="text-xl text-gray-900 dark:text-white font-semibold">Tambah User Baru</h2>
+              <h2 className="text-xl text-gray-900 dark:text-white font-semibold">Tambah Pengguna Baru</h2>
             </div>
             <button 
               onClick={handleClose} 
@@ -139,7 +139,9 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
               <div className="bg-red-100 dark:bg-red-500/20 border border-red-300 dark:border-red-400/40 rounded-lg p-4">
                 <div className="flex items-center">
                   <ExclamationCircleIcon className="w-5 h-5 text-red-600 dark:text-red-300 mr-2 flex-shrink-0" />
-                  <p className="text-sm text-red-700 dark:text-red-200">{error}</p>
+                  <div className="text-sm text-red-700 dark:text-red-200 whitespace-pre-line">
+                    {error}
+                  </div>
                 </div>
               </div>
             )}

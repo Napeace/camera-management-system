@@ -19,7 +19,7 @@ class UserService {
     throw new Error(response.data.message || "Struktur respons API tidak valid.");
   }
 
-  // Helper untuk menangani error dari Axios
+  // ✅ FIXED: Helper untuk menangani error dari Axios dengan custom message
   _handleError(error) {
     console.error('API Error Details:', {
       status: error.response?.status,
@@ -28,17 +28,56 @@ class UserService {
       url: error.config?.url
     });
     
-    let errorMessage = 'An error occurred';
+    // Mapping field names ke Bahasa Indonesia
+    const fieldMapping = {
+      'nama': 'Nama Lengkap',
+      'nip': 'NIP',
+      'username': 'Username',
+      'password': 'Password'
+    };
+    
+    let errorMessage = 'Terjadi kesalahan';
     
     if (error.response?.data) {
-      if (typeof error.response.data === 'string') {
-        errorMessage = error.response.data;
-      } else if (error.response.data.detail) {
-        errorMessage = error.response.data.detail;
-      } else if (error.response.data.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.response.status) {
-        errorMessage = `Server error: ${error.response.status}`;
+      const data = error.response.data;
+      
+      // ✅ FIX: Handle FastAPI validation errors (array of objects)
+      if (data.detail) {
+        if (Array.isArray(data.detail)) {
+          // FastAPI validation error format
+          errorMessage = data.detail
+            .map(err => {
+              const fieldKey = err.loc ? err.loc[err.loc.length - 1] : 'Field';
+              const fieldName = fieldMapping[fieldKey] || fieldKey;
+              
+              // Custom message berdasarkan tipe error
+              if (err.type === 'string_too_short') {
+                const minLength = err.ctx?.min_length || 5;
+                return `${fieldName} minimal ${minLength} karakter`;
+              } else if (err.type === 'string_too_long') {
+                const maxLength = err.ctx?.max_length || 100;
+                return `${fieldName} maksimal ${maxLength} karakter`;
+              } else if (err.type === 'missing') {
+                return `${fieldName} wajib diisi`;
+              } else {
+                // Default: gunakan message dari backend
+                return `${fieldName}: ${err.msg}`;
+              }
+            })
+            .join('\n');
+        } else if (typeof data.detail === 'string') {
+          errorMessage = data.detail;
+        } else if (typeof data.detail === 'object') {
+          errorMessage = JSON.stringify(data.detail);
+        }
+      } else if (data.message) {
+        errorMessage = data.message;
+      } else if (data.error) {
+        errorMessage = data.error;
+      } else if (typeof data === 'string') {
+        errorMessage = data;
+      } else {
+        errorMessage = JSON.stringify(data);
       }
     } else if (error.message) {
       errorMessage = error.message;
@@ -49,13 +88,10 @@ class UserService {
 
   async getAllUsers(filters = {}) {
     try {
-      // ❌ REMOVED: Manual token validation
-      // const token = this._getAuthToken();
-      
       // Build query parameters
       const queryParams = new URLSearchParams({ 
         skip: 0, 
-        limit: 1000 // Increase limit to get more users
+        limit: 1000
       });
       
       // Add search parameter if provided
@@ -70,7 +106,6 @@ class UserService {
       
       console.log('API Call URL:', `/users/?${queryParams.toString()}`);
       
-      // ❌ REMOVED: Token manually appended to URL (handled by interceptor)
       const response = await apiClient.get(`/users/?${queryParams.toString()}`);
       const result = this._handleResponse(response);
 
@@ -85,7 +120,6 @@ class UserService {
 
   async createUser(userData) {
     try {
-      // ❌ REMOVED: Manual token append
       console.log('Creating user with data:', userData);
       const response = await apiClient.post('/users/', userData);
       return this._handleResponse(response);
@@ -96,7 +130,6 @@ class UserService {
 
   async updateUser(userId, userData) {
     try {
-      // ❌ REMOVED: Manual token append
       console.log('Updating user:', userId, 'with data:', userData);
       const response = await apiClient.put(`/users/${userId}`, userData);
       return this._handleResponse(response);
@@ -107,7 +140,6 @@ class UserService {
 
   async softDeleteUser(userId) {
     try {
-      // ❌ REMOVED: Manual token append
       const response = await apiClient.delete(`/users/soft/${userId}`);
       return this._handleResponse(response);
     } catch (error) {
@@ -117,7 +149,6 @@ class UserService {
 
   async hardDeleteUser(userId) {
     try {
-      // ❌ REMOVED: Manual token append
       const response = await apiClient.delete(`/users/hard/${userId}`);
       return this._handleResponse(response);
     } catch (error) {
@@ -128,15 +159,13 @@ class UserService {
   // Export Users to Excel/CSV
   async exportUsers(format = 'xlsx') {
     try {
-      // ❌ REMOVED: Manual token append
       console.log('Exporting users with format:', format);
       
       const response = await apiClient.get(`/users/export?format=${format}`, {
-        responseType: 'blob', // Important for file download
-        timeout: 60000, // 60 seconds timeout for export operations
+        responseType: 'blob',
+        timeout: 60000,
       });
       
-      // For blob responses, we don't use _handleResponse since it's different format
       return response;
     } catch (error) {
       this._handleError(error);
@@ -146,15 +175,13 @@ class UserService {
   // Import Users from Excel/CSV file
   async importUsers(formData) {
     try {
-      // ❌ REMOVED: Manual token append to formData
       console.log('Importing users from file');
       
-      // Token will be automatically injected by interceptor in query params
       const response = await apiClient.post('/users/import', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        timeout: 120000, // 2 minutes timeout for import operations
+        timeout: 120000,
       });
       
       return this._handleResponse(response);

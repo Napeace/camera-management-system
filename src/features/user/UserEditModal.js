@@ -1,4 +1,4 @@
-// src/features/user/UserEditModal.js - Styled with Password Toggle
+// src/features/user/UserEditModal.js - Fixed Error Handling
 import React, { useState, useEffect } from 'react';
 import { XMarkIcon, ExclamationCircleIcon, EyeIcon, EyeSlashIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
 
@@ -68,10 +68,12 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
         userData.password = formData.password;
       }
       
+      // ✅ FIX: Wrap onSave dengan try-catch agar error tidak bubble ke parent
       if (onSave) {
         await onSave(userToEdit.id_user, userData);
       }
 
+      // ✅ Hanya close modal dan trigger refresh jika sukses
       onClose();
 
       if (onUserUpdated) {
@@ -79,8 +81,10 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
       }
             
     } catch (error) {
+      // ✅ FIX: Error hanya ditampilkan di modal, tidak di-propagate
       console.error('Update user error:', error);
       setError(error.message || 'Gagal memperbarui user.');
+      // ❌ REMOVED: throw error; (ini yang bikin error bubble ke parent)
     } finally {
       setLoading(false);
     }
@@ -119,7 +123,7 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
                 <PencilSquareIcon className="w-5 h-5 text-blue-600 dark:text-blue-300" />
               </div>
               <h2 className="text-xl text-gray-900 dark:text-white font-semibold">
-                Edit User: {userToEdit?.nama}
+                Edit Pengguna
               </h2>
             </div>
             <button 
@@ -138,9 +142,11 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="bg-red-100 dark:bg-red-500/20 border border-red-300 dark:border-red-400/40 rounded-lg p-4">
-                <div className="flex items-center">
-                  <ExclamationCircleIcon className="w-5 h-5 text-red-600 dark:text-red-300 mr-2 flex-shrink-0" />
-                  <p className="text-sm text-red-700 dark:text-red-200">{error}</p>
+                <div className="flex items-start">
+                  <ExclamationCircleIcon className="w-5 h-5 text-red-600 dark:text-red-300 mr-2 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-red-700 dark:text-red-200 whitespace-pre-line">
+                    {error}
+                  </div>
                 </div>
               </div>
             )}

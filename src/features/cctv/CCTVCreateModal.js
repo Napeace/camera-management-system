@@ -8,23 +8,40 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
     const [error, setError] = useState('');
     const [isAnimating, setIsAnimating] = useState(false);
     const [shouldShow, setShouldShow] = useState(false);
+    
+    // ✅ Toggle state untuk IP Address vs Analog
+    const [isAnalogMode, setIsAnalogMode] = useState(false);
+    
+    // Form data untuk IP Address mode
     const [formData, setFormData] = useState({
         titik_letak: '',
         ip_address: '',
         id_location: '',
         status: true,
     });
+    
+    // ✅ Form data untuk Analog mode
+    const [analogFormData, setAnalogFormData] = useState({
+        nama_lokasi: '',
+        ip_address: '',
+    });
 
     // Handle animation
     useEffect(() => {
         if (isOpen) {
             setIsAnimating(true);
+            // Reset form saat modal dibuka
             setFormData({
                 titik_letak: '',
                 ip_address: '',
                 id_location: '',
                 status: true,
             });
+            setAnalogFormData({
+                nama_lokasi: '',
+                ip_address: '',
+            });
+            setIsAnalogMode(false); // Default ke IP Address mode
             setError('');
             setTimeout(() => setShouldShow(true), 10);
         } else {
@@ -42,7 +59,24 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
         }));
         if (error) setError('');
     };
+    
+    // ✅ Handle input untuk form analog
+    const handleAnalogInputChange = (e) => {
+        const { name, value } = e.target;
+        setAnalogFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+        if (error) setError('');
+    };
 
+    // ✅ Toggle handler
+    const handleToggleMode = () => {
+        setIsAnalogMode(!isAnalogMode);
+        setError(''); // Clear error saat toggle
+    };
+
+    // Validasi untuk IP Address mode
     const validateForm = () => {
         const { titik_letak, ip_address, id_location } = formData;
         if (!titik_letak.trim()) {
@@ -68,33 +102,76 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
         }
         return true;
     };
+    
+    // ✅ Validasi untuk Analog mode
+    const validateAnalogForm = () => {
+        const { nama_lokasi, ip_address } = analogFormData;
+        
+        if (!nama_lokasi.trim()) {
+            setError('Nama Lokasi wajib diisi');
+            return false;
+        }
+        if (nama_lokasi.trim().length < 5) {
+            setError('Nama Lokasi harus memiliki minimal 5 karakter');
+            return false;
+        }
+        if (!ip_address.trim()) {
+            setError('IP Address wajib diisi');
+            return false;
+        }
+        const ipPattern = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+        if (!ipPattern.test(ip_address.trim())) {
+            setError('Format IP Address tidak valid (contoh: 192.168.1.1)');
+            return false;
+        }
+        return true;
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!validateForm()) {
-            return;
+        
+        // ✅ Validasi sesuai mode
+        if (isAnalogMode) {
+            if (!validateAnalogForm()) {
+                return;
+            }
+        } else {
+            if (!validateForm()) {
+                return;
+            }
         }
 
         setLoading(true);
         setError('');
 
         try {
-            const cctvData = {
-                titik_letak: formData.titik_letak.trim(),
-                ip_address: formData.ip_address.trim(),
-                id_location: parseInt(formData.id_location),
-                status: formData.status
-            };
-            console.log('Submitting CCTV data:', cctvData);
-            const newCCTV = await cctvService.createCCTV(cctvData);
+            let newCCTV;
+            
+            // ✅ Submit sesuai mode
+            if (isAnalogMode) {
+                // Submit analog CCTV
+                const analogData = {
+                    nama_lokasi: analogFormData.nama_lokasi.trim(),
+                    ip_address: analogFormData.ip_address.trim(),
+                };
+                console.log('Submitting Analog CCTV data:', analogData);
+                newCCTV = await cctvService.createCCTVAnalog(analogData);
+            } else {
+                // Submit IP CCTV
+                const cctvData = {
+                    titik_letak: formData.titik_letak.trim(),
+                    ip_address: formData.ip_address.trim(),
+                    id_location: parseInt(formData.id_location),
+                    status: formData.status
+                };
+                console.log('Submitting IP CCTV data:', cctvData);
+                newCCTV = await cctvService.createCCTV(cctvData);
+            }
+            
             console.log('CCTV created successfully:', newCCTV);
+            
             if (onCCTVCreated) {
-                await onCCTVCreated({
-                    titik_letak: cctvData.titik_letak,
-                    ip_address: cctvData.ip_address,
-                    id_location: cctvData.id_location,
-                    status: cctvData.status
-                });
+                await onCCTVCreated(newCCTV);
             }
             onClose();
         } catch (error) {
@@ -151,6 +228,39 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
                     {/* Border separator */}
                     <div className="h-px bg-gray-200 dark:bg-white/10"></div>
 
+                    {/* ✅ Toggle Switch */}
+                    <div className="flex items-center justify-between bg-white dark:bg-white/10 rounded-lg p-3 border border-gray-200 dark:border-white/10">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                                Tipe CCTV:
+                            </span>
+                            <span className={`text-sm font-semibold ${isAnalogMode ? 'text-gray-400 dark:text-gray-500' : 'text-blue-600 dark:text-blue-400'}`}>
+                                IP Address
+                            </span>
+                        </div>
+                        
+                        <button
+                            type="button"
+                            onClick={handleToggleMode}
+                            disabled={loading}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 ${
+                                isAnalogMode 
+                                    ? 'bg-orange-500 dark:bg-orange-600' 
+                                    : 'bg-blue-500 dark:bg-blue-600'
+                            }`}
+                        >
+                            <span
+                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
+                                    isAnalogMode ? 'translate-x-6' : 'translate-x-1'
+                                }`}
+                            />
+                        </button>
+                        
+                        <span className={`text-sm font-semibold ${isAnalogMode ? 'text-orange-600 dark:text-orange-400' : 'text-gray-400 dark:text-gray-500'}`}>
+                            Analog
+                        </span>
+                    </div>
+
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="space-y-4">
                         {error && (
@@ -162,55 +272,103 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
                             </div>
                         )}
 
-                        {/* Titik Letak */}
-                        <div>
-                            <label htmlFor="titik_letak" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                                Titik Letak <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="text" 
-                                id="titik_letak" 
-                                name="titik_letak" 
-                                required
-                                value={formData.titik_letak} 
-                                onChange={handleInputChange} 
-                                disabled={loading}
-                                className="block w-full px-4 py-3 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 disabled:opacity-50 transition-all"
-                                placeholder="Pos Satpam 2"
-                            />
-                        </div>
+                        {/* ✅ Conditional Form berdasarkan mode */}
+                        {isAnalogMode ? (
+                            // === FORM ANALOG MODE ===
+                            <>
+                                {/* Nama Lokasi */}
+                                <div>
+                                    <label htmlFor="nama_lokasi" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                                        Nama Lokasi <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text" 
+                                        id="nama_lokasi" 
+                                        name="nama_lokasi" 
+                                        required
+                                        value={analogFormData.nama_lokasi} 
+                                        onChange={handleAnalogInputChange} 
+                                        disabled={loading}
+                                        className="block w-full px-4 py-3 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-400 focus:border-orange-500 dark:focus:border-orange-400 disabled:opacity-50 transition-all"
+                                        placeholder="Contoh: Ruang Server Utama"
+                                    />
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                        Minimal 5 karakter
+                                    </p>
+                                </div>
 
-                        {/* IP Address */}
-                        <div>
-                            <label htmlFor="ip_address" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                                IP Address <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="text" 
-                                id="ip_address" 
-                                name="ip_address" 
-                                required
-                                value={formData.ip_address} 
-                                onChange={handleInputChange} 
-                                disabled={loading}
-                                className="block w-full px-4 py-3 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 disabled:opacity-50 transition-all"
-                                placeholder="192.168.10.202"
-                            />
-                        </div>
+                                {/* IP Address Analog */}
+                                <div>
+                                    <label htmlFor="analog_ip_address" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                                        IP Address <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text" 
+                                        id="analog_ip_address" 
+                                        name="ip_address" 
+                                        required
+                                        value={analogFormData.ip_address} 
+                                        onChange={handleAnalogInputChange} 
+                                        disabled={loading}
+                                        className="block w-full px-4 py-3 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-400 focus:border-orange-500 dark:focus:border-orange-400 disabled:opacity-50 transition-all"
+                                        placeholder="192.168.10.180"
+                                    />
+                                </div>
+                            </>
+                        ) : (
+                            // === FORM IP ADDRESS MODE (ORIGINAL) ===
+                            <>
+                                {/* Titik Letak */}
+                                <div>
+                                    <label htmlFor="titik_letak" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                                        Titik Letak <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text" 
+                                        id="titik_letak" 
+                                        name="titik_letak" 
+                                        required
+                                        value={formData.titik_letak} 
+                                        onChange={handleInputChange} 
+                                        disabled={loading}
+                                        className="block w-full px-4 py-3 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 disabled:opacity-50 transition-all"
+                                        placeholder="Pos Satpam 2"
+                                    />
+                                </div>
 
-                        {/* Lokasi */}
-                        <div>
-                            <label htmlFor="id_location" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                                Lokasi <span className="text-red-500">*</span>
-                            </label>
-                            <CustomLocationSelect
-                                value={formData.id_location}
-                                onChange={handleInputChange}
-                                disabled={loading}
-                                locations={locationGroups}
-                                variant="form"
-                            />
-                        </div>
+                                {/* IP Address */}
+                                <div>
+                                    <label htmlFor="ip_address" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                                        IP Address <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text" 
+                                        id="ip_address" 
+                                        name="ip_address" 
+                                        required
+                                        value={formData.ip_address} 
+                                        onChange={handleInputChange} 
+                                        disabled={loading}
+                                        className="block w-full px-4 py-3 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 disabled:opacity-50 transition-all"
+                                        placeholder="192.168.10.202"
+                                    />
+                                </div>
+
+                                {/* Lokasi */}
+                                <div>
+                                    <label htmlFor="id_location" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                                        Lokasi <span className="text-red-500">*</span>
+                                    </label>
+                                    <CustomLocationSelect
+                                        value={formData.id_location}
+                                        onChange={handleInputChange}
+                                        disabled={loading}
+                                        locations={locationGroups}
+                                        variant="form"
+                                    />
+                                </div>
+                            </>
+                        )}
                     </form>
                 </div>
 
@@ -228,10 +386,10 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
                         type="submit" 
                         onClick={handleSubmit}
                         disabled={loading}
-                        className="px-8 py-2.5 bg-gray-300 dark:bg-gray-400/30 rounded-lg text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-400 dark:hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                        className="px-8 py-2.5 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 bg-gray-300 dark:bg-gray-400/30 text-gray-700 dark:text-gray-200 hover:bg-gray-400 dark:hover:bg-blue-500"
                     >
                         {loading && (
-                            <svg className="animate-spin h-5 w-5 text-gray-700 dark:text-gray-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>

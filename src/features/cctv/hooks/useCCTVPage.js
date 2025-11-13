@@ -75,13 +75,8 @@ const useCCTVPage = () => {
                 cctvService.getAllCCTV()
             ]);
             setLocationGroups(locations || []);
+            setAllCctvData(cctvResult.data || []);
             
-            // ✅ Sorting berdasarkan id_cctv agar urutan konsisten
-            const sortedData = (cctvResult.data || []).sort((a, b) => {
-                return a.id_cctv - b.id_cctv;
-            });
-            
-            setAllCctvData(sortedData);
         } catch (err) {
             console.error('Error fetching initial data:', err);
             const errorMessage = extractErrorMessage(err);

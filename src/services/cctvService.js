@@ -8,6 +8,7 @@ class CCTVService {
     'ip_address': 'IP Address', 
     'is_streaming': 'Status Streaming',
     'id_location': 'Lokasi',
+    'nama_lokasi': 'Nama Lokasi',
     'string': 'Titik Letak', 
     'str': 'Titik Letak'    
   };
@@ -55,7 +56,6 @@ class CCTVService {
   // Get all CCTV cameras
   async getAllCCTV(filters = {}) {
     try {
-      // ✅ Token sudah di-handle oleh interceptor di header
       const params = new URLSearchParams();
       
       params.append('skip', filters.skip || 0);
@@ -171,10 +171,10 @@ class CCTVService {
     }
   }
 
-  // Create new CCTV
+  // Create new CCTV (IP Address)
   async createCCTV(cctvData) {
     try {
-      console.log('Creating CCTV with data:', cctvData);
+      console.log('Creating IP CCTV with data:', cctvData);
       
       const requestData = {
         titik_letak: cctvData.titik_letak,
@@ -182,17 +182,73 @@ class CCTVService {
         id_location: parseInt(cctvData.id_location)
       };
       
-      console.log('POST URL:', '/cctv/');
+      console.log('POST URL:', '/cctv/ip');
       console.log('Request Data:', requestData);
       
-      const response = await apiClient.post('/cctv/', requestData);
+      const response = await apiClient.post('/cctv/ip', requestData);
       
-      console.log('Create CCTV Response:', response.data);
+      console.log('Create IP CCTV Response:', response.data);
+      
+      // Extract data dari success_response wrapper
+      if (response.data && response.data.data) {
+        return response.data.data;
+      }
+      
       return response.data;
     } catch (error) {
-      console.error('Error creating CCTV:', error);
+      console.error('Error creating IP CCTV:', error);
       
       let errorMessage = 'Gagal membuat CCTV';
+      
+      if (error.response) {
+        const errorData = error.response.data;
+        
+        if (typeof errorData === 'string') {
+          errorMessage = errorData;
+        } else if (errorData?.detail) {
+          errorMessage = this.formatValidationError(errorData.detail);
+        } else if (errorData?.message) {
+          errorMessage = errorData.message;
+        } else {
+          errorMessage = `Server Error (${error.response.status}): ${JSON.stringify(errorData)}`;
+        }
+      } else if (error.request) {
+        errorMessage = 'Koneksi bermasalah - tidak dapat terhubung ke server';
+      } else {
+        errorMessage = error.message;
+      }
+      
+      throw new Error(errorMessage);
+    }
+  }
+
+  // ✅ Create new CCTV Analog
+  async createCCTVAnalog(analogData) {
+    try {
+      console.log('Creating Analog CCTV with data:', analogData);
+      
+      const requestData = {
+        nama_lokasi: analogData.nama_lokasi,
+        ip_address: analogData.ip_address
+      };
+      
+      console.log('POST URL:', '/cctv/analog');
+      console.log('Request Data:', requestData);
+      
+      const response = await apiClient.post('/cctv/analog', requestData);
+      
+      console.log('Create Analog CCTV Response:', response.data);
+      
+      // Extract data dari success_response wrapper
+      if (response.data && response.data.data) {
+        return response.data.data;
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error creating Analog CCTV:', error);
+      
+      let errorMessage = 'Gagal membuat CCTV Analog';
       
       if (error.response) {
         const errorData = error.response.data;

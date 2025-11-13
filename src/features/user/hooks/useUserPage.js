@@ -146,8 +146,8 @@ const useUserPage = () => {
 
     const handleDeleteUser = useCallback((userToDelete, isHard = false) => {
         const actionType = isHard ? 'hard-delete' : 'soft-delete';
-        const title = isHard ? 'Hapus User Permanen' : 'Hapus User';
-        const message = `Apakah Anda yakin ingin menghapus user ${userToDelete.username}?`;
+        const title = isHard ? 'Hapus Pengguna' : 'Hapus Pengguna';
+        const message = `Apakah Anda yakin ingin menghapus pengguna ${userToDelete.nama}?`;
 
         setConfirmDialog({
             isOpen: true,

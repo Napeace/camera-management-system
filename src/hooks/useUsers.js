@@ -1,4 +1,4 @@
-// hooks/useUsers.js
+// hooks/useUsers.js - Fixed: Modal errors don't affect UserList
 import { useState, useEffect, useCallback } from 'react';
 import userService from '../services/userService';
 
@@ -14,7 +14,6 @@ const useUsers = () => {
       setLoading(true);
       setError(null);
       
-      // Debug log untuk melihat filters yang dikirim
       console.log('Fetching users with filters:', currentFilters);
       
       const response = await userService.getAllUsers(currentFilters);
@@ -57,42 +56,45 @@ const useUsers = () => {
     fetchUsers(filters);
   }, []); // Remove filters dependency to prevent infinite loop
 
+  // ✅ FIX: createUser - Jangan set error global agar modal yang handle
   const createUser = useCallback(async (userData) => {
     try {
       setLoading(true);
-      setError(null);
+      // ❌ REMOVED: setError(null); - Jangan reset error saat create/update
       await userService.createUser(userData);
       await fetchUsers(filters); // Refresh with current filters
     } catch (err) {
       console.error('Create user error in hook:', err);
-      setError(err.message || 'Failed to create user');
-      throw err;
+      // ❌ REMOVED: setError(err.message) - Biar modal yang handle
+      throw err; // Tetap throw agar modal bisa catch
     } finally {
       setLoading(false);
     }
   }, [filters, fetchUsers]);
 
+  // ✅ FIX: updateUser - Jangan set error global agar modal yang handle
   const updateUser = useCallback(async (userId, userData) => {
     try {
       setLoading(true);
-      setError(null);
+      // ❌ REMOVED: setError(null); - Jangan reset error saat create/update
       await userService.updateUser(userId, userData);
       await fetchUsers(filters); // Refresh with current filters
     } catch (err) {
       console.error('Update user error in hook:', err);
-      setError(err.message || 'Failed to update user');
-      throw err;
+      // ❌ REMOVED: setError(err.message) - Biar modal yang handle
+      throw err; // Tetap throw agar modal bisa catch
     } finally {
       setLoading(false);
     }
   }, [filters, fetchUsers]);
   
+  // ✅ Delete operations tetap set error karena tidak ada modal khusus
   const softDeleteUser = useCallback(async (userId) => {
     try {
       setLoading(true);
       setError(null);
       await userService.softDeleteUser(userId);
-      await fetchUsers(filters); // Refresh with current filters
+      await fetchUsers(filters);
     } catch (err) {
       console.error('Soft delete user error:', err);
       setError(err.message || 'Failed to soft delete user');
@@ -107,7 +109,7 @@ const useUsers = () => {
       setLoading(true);
       setError(null);
       await userService.hardDeleteUser(userId);
-      await fetchUsers(filters); // Refresh with current filters
+      await fetchUsers(filters);
     } catch (err) {
       console.error('Hard delete user error:', err);
       setError(err.message || 'Failed to permanently delete user');

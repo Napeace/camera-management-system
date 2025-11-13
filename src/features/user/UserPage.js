@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import MainLayout from '../../components/layout/MainLayout';
 import Sidebar from '../../components/layout/Sidebar';
@@ -12,6 +12,9 @@ import useUserPage from './hooks/useUserPage';
 
 const UserPage = () => {
     const bottomRef = useRef(null);
+    
+    // ✅ FIX: Flag untuk kontrol kapan harus scroll
+    const [shouldScrollOnChange, setShouldScrollOnChange] = useState(false);
 
     const {
         // UI States
@@ -60,15 +63,23 @@ const UserPage = () => {
         animations
     } = useUserPage();
 
-    // Auto-scroll when pagination changes
+    // ✅ FIX: Scroll hanya ketika pagination di-klik (bukan saat create/edit)
     useEffect(() => {
-        if (bottomRef.current && !loading) {
+        if (shouldScrollOnChange && bottomRef.current && !loading) {
             bottomRef.current.scrollIntoView({
                 behavior: 'smooth',
                 block: 'end'
             });
+            // Reset flag setelah scroll
+            setShouldScrollOnChange(false);
         }
-    }, [currentPage, loading]);
+    }, [currentPage, loading, shouldScrollOnChange]);
+
+    // ✅ Wrapper untuk pagination change yang set flag scroll
+    const handlePaginationChangeWithScroll = (page) => {
+        setShouldScrollOnChange(true); // Set flag untuk scroll
+        handlePaginationChange(page);
+    };
 
     return (
         <>
@@ -120,24 +131,12 @@ const UserPage = () => {
                             onDelete={handleDeleteUser}
                             currentPage={currentPage}
                             totalPages={totalPages}
-                            onPageChange={handlePaginationChange}
+                            onPageChange={handlePaginationChangeWithScroll}
                             totalItems={filteredUsers.length}
                             itemsPerPage={itemsPerPage}
                         />
                     </motion.div>
-
-                    {/* Results Count */}
-                    {!loading && users.length > 0 && (
-                        <motion.div
-                            variants={animations.item}
-                            className="text-sm text-gray-500 dark:text-gray-400 text-center"
-                        >
-                            Menampilkan {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, filteredUsers.length)} dari {filteredUsers.length} user yang difilter ({users.length} total).
-                        </motion.div>
-                    )}
-
                     <div ref={bottomRef} className="h-1" />
-
                 </motion.div>
             </MainLayout>
 

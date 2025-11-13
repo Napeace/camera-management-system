@@ -243,9 +243,27 @@ const CCTVList = ({
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm text-gray-700 dark:text-gray-300 font-mono bg-gray-100 dark:bg-slate-900/50 px-2 py-1 rounded">
-                      {cctv.ip_address || '-'}
-                    </span>
+                    {/* ✅ Check if CCTV is Analog (prefix "Analog" in titik_letak) */}
+                    {cctv.titik_letak && cctv.titik_letak.toLowerCase().startsWith('analog') ? (
+                      // Analog CCTV - IP Address is clickable link
+                      <a
+                        href={`http://${cctv.ip_address}/`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-mono text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline decoration-blue-600/30 hover:decoration-blue-600 dark:decoration-blue-400/30 dark:hover:decoration-blue-400 underline-offset-2 transition-all duration-200 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded inline-flex items-center gap-1.5"
+                        title={`Buka CCTV Analog ${cctv.ip_address} di tab baru`}
+                      >
+                        {cctv.ip_address || '-'}
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </a>
+                    ) : (
+                      // IP CCTV - IP Address is regular text
+                      <span className="text-sm text-gray-700 dark:text-gray-300 font-mono bg-gray-100 dark:bg-slate-900/50 px-2 py-1 rounded">
+                        {cctv.ip_address || '-'}
+                      </span>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <span className="text-sm text-gray-700 dark:text-gray-300">
