@@ -10,6 +10,8 @@ const DateRangeFilter = ({
   const [isOpen, setIsOpen] = useState(false);
   const [selectingStart, setSelectingStart] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [tempStartDate, setTempStartDate] = useState(null);
+  const [tempEndDate, setTempEndDate] = useState(null);
   const dropdownRef = useRef(null);
 
   // Initialize current month based on startDate or today
@@ -20,6 +22,15 @@ const DateRangeFilter = ({
       setCurrentMonth(new Date());
     }
   }, [startDate]);
+
+  // Sync temp dates with props when opening
+  useEffect(() => {
+    if (isOpen) {
+      setTempStartDate(startDate);
+      setTempEndDate(endDate);
+      setSelectingStart(!startDate); // If no startDate, select start first
+    }
+  }, [isOpen, startDate, endDate]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -51,21 +62,34 @@ const DateRangeFilter = ({
     return '';
   };
 
-  // Handle date selection
+  // ✅ FIXED: Handle date selection with validation
   const handleDateClick = (date) => {
     if (selectingStart) {
-      onStartDateChange(date);
-      onEndDateChange(null); // Reset end date
+      setTempStartDate(date);
+      setTempEndDate(null); // Reset end date when selecting new start
       setSelectingStart(false); // Switch to end date mode
     } else {
       // Validate end date must be >= start date
-      if (startDate && date < startDate) {
+      if (tempStartDate && date < tempStartDate) {
         return;
       }
+      setTempEndDate(date);
+      
+      // ✅ Only apply filter when BOTH dates are selected
+      onStartDateChange(tempStartDate);
       onEndDateChange(date);
+      
       setIsOpen(false); // Close after selecting end date
       setSelectingStart(true); // Reset for next time
     }
+  };
+
+  // ✅ FIXED: Clear filter - reset both dates
+  const handleClearFilter = () => {
+    setTempStartDate(null);
+    setTempEndDate(null);
+    onStartDateChange(null);
+    onEndDateChange(null);
   };
 
   // Navigate month
@@ -107,15 +131,15 @@ const DateRangeFilter = ({
 
   // Check if date is in range
   const isInRange = (date) => {
-    if (!date || !startDate || !endDate) return false;
-    return date >= startDate && date <= endDate;
+    if (!date || !tempStartDate || !tempEndDate) return false;
+    return date >= tempStartDate && date <= tempEndDate;
   };
 
   // Check if date is selected
   const isSelected = (date) => {
     if (!date) return false;
-    if (startDate && date.toDateString() === startDate.toDateString()) return true;
-    if (endDate && date.toDateString() === endDate.toDateString()) return true;
+    if (tempStartDate && date.toDateString() === tempStartDate.toDateString()) return true;
+    if (tempEndDate && date.toDateString() === tempEndDate.toDateString()) return true;
     return false;
   };
 
@@ -159,8 +183,21 @@ const DateRangeFilter = ({
             value={getDisplayValue()}
             onClick={() => setIsOpen(!isOpen)}
             placeholder="Tanggal Mulai - Tanggal Akhir"
-            className="w-full pl-10 p-2 bg-white dark:bg-slate-800/70 border-2 border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent cursor-pointer transition-all"
+            className="w-full pl-10 pr-10 p-2 bg-white dark:bg-slate-800/70 border-2 border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent cursor-pointer transition-all"
           />
+          {/* ✅ ADDED: Clear button when dates are set */}
+          {(startDate || endDate) && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleClearFilter();
+              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors z-10"
+            >
+              <XMarkIcon className="w-5 h-5" />
+            </button>
+          )}
         </div>
 
         {/* Calendar Dropdown - Responsive Theme */}
@@ -205,11 +242,11 @@ const DateRangeFilter = ({
                 <button
                   type="button"
                   onClick={() => setSelectingStart(false)}
-                  disabled={!startDate}
+                  disabled={!tempStartDate}
                   className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                     !selectingStart 
                       ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-lg ring-2 ring-blue-300 dark:ring-blue-400' 
-                      : !startDate
+                      : !tempStartDate
                       ? 'bg-gray-200 dark:bg-slate-800/50 text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50'
                       : 'bg-gray-200 dark:bg-slate-700/50 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-slate-600/50'
                   }`}
@@ -262,7 +299,7 @@ const DateRangeFilter = ({
                     const inRange = isInRange(date);
                     const today = isToday(date);
                     const future = isFuture(date);
-                    const disabled = future || (!selectingStart && startDate && date < startDate);
+                    const disabled = future || (!selectingStart && tempStartDate && date < tempStartDate);
 
                     return (
                       <button
@@ -296,7 +333,7 @@ const DateRangeFilter = ({
                 </div>
               </div>
 
-              {/* Footer Info - Optional */}
+              {/* Footer Info */}
               <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
@@ -309,9 +346,9 @@ const DateRangeFilter = ({
                       <span className="text-gray-400 dark:text-gray-400">Dipilih</span>
                     </div>
                   </div>
-                  {startDate && endDate && (
+                  {tempStartDate && tempEndDate && (
                     <span className="text-gray-400 dark:text-gray-400 font-medium">
-                      {Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1} hari
+                      {Math.ceil((tempEndDate - tempStartDate) / (1000 * 60 * 60 * 24)) + 1} hari
                     </span>
                   )}
                 </div>

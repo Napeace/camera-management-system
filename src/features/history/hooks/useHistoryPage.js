@@ -1,7 +1,8 @@
-// features/history/hooks/useHistoryPage.js
+// features/history/hooks/useHistoryPage.js - WITH EXPORT LOGIC
 import { useState, useCallback, useMemo } from 'react';
 import { useToast } from '../../../contexts/ToastContext';
 import useHistory from './useHistory';
+import historyService from '../../../services/historyService';
 
 const useHistoryPage = () => {
   const { showSuccess, showError, showInfo } = useToast();
@@ -155,7 +156,7 @@ const useHistoryPage = () => {
     setStartDate(null);
     setEndDate(null);
     setCurrentPage(1);
-    showInfo('Filters Cleared', 'All filters have been reset');
+    showInfo('Filter Dihapus', 'Semua filter telah direset');
   }, [showInfo]);
 
   // Pagination handler
@@ -163,19 +164,66 @@ const useHistoryPage = () => {
     setCurrentPage(page);
   }, []);
 
-  // Export to PDF
+  // ✅ UPDATED: Export to Excel with smart filtering
   const handleExportToPDF = useCallback(async () => {
+    console.log('🚀 Export triggered with state:', {
+      startDate,
+      endDate,
+      filteredHistoryLength: filteredHistory.length,
+      totalHistoryLength: historyData.length
+    });
+
+    // ✅ Validate: Check if there's data to export
+    if (filteredHistory.length === 0) {
+      showError(
+        'Tidak Ada Data',
+        'Tidak ada data history untuk diekspor. Coba ubah filter tanggal Anda.'
+      );
+      return;
+    }
+
     setIsExporting(true);
+    
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      showSuccess('Export Successful', 'History data has been exported to PDF successfully');
+      // ✅ Smart export logic:
+      // - If startDate & endDate are set → use them
+      // - If not set → backend will use default (last 30 days)
+      const exportStartDate = startDate;
+      const exportEndDate = endDate;
+
+      console.log('📤 Calling export API with:', {
+        exportStartDate,
+        exportEndDate
+      });
+
+      const result = await historyService.exportHistory(exportStartDate, exportEndDate);
+      
+      console.log('✅ Export successful:', result);
+
+      // Format date range for toast message
+      let dateRangeMsg = '';
+      if (exportStartDate && exportEndDate) {
+        const startStr = exportStartDate.toLocaleDateString('id-ID');
+        const endStr = exportEndDate.toLocaleDateString('id-ID');
+        dateRangeMsg = ` (${startStr} - ${endStr})`;
+      } else {
+        dateRangeMsg = ' (7 hari terakhir)';
+      }
+
+      showSuccess(
+        'Ekspor Berhasil',
+        `File ${result.filename || 'laporan kerusakan'} telah berhasil diunduh${dateRangeMsg}.`
+      );
     } catch (error) {
-      console.error('Export error:', error);
-      showError('Export Failed', 'Failed to export history data to PDF');
+      console.error('❌ Export error:', error);
+      showError(
+        'Ekspor Gagal',
+        error.message || 'Terjadi kesalahan saat mengekspor data history ke Excel'
+      );
     } finally {
       setIsExporting(false);
     }
-  }, [showSuccess, showError]);
+  }, [startDate, endDate, filteredHistory.length, historyData.length, showSuccess, showError]);
 
   // Modal handlers
   const handleOpenCreateModal = useCallback(() => {
@@ -188,7 +236,7 @@ const useHistoryPage = () => {
 
   const handleHistoryCreated = useCallback(async (newHistory) => {
     try {
-      showSuccess('History Created', 'History berhasil ditambahkan');
+      showSuccess('Riwayat Dibuat', 'Riwayat berhasil ditambahkan');
       await fetchHistory();
       setCurrentPage(1);
     } catch (error) {
@@ -202,7 +250,7 @@ const useHistoryPage = () => {
       await fetchHistory();
     } catch (error) {
       console.error('Error refreshing history data:', error);
-      showError('Refresh Failed', 'Gagal memuat ulang data history');
+      showError('Refresh Gagal', 'Gagal memuat ulang data history');
     }
   }, [fetchHistory, showError]);
 
@@ -223,7 +271,7 @@ const useHistoryPage = () => {
     } catch (err) {
       console.error('Action failed:', err);
       setConfirmDialog(prev => ({ ...prev, loading: false }));
-      showError('Action Failed', 'An error occurred while processing your request');
+      showError('Aksi Gagal', 'Terjadi kesalahan saat memproses permintaan Anda');
     }
   }, [showError]);
 

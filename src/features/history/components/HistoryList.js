@@ -1,4 +1,4 @@
-// features/history/HistoryList.js - SMART REFRESH VERSION
+// features/history/HistoryList.js - WITH EXPORT BUTTON LOGIC
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
@@ -54,18 +54,15 @@ const HistoryList = ({
     setIsRepairConfirmOpen(true);
   };
 
-  // ✅ UPDATED: Handler untuk close note modal - HANYA refresh jika ada update
+  // Handler untuk close note modal - HANYA refresh jika ada update
   const handleNoteModalClose = async (wasUpdated = false) => {
     console.log('🔄 Note modal closing, wasUpdated:', wasUpdated);
     
-    // Simpan info history sebelum reset
     const historyName = selectedHistory?.cctv_name || 'CCTV';
     
-    // Close modal dulu
     setIsNoteModalOpen(false);
     setSelectedHistory(null);
     
-    // ✅ HANYA refresh data jika benar-benar ada update yang tersimpan
     if (wasUpdated) {
       console.log('✅ Ada update, refreshing data...');
       
@@ -74,7 +71,6 @@ const HistoryList = ({
         console.log('✅ Data refresh completed after note update');
       }
 
-      // Show toast success
       if (showSuccess) {
         showSuccess(
           'Catatan Berhasil Disimpan',
@@ -104,18 +100,15 @@ const HistoryList = ({
       
       const cctvName = selectedHistory.cctv_name || 'CCTV';
       
-      // Close modal
       setIsRepairConfirmOpen(false);
       setSelectedHistory(null);
       
-      // Refresh data setelah close modal
       if (onDataUpdated) {
         console.log('🔄 Calling onDataUpdated to refresh data...');
         await onDataUpdated();
         console.log('✅ Data refresh completed after repair');
       }
 
-      // Show success toast
       if (showSuccess) {
         showSuccess(
           'Perbaikan Berhasil Dikonfirmasi',
@@ -125,7 +118,6 @@ const HistoryList = ({
     } catch (error) {
       console.error('❌ Error marking as repaired:', error);
       
-      // Show error toast
       if (showError) {
         showError(
           'Gagal Konfirmasi Perbaikan',
@@ -148,6 +140,9 @@ const HistoryList = ({
       </p>
     </div>
   );
+
+  // ✅ Check if export button should be disabled
+  const isExportDisabled = loading || isExporting || !historyData || historyData.length === 0;
 
   if (loading) {
     return (
@@ -221,16 +216,23 @@ const HistoryList = ({
               {/* Button Tambahkan Riwayat - Responsive Gradient */}
               <button
                 onClick={onAddHistory}
-                className="group relative inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95"
+                disabled={loading}
+                className={`group relative inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium overflow-hidden transition-all duration-300 ${
+                  loading 
+                    ? 'opacity-50 cursor-not-allowed' 
+                    : 'hover:scale-105 hover:shadow-lg active:scale-95'
+                }`}
               >
-                {/* Gradient Background - Light Mode (Lighter colors) */}
+                {/* Gradient Background - Light Mode */}
                 <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-200 opacity-100 dark:opacity-0 transition-opacity duration-300"></div>
                 
-                {/* Gradient Background - Dark Mode (Darker colors) */}
+                {/* Gradient Background - Dark Mode */}
                 <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-black opacity-0 dark:opacity-100 transition-opacity duration-300"></div>
                 
                 {/* Hover Overlay */}
-                <div className="absolute inset-0 bg-black/10 dark:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                {!loading && (
+                  <div className="absolute inset-0 bg-black/10 dark:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                )}
                 
                 {/* Content */}
                 <div className="relative flex items-center text-white dark:text-white z-10">
@@ -241,20 +243,26 @@ const HistoryList = ({
                 </div>
               </button>
 
-              {/* Button Laporan Kerusakan - Responsive Gradient */}
+              {/* ✅ Button Laporan Kerusakan - With Smart Disable Logic */}
               <button
                 onClick={onExportPDF}
-                disabled={isExporting}
-                className="group relative inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                disabled={isExportDisabled}
+                className={`group relative inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium overflow-hidden transition-all duration-300 ${
+                  isExportDisabled
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:scale-105 hover:shadow-lg active:scale-95'
+                }`}
               >
-                {/* Gradient Background - Light Mode (Lighter colors) */}
+                {/* Gradient Background - Light Mode */}
                 <div className="absolute inset-0 bg-gradient-to-r from-red-400 to-rose-300 opacity-100 dark:opacity-0 transition-opacity duration-300"></div>
                 
-                {/* Gradient Background - Dark Mode (Darker colors) */}
+                {/* Gradient Background - Dark Mode */}
                 <div className="absolute inset-0 bg-gradient-to-r from-red-700 to-black opacity-0 dark:opacity-100 transition-opacity duration-300"></div>
                 
                 {/* Hover Overlay */}
-                <div className="absolute inset-0 bg-black/10 dark:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                {!isExportDisabled && (
+                  <div className="absolute inset-0 bg-black/10 dark:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                )}
                 
                 {/* Content */}
                 <div className="relative flex items-center text-white dark:text-white z-10">
@@ -264,7 +272,7 @@ const HistoryList = ({
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      <span>Exporting...</span>
+                      <span>Mengekspor...</span>
                     </>
                   ) : (
                     <>

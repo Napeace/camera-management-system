@@ -3,7 +3,7 @@ import apiClient from './api';
 import authService from './authService';
 
 /**
- * Service untuk handle export data CCTV
+ * Service untuk handle export data CCTV dan SQL Database
  */
 class ExportService {
   /**
@@ -46,7 +46,7 @@ class ExportService {
       } else if (error.response.status === 401) {
         errorMessage = 'Sesi Anda telah berakhir. Silakan login kembali.';
       } else if (error.response.status === 403) {
-        errorMessage = 'Anda tidak memiliki akses untuk export data.';
+        errorMessage = 'Anda tidak memiliki akses untuk export data. Hanya Superadmin yang dapat mengakses fitur ini.';
       } else if (error.response.status === 404) {
         errorMessage = 'Endpoint export tidak ditemukan.';
       } else if (error.response.status >= 500) {
@@ -109,10 +109,90 @@ class ExportService {
   }
 
   /**
+   * Export SQL Database
+   * @param {string|null} tableName - Nama tabel spesifik atau null untuk semua tabel
+   * @returns {Promise<Object>} Success response dengan info file
+   */
+  async exportSql(tableName = null) {
+    try {
+      const token = this._getAuthToken();
+      console.log('🚀 Exporting SQL Database:', tableName || 'All tables');
+      
+      // Build URL dengan optional table_name parameter
+      let url = `/db/export/sql?token=${token}`;
+      if (tableName) {
+        url += `&table_name=${encodeURIComponent(tableName)}`;
+      }
+      
+      const response = await apiClient.get(url, {
+        responseType: 'blob', // Penting untuk download file
+        timeout: 120000, // 120 seconds timeout (SQL dump bisa lama)
+      });
+
+      console.log('✅ SQL Export response received:', response);
+
+      // Extract filename dari Content-Disposition header
+      let filename = 'database_backup.sql';
+      const contentDisposition = response.headers['content-disposition'];
+      
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (filenameMatch && filenameMatch[1]) {
+          filename = filenameMatch[1].replace(/['"]/g, '');
+        }
+      }
+
+      // Buat blob dari response
+      const blob = new Blob([response.data], {
+        type: 'application/sql'
+      });
+
+      // Trigger download
+      const url_blob = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url_blob;
+      link.setAttribute('download', filename);
+      
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url_blob);
+
+      console.log('✅ SQL Export completed successfully:', filename);
+      return { 
+        success: true, 
+        message: 'Export SQL Database berhasil!',
+        filename: filename 
+      };
+      
+    } catch (error) {
+      this._handleError(error);
+    }
+  }
+
+  /**
    * Export data CCTV dengan format spesifik Excel
    */
   async exportCctvExcel() {
     return this.exportCctv('xlsx');
+  }
+
+  /**
+   * Export full database (semua tabel)
+   */
+  async exportFullDatabase() {
+    return this.exportSql(null);
+  }
+
+  /**
+   * Export tabel spesifik
+   * @param {string} tableName - Nama tabel yang ingin di-export
+   */
+  async exportTable(tableName) {
+    if (!tableName) {
+      throw new Error('Nama tabel harus diisi');
+    }
+    return this.exportSql(tableName);
   }
 }
 

@@ -70,12 +70,6 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
         if (error) setError('');
     };
 
-    // ✅ Toggle handler
-    const handleToggleMode = () => {
-        setIsAnalogMode(!isAnalogMode);
-        setError(''); // Clear error saat toggle
-    };
-
     // Validasi untuk IP Address mode
     const validateForm = () => {
         const { titik_letak, ip_address, id_location } = formData;
@@ -228,39 +222,6 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
                     {/* Border separator */}
                     <div className="h-px bg-gray-200 dark:bg-white/10"></div>
 
-                    {/* ✅ Toggle Switch */}
-                    <div className="flex items-center justify-between bg-white dark:bg-white/10 rounded-lg p-3 border border-gray-200 dark:border-white/10">
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                                Tipe CCTV:
-                            </span>
-                            <span className={`text-sm font-semibold ${isAnalogMode ? 'text-gray-400 dark:text-gray-500' : 'text-blue-600 dark:text-blue-400'}`}>
-                                IP Address
-                            </span>
-                        </div>
-                        
-                        <button
-                            type="button"
-                            onClick={handleToggleMode}
-                            disabled={loading}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 ${
-                                isAnalogMode 
-                                    ? 'bg-orange-500 dark:bg-orange-600' 
-                                    : 'bg-blue-500 dark:bg-blue-600'
-                            }`}
-                        >
-                            <span
-                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
-                                    isAnalogMode ? 'translate-x-6' : 'translate-x-1'
-                                }`}
-                            />
-                        </button>
-                        
-                        <span className={`text-sm font-semibold ${isAnalogMode ? 'text-orange-600 dark:text-orange-400' : 'text-gray-400 dark:text-gray-500'}`}>
-                            Analog
-                        </span>
-                    </div>
-
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="space-y-4">
                         {error && (
@@ -276,11 +237,61 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
                         {isAnalogMode ? (
                             // === FORM ANALOG MODE ===
                             <>
-                                {/* Nama Lokasi */}
+                                {/* Nama Lokasi dengan Toggle Button */}
                                 <div>
-                                    <label htmlFor="nama_lokasi" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                                        Nama Lokasi <span className="text-red-500">*</span>
-                                    </label>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label htmlFor="nama_lokasi" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                            Nama Lokasi <span className="text-red-500">*</span>
+                                        </label>
+                                        
+                                        {/* Toggle Button */}
+                                        <div className="relative border border-green-700 rounded-lg px-1 py-1 w-[130px] h-[32px] flex items-center justify-between">
+
+                                            {/* IP BUTTON */}
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsAnalogMode(false)}
+                                                disabled={loading}
+                                                className="relative w-[55px] h-full text-sm font-medium flex items-center justify-center"
+                                            >
+                                                {!isAnalogMode && (
+                                                    <div className="
+                                                        absolute inset-0 
+                                                        rounded-md
+                                                        border border-green-900
+                                                        bg-green-500/10
+                                                        pointer-events-none
+                                                    " />
+                                                )}
+                                                <span className={!isAnalogMode ? "text-green-400" : "text-gray-400"}>
+                                                    IP
+                                                </span>
+                                            </button>
+
+                                            {/* ANALOG BUTTON */}
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsAnalogMode(true)}
+                                                disabled={loading}
+                                                className="relative w-[65px] h-full text-sm font-medium flex items-center justify-center"
+                                            >
+                                                {isAnalogMode && (
+                                                    <div className="
+                                                        absolute inset-0 
+                                                        rounded-md
+                                                        border border-green-900 
+                                                        bg-green-500/10
+                                                        pointer-events-none
+                                                    " />
+                                                )}
+                                                <span className={isAnalogMode ? "text-green-400" : "text-gray-400"}>
+                                                    Analog
+                                                </span>
+                                            </button>
+
+                                        </div>
+                                    </div>
+                                    
                                     <input
                                         type="text" 
                                         id="nama_lokasi" 
@@ -318,11 +329,61 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
                         ) : (
                             // === FORM IP ADDRESS MODE (ORIGINAL) ===
                             <>
-                                {/* Titik Letak */}
+                                {/* Titik Letak dengan Toggle Button */}
                                 <div>
-                                    <label htmlFor="titik_letak" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                                        Titik Letak <span className="text-red-500">*</span>
-                                    </label>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label htmlFor="titik_letak" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                            Titik Letak <span className="text-red-500">*</span>
+                                        </label>
+                                        
+                                        {/* Toggle Button */}
+                                        <div className="relative border border-green-700 rounded-lg px-1 py-1 w-[130px] h-[32px] flex items-center justify-between">
+
+                                            {/* IP BUTTON */}
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsAnalogMode(false)}
+                                                disabled={loading}
+                                                className="relative w-[55px] h-full text-sm font-medium flex items-center justify-center"
+                                            >
+                                                {!isAnalogMode && (
+                                                    <div className="
+                                                        absolute inset-0 
+                                                        rounded-md
+                                                        border border-green-900 
+                                                        bg-green-500/10
+                                                        pointer-events-none
+                                                    " />
+                                                )}
+                                                <span className={!isAnalogMode ? "text-green-400" : "text-gray-400"}>
+                                                    IP
+                                                </span>
+                                            </button>
+
+                                            {/* ANALOG BUTTON */}
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsAnalogMode(true)}
+                                                disabled={loading}
+                                                className="relative w-[65px] h-full text-sm font-medium flex items-center justify-center"
+                                            >
+                                                {isAnalogMode && (
+                                                    <div className="
+                                                        absolute inset-0 
+                                                        rounded-md
+                                                        border border-green-900 
+                                                        bg-green-500/10
+                                                        pointer-events-none
+                                                    " />
+                                                )}
+                                                <span className={isAnalogMode ? "text-green-400" : "text-gray-400"}>
+                                                    Analog
+                                                </span>
+                                            </button>
+
+                                        </div>
+                                    </div>
+                                    
                                     <input
                                         type="text" 
                                         id="titik_letak" 

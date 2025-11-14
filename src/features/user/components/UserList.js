@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import useTableAnimation from '../../../hooks/useTableAnimation';
 import Pagination from '../../../components/common/Pagination';
 import { 
+  FolderIcon,
   PencilIcon, 
   TrashIcon,
   UserGroupIcon,
@@ -135,7 +136,7 @@ const UserList = ({
           <div className="flex items-center justify-between">
             {/* Title */}
             <h3 className="text-lg font-medium text-gray-900 dark:text-white flex items-center">
-              <UserGroupIcon className="w-5 h-5 mr-2" />
+              <FolderIcon className="w-5 h-5 mr-2" />
               Daftar Pengguna CCTV RSCH
             </h3>
           </div>
