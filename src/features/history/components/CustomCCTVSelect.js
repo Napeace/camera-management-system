@@ -25,7 +25,7 @@ const CustomCCTVSelect = memo(({ value, onChange, disabled, cctvList = [], loadi
         );
         setFilteredCCTVs(filtered);
       }
-    }, 500); // Debounce delay
+    }, 300); // Debounce delay
 
     return () => clearTimeout(timeoutId);
   }, [searchTerm, cctvList]);

@@ -106,7 +106,6 @@ const MainLayout = ({
             </div>
           </motion.div>
           
-          {/* 🔥 FIXED: Content wrapper dengan width constraint */}
           <main className="p-6 w-full">
             <div className="w-full">
               {children}

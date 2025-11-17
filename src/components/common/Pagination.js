@@ -11,7 +11,7 @@ const Pagination = ({
 }) => {
   if (totalPages <= 1) {
     return (
-      <div className="px-6 py-3 bg-gray-50 dark:bg-slate-900/30 border-t border-gray-200 dark:border-slate-700/50 text-sm text-gray-600 dark:text-gray-400 animate-fadeIn">
+      <div className="px-4 lg:px-6 py-2 lg:py-3 bg-white dark:bg-slate-900/80 border border-gray-200 dark:border-slate-500/30 rounded-b-xl text-xs lg:text-sm text-gray-400 animate-fadeIn">
         Menampilkan {totalItems} {itemName}
       </div>
     );
@@ -19,17 +19,19 @@ const Pagination = ({
 
   const getPageNumbers = () => {
     const pages = [];
-    const halfMaxButtons = Math.floor(maxPageButtons / 2);
+    // Responsive: show less buttons on smaller screens
+    const responsiveMaxButtons = window.innerWidth < 1024 ? 3 : maxPageButtons;
+    const halfMaxButtons = Math.floor(responsiveMaxButtons / 2);
     
     let startPage = Math.max(1, currentPage - halfMaxButtons);
     let endPage = Math.min(totalPages, currentPage + halfMaxButtons);
     
     // Adjust if we're near the start or end
     if (currentPage <= halfMaxButtons) {
-      endPage = Math.min(totalPages, maxPageButtons);
+      endPage = Math.min(totalPages, responsiveMaxButtons);
     }
     if (currentPage > totalPages - halfMaxButtons) {
-      startPage = Math.max(1, totalPages - maxPageButtons + 1);
+      startPage = Math.max(1, totalPages - responsiveMaxButtons + 1);
     }
     
     // Add first page and ellipsis if needed
@@ -59,6 +61,9 @@ const Pagination = ({
   const pageNumbers = getPageNumbers();
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+  
+  // ✅ FIX: Calculate items shown in current page
+  const itemsInCurrentPage = endItem - startItem + 1;
 
   return (
     <>
@@ -79,28 +84,29 @@ const Pagination = ({
         }
       `}</style>
       
-      <div className="px-6 py-4 bg-gray-50 dark:bg-slate-900/30 border-t border-gray-200 dark:border-slate-700/50 flex flex-col sm:flex-row items-center justify-between gap-4 animate-fadeIn">
-        {/* Info */}
-        <div className="text-sm text-gray-600 dark:text-gray-400 transition-all duration-300">
-          Menampilkan <span className="font-semibold text-gray-800 dark:text-gray-200">{startItem}-{endItem}</span> dari <span className="font-semibold text-gray-800 dark:text-gray-200">{totalItems}</span> {itemName} (Halaman <span className="font-semibold text-gray-800 dark:text-gray-200">{currentPage}</span> dari <span className="font-semibold text-gray-800 dark:text-gray-200">{totalPages}</span>)
+      <div className="px-4 lg:px-6 py-3 lg:py-4 bg-white dark:bg-slate-900/80 border border-gray-200 dark:border-slate-500/30 flex flex-col sm:flex-row items-center justify-between gap-3 lg:gap-4 animate-fadeIn rounded-b-xl">
+        {/* Info - Responsive text size */}
+        <div className="text-xs lg:text-sm text-gray-400 text-center sm:text-left">
+          Menampilkan <span className="font-medium text-white">{itemsInCurrentPage}</span> dari <span className="font-medium text-white">{totalItems}</span> {itemName}
         </div>
         
-        {/* Buttons */}
-        <div className="flex items-center gap-2 flex-wrap justify-center">
+        {/* Buttons - Responsive size & spacing */}
+        <div className="flex items-center gap-1 lg:gap-2">
+          {/* Previous Button */}
           <button
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-slate-600 hover:scale-105 active:scale-95 hover:shadow-md disabled:hover:scale-100 disabled:hover:shadow-none border border-blue-400 dark:border-blue-500"
+            className="w-10 lg:w-14 h-7 lg:h-8 flex items-center justify-center rounded text-xs lg:text-sm font-medium transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed bg-slate-800/50 text-gray-300 hover:bg-slate-700/70 border border-blue-100/30"
           >
             &lt;
           </button>
           
-          {/* Page Numbers */}
-          <div className="flex gap-1">
+          {/* Page Numbers - Responsive sizing */}
+          <div className="flex gap-1 lg:gap-2">
             {pageNumbers.map((pageNum, idx) => {
               if (pageNum === '...') {
                 return (
-                  <span key={`ellipsis-${idx}`} className="px-2 text-gray-500 animate-pulse">
+                  <span key={`ellipsis-${idx}`} className="px-1 lg:px-2 text-gray-500 text-xs lg:text-sm">
                     ...
                   </span>
                 );
@@ -110,10 +116,10 @@ const Pagination = ({
                 <button
                   key={pageNum}
                   onClick={() => onPageChange(pageNum)}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95 border ${
+                  className={`w-7 lg:w-8 h-7 lg:h-8 flex items-center justify-center rounded text-xs lg:text-sm font-medium transition-all duration-200 border ${
                     currentPage === pageNum
-                      ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-lg scale-105 ring-2 ring-blue-300 dark:ring-blue-400/50 border-blue-400 dark:border-blue-500'
-                      : 'bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-slate-600 hover:shadow-md border-blue-400 dark:border-blue-500'
+                      ? 'bg-blue-600 text-white border-blue-100/30'
+                      : 'bg-slate-800/50 text-gray-300 hover:bg-slate-700/70 border-blue-100/30'
                   }`}
                 >
                   {pageNum}
@@ -122,10 +128,11 @@ const Pagination = ({
             })}
           </div>
 
+          {/* Next Button */}
           <button
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-slate-600 hover:scale-105 active:scale-95 hover:shadow-md disabled:hover:scale-100 disabled:hover:shadow-none border border-blue-400 dark:border-blue-500"
+            className="w-10 lg:w-14 h-7 lg:h-8 flex items-center justify-center rounded text-xs lg:text-sm font-medium transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed bg-slate-800/50 text-gray-300 hover:bg-slate-700/70 border border-blue-100/30"
           >
             &gt;
           </button>

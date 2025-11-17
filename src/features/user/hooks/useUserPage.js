@@ -174,7 +174,7 @@ const useUserPage = () => {
                 case 'soft-delete':
                     await softDeleteUser(user.id_user);
                     setConfirmDialog({ isOpen: false });
-                    showSuccess('User Berhasil Dihapus', `${user.nama} telah dinonaktifkan`);
+                    showSuccess('User', `${user.nama} telah berhasil dihapus`);
                     break;
 
                 case 'hard-delete':

@@ -1,4 +1,4 @@
-// features/history/HistoryList.js - WITH EXPORT BUTTON LOGIC
+// features/history/HistoryList.js - WITH PAGINATION INSIDE
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
@@ -13,6 +13,7 @@ import {
   DocumentArrowDownIcon
 } from '@heroicons/react/24/outline';
 import useTableAnimation from '../../../hooks/useTableAnimation';
+import Pagination from '../../../components/common/Pagination';
 import HistoryListItem from './HistoryListItem';
 import HistoryNoteModal from './HistoryNoteModal';
 import ConfirmDialog from '../../../components/common/ConfirmDialog';
@@ -27,7 +28,12 @@ const HistoryList = ({
   isExporting,
   onAddHistory,
   showSuccess,
-  showError
+  showError,
+  currentPage = 1,
+  totalPages = 1,
+  onPageChange,
+  totalItems = 0,
+  itemsPerPage = 10
 }) => {
   const [selectedHistory, setSelectedHistory] = useState(null);
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
@@ -141,7 +147,7 @@ const HistoryList = ({
     </div>
   );
 
-  // ✅ Check if export button should be disabled
+  // Check if export button should be disabled
   const isExportDisabled = loading || isExporting || !historyData || historyData.length === 0;
 
   if (loading) {
@@ -196,14 +202,14 @@ const HistoryList = ({
   return (
     <>
       <motion.div 
-        className="bg-white dark:bg-slate-950/80 rounded-lg shadow-sm border border-gray-200 dark:border-slate-600/30 overflow-hidden"
+        className="bg-white dark:bg-slate-950/80 rounded-t-xl shadow-sm border border-gray-200 dark:border-slate-500/30 overflow-hidden"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
       >
         {/* Header dengan Title dan Buttons */}
-        <div className="px-6 py-4 border-b bg-white dark:bg-slate-400/10 border-gray-200 dark:border-slate-600/30">
+        <div className="px-6 py-4 rounded-t-xl bg-white dark:bg-slate-400/10 border-gray-200 border dark:border-slate-500/30">
           <div className="flex items-center justify-between">
             {/* Title */}
             <h3 className="text-lg font-medium text-gray-900 dark:text-white flex items-center">
@@ -243,7 +249,7 @@ const HistoryList = ({
                 </div>
               </button>
 
-              {/* ✅ Button Laporan Kerusakan - With Smart Disable Logic */}
+              {/* Button Laporan Kerusakan - With Smart Disable Logic */}
               <button
                 onClick={onExportPDF}
                 disabled={isExportDisabled}
@@ -348,6 +354,18 @@ const HistoryList = ({
           </table>
         </div>
       </motion.div>
+
+      {/* Pagination */}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        itemsPerPage={itemsPerPage}
+        onPageChange={onPageChange}
+        itemName="Data History"
+        showFirstLast={true}
+        maxPageButtons={5}
+      />
 
       {/* Note Modal */}
       <HistoryNoteModal

@@ -60,7 +60,7 @@ const StatCard = ({
         </p>
 
         {/* Value + Icon */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between p-2">
           {loading ? (
             <div className="h-12 w-24 bg-gray-200 dark:bg-slate-700 rounded animate-pulse"></div>
           ) : (
@@ -108,7 +108,7 @@ export const StatCardWithAction = ({
   const colors = colorConfig[color] || colorConfig.blue;
 
   return (
-    <div className={`relative overflow-hidden bg-white dark:bg-slate-950/60 backdrop-blur-sm rounded-xl border-2 ${colors.border} p-4 px-6 shadow-sm`}>
+    <div className={`relative overflow-hidden bg-white dark:bg-slate-950/60 backdrop-blur-sm rounded-xl border-2 ${colors.border} p-6 px-6 shadow-sm`}>
       {/* Gradient Background */}
       <div className={`absolute inset-0 bg-gradient-to-bl ${colors.gradient} pointer-events-none`}></div>
       

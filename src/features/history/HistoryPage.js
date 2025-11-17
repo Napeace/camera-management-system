@@ -1,4 +1,4 @@
-// features/history/HistoryPage.js - WITH TOAST INTEGRATION
+// features/history/HistoryPage.js - PAGINATION MOVED TO HISTORYLIST
 import React, { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -9,7 +9,6 @@ import Sidebar from '../../components/layout/Sidebar';
 import HistoryList from './components/HistoryList';
 import HistoryFilters from './components/HistoryFilters';
 import HistoryCreateModal from './HistoryCreateModal';
-import Pagination from '../../components/common/Pagination';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import useStaggerAnimation from '../../hooks/useStaggerAnimation';
 import useHistoryPage from './hooks/useHistoryPage';
@@ -74,7 +73,7 @@ const HistoryPage = () => {
     handleRefreshData
   } = useHistoryPage();
 
-  // 🔥 AUTO SCROLL & HIGHLIGHT LOGIC WITH QUERY PARAM CLEANUP
+  // AUTO SCROLL & HIGHLIGHT LOGIC WITH QUERY PARAM CLEANUP
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const highlightId = searchParams.get('highlight');
@@ -208,23 +207,13 @@ const HistoryPage = () => {
               onAddHistory={handleOpenCreateModal}
               showSuccess={showSuccess}
               showError={showError}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageNavigation}
+              totalItems={filteredHistory.length}
+              itemsPerPage={itemsPerPage}
             />
           </motion.div>
-
-          {totalPages > 1 && (
-            <motion.div variants={animations.item}>
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalItems={filteredHistory.length}
-                itemsPerPage={itemsPerPage}
-                onPageChange={handlePageNavigation}
-                itemName="errors"
-                showFirstLast={true}
-                maxPageButtons={5}
-              />
-            </motion.div>
-          )}
         </motion.div>
       </MainLayout>
 

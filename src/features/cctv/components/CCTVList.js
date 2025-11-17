@@ -1,8 +1,8 @@
-// CCTVList.js
+// CCTVList.js - FULL MATCH dengan UserList.js styling
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import useTableAnimation from '../../../hooks/useTableAnimation';
-import AnimatedSection from '../../../components/common/AnimatedSection';
+import Pagination from '../../../components/common/Pagination';
 import { 
   PencilIcon, 
   TrashIcon, 
@@ -13,11 +13,10 @@ import {
   BuildingOfficeIcon,
   SignalIcon,
   AdjustmentsVerticalIcon,
-  ClipboardDocumentListIcon,
+  FolderIcon,
   ChevronUpIcon,
   ChevronDownIcon
 } from '@heroicons/react/24/outline';
-import Pagination from '../../../components/common/Pagination';
 
 const CCTVList = ({ 
   cctvData = [],
@@ -75,15 +74,19 @@ const CCTVList = ({
   const getStatusBadge = (status) => {
     if (status) {
       return (
-        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 dark:bg-green-500/20 text-green-700 dark:text-green-300 border border-green-500/30">
-          <span className="w-2 h-2 mr-2 bg-green-600 dark:bg-green-400 rounded-full"></span>
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-800">
+          <svg className="w-1.5 h-1.5 mr-1.5" fill="currentColor" viewBox="0 0 8 8">
+            <circle cx={4} cy={4} r={3} />
+          </svg>
           Online
         </span>
       );
     } else {
       return (
-        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-500/20 dark:bg-red-500/20 text-red-700 dark:text-red-300 border border-red-500/30">
-          <span className="w-2 h-2 mr-2 bg-red-600 dark:bg-red-400 rounded-full"></span>
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-800">
+          <svg className="w-1.5 h-1.5 mr-1.5" fill="currentColor" viewBox="0 0 8 8">
+            <circle cx={4} cy={4} r={3} />
+          </svg>
           Offline
         </span>
       );
@@ -107,15 +110,20 @@ const CCTVList = ({
     }
   };
 
-  // Loading State
+  // Loading State - Match UserList styling
   if (loading && cctvData.length === 0) {
     return (
-      <div className="bg-white dark:bg-slate-800/70 backdrop-blur-sm rounded-xl border border-gray-300 dark:border-slate-700/50 p-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 dark:bg-slate-700 rounded w-1/3 mb-6"></div>
+      <div className="bg-white dark:bg-slate-950/50 rounded-lg shadow-sm border border-gray-200 dark:border-slate-600/30">
+        <div className="animate-pulse p-6">
           <div className="space-y-4">
-            {[...Array(1)].map((_, i) => (
-              <div key={i} className="h-12 bg-gray-200 dark:bg-slate-700 rounded w-full"></div>
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center space-x-4">
+                <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-1/6"></div>
+                <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-1/6"></div>
+                <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-1/4"></div>
+                <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-1/5"></div>
+                <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-1/6"></div>
+              </div>
             ))}
           </div>
         </div>
@@ -123,129 +131,149 @@ const CCTVList = ({
     );
   }
 
-  // Error State
+  // Error State - Match UserList styling
   if (error) {
     return (
-      <div className="bg-red-50 dark:bg-red-900/50 backdrop-blur-sm rounded-xl border border-red-200 dark:border-red-600/30 p-6 text-center">
-        <div className="text-red-600 dark:text-red-300 mb-2">
-          <ExclamationTriangleIcon className="w-12 h-12 mx-auto mb-2" />
-          <p className="text-lg font-medium">Error loading CCTV data</p>
+      <div className="bg-white dark:bg-slate-950/50 rounded-lg shadow-sm border border-gray-200 dark:border-slate-600/30 p-6">
+        <div className="text-center py-8">
+          <svg className="mx-auto h-12 w-12 text-red-400 dark:text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">Error Loading CCTV</h3>
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{error}</p>
         </div>
-        <p className="text-red-500 dark:text-red-200 mb-4">{error}</p>
-        <button 
-          onClick={onRefresh}
-          className="px-4 py-2 bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors duration-200"
-        >
-          Retry
-        </button>
       </div>
     );
   }
 
-  // Empty State
+  // Empty State - Match UserList styling
   if (!cctvData || cctvData.length === 0) {
     return (
-      <div className="bg-white dark:bg-slate-800/70 backdrop-blur-sm rounded-xl border border-gray-300 dark:border-slate-700/50 p-6 text-center">
-        <div className="flex flex-col items-center text-gray-500 dark:text-gray-400">
-          <VideoCameraSlashIcon className="w-12 h-12 mb-2" />
-          <p className="text-lg font-medium text-gray-800 dark:text-white">Tidak ada CCTV ditemukan</p>
-          <p className="text-sm">Belum ada data CCTV, silakan tambah CCTV baru</p>
+      <div className="bg-white dark:bg-slate-950/50 rounded-lg shadow-sm border border-gray-200 dark:border-slate-600/30 p-6">
+        <div className="text-center py-8">
+          <svg className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+          <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">No CCTV Found</h3>
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">No CCTV cameras have been added yet.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <AnimatedSection.ExpandHeight 
-      duration={0.6} 
-      delay={0}
-      className="bg-white dark:bg-slate-800/70 backdrop-blur-sm rounded-xl border border-gray-300 dark:border-slate-700/50 overflow-hidden"
-    >
-      {/* Header */}
-      <div className="px-6 py-4 bg-gray-50 dark:bg-slate-900/50 border-b border-gray-200 dark:border-slate-700/50">
-        <div className="flex items-center gap-2">
-          <ClipboardDocumentListIcon className="w-5 h-5 text-blue-500 dark:text-blue-400" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Daftar CCTV Rumah Sakit Citra Husada</h3>
+    <>
+      <motion.div 
+        className="bg-white dark:bg-slate-950/80 rounded-t-xl shadow-sm border border-gray-200 dark:border-slate-500/30 overflow-hidden"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+      >
+        {/* Header - Match UserList styling */}
+        <div className="px-6 py-4 rounded-t-xl bg-white dark:bg-slate-400/10 border-gray-200 border dark:border-slate-500/30">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white flex items-center">
+              <FolderIcon className="w-5 h-5 mr-2" />
+              Daftar CCTV Rumah Sakit Citra Husada
+            </h3>
+          </div>
         </div>
-      </div>
 
-      {/* Table */}
-      <div className="w-full">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700/50">
-          <thead className="bg-gray-100 dark:bg-slate-900/30">
-            <tr>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-700 dark:text-gray-300 tracking-wider">
-                <button
-                  onClick={handleSortToggle}
-                  className="flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 group"
-                  title="Klik untuk mengurutkan (A-Z / Z-A) - Hanya berlaku untuk halaman ini"
-                >
-                  <VideoCameraIcon className="w-4 h-4" />
-                  <span>Kamera</span>
-                  <div className="flex flex-col ml-1">
-                    {sortOrder === 'asc' ? (
-                      <ChevronUpIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                    ) : sortOrder === 'desc' ? (
-                      <ChevronDownIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                    ) : (
-                      <div className="flex flex-col opacity-30 group-hover:opacity-60 transition-opacity">
-                        <ChevronUpIcon className="w-3 h-3 -mb-1" />
-                        <ChevronDownIcon className="w-3 h-3" />
-                      </div>
-                    )}
+        {/* Table Container - Match UserList styling */}
+        <div className="w-full overflow-x-auto overflow-y-hidden px-6">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-600/30">
+            <thead>
+              <tr>
+                {/* Kamera with Sort */}
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
+                  <button
+                    onClick={handleSortToggle}
+                    className="flex items-center hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 group"
+                    title="Klik untuk mengurutkan (A-Z / Z-A)"
+                  >
+                    <VideoCameraIcon className="w-4 h-4 mr-2" />
+                    <span>Kamera</span>
+                    <div className="ml-2">
+                      {sortOrder === 'asc' ? (
+                        <ChevronUpIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      ) : sortOrder === 'desc' ? (
+                        <ChevronDownIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      ) : (
+                        <div className="flex flex-col opacity-30 group-hover:opacity-60 transition-opacity">
+                          <ChevronUpIcon className="w-3 h-3 -mb-1" />
+                          <ChevronDownIcon className="w-3 h-3" />
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                </th>
+                
+                {/* IP Address */}
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
+                  <div className="flex items-center">
+                    <ServerIcon className="w-4 h-4 mr-2" />
+                    IP Address
                   </div>
-                </button>
-              </th>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-700 dark:text-gray-300 tracking-wider">
-                <div className="flex items-center gap-2">
-                  <ServerIcon className="w-4 h-4" />
-                  IP Address
-                </div>
-              </th>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-700 dark:text-gray-300 tracking-wider">
-                <div className="flex items-center gap-2">
-                  <BuildingOfficeIcon className="w-4 h-4" />
-                  Lokasi
-                </div>
-              </th>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-700 dark:text-gray-300 tracking-wider">
-                <div className="flex items-center gap-2">
-                  <SignalIcon className="w-4 h-4" />
-                  Status
-                </div>
-              </th>
-              <th className="px-6 py-4 text-center text-xs font-medium text-gray-700 dark:text-gray-300 tracking-wider">
-                <div className="flex items-center justify-center gap-2">
-                  <AdjustmentsVerticalIcon className="w-4 h-4" />
-                  Aksi
-                </div>
-              </th>
-            </tr>
-          </thead>
-          
-          {/* Animated tbody dengan slide up effect */}
-          <motion.tbody
-            variants={tableAnimations.tbody}
-            initial="hidden"
-            animate="visible"
-            key={sortOrder} // Re-trigger animation saat sorting berubah
-          >
-            {sortedCCTVData.map((cctv, index) => (
-              <React.Fragment key={cctv.id_cctv}>
+                </th>
+                
+                {/* Lokasi */}
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
+                  <div className="flex items-center">
+                    <BuildingOfficeIcon className="w-4 h-4 mr-2" />
+                    Lokasi
+                  </div>
+                </th>
+                
+                {/* Status */}
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
+                  <div className="flex items-center">
+                    <SignalIcon className="w-4 h-4 mr-2" />
+                    Status
+                  </div>
+                </th>
+                
+                {/* Aksi */}
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
+                  <div className="flex items-center">
+                    <AdjustmentsVerticalIcon className="w-4 h-4 mr-2" />
+                    Aksi
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            
+            {/* Animated tbody - Match UserList styling */}
+            <motion.tbody
+              className="bg-transparent divide-y divide-gray-200 dark:divide-slate-600/30"
+              variants={tableAnimations.tbody}
+              initial="hidden"
+              animate="visible"
+              key={sortOrder}
+            >
+              {sortedCCTVData.map((cctv) => (
                 <motion.tr 
+                  key={cctv.id_cctv}
                   variants={tableAnimations.row}
-                  className="hover:bg-gray-50 dark:hover:bg-slate-900/30 transition-colors duration-200"
+                  className="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors duration-150"
                 >
-                  <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">{cctv.titik_letak}</div>
-                    {cctv.description && (
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{cctv.description}</div>
-                    )}
+                  {/* Kamera */}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div>
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        {cctv.titik_letak}
+                      </div>
+                      {cctv.description && (
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {cctv.description}
+                        </div>
+                      )}
+                    </div>
                   </td>
-                  <td className="px-6 py-4">
-                    {/* ✅ Check if CCTV is Analog (prefix "Analog" in titik_letak) */}
+                  
+                  {/* IP Address */}
+                  <td className="px-6 py-4 whitespace-nowrap">
                     {cctv.titik_letak && cctv.titik_letak.toLowerCase().startsWith('analog') ? (
-                      // Analog CCTV - IP Address is clickable link
                       <a
                         href={`http://${cctv.ip_address}/`}
                         target="_blank"
@@ -259,65 +287,66 @@ const CCTVList = ({
                         </svg>
                       </a>
                     ) : (
-                      // IP CCTV - IP Address is regular text
-                      <span className="text-sm text-gray-700 dark:text-gray-300 font-mono bg-gray-100 dark:bg-slate-900/50 px-2 py-1 rounded">
+                      <div className="text-sm text-gray-900 dark:text-white">
                         {cctv.ip_address || '-'}
-                      </span>
+                      </div>
                     )}
                   </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                  
+                  {/* Lokasi */}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900 dark:text-white">
                       {getLocationName(cctv)}
-                    </span>
+                    </div>
                   </td>
-                  <td className="px-6 py-4">
+                  
+                  {/* Status */}
+                  <td className="px-6 py-4 whitespace-nowrap">
                     {getStatusBadge(cctv.is_streaming)}
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex justify-center items-center space-x-3">
-                      <button
-                        onClick={() => handleEdit(cctv)}
-                        className="p-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-400/10 rounded-lg transition-colors duration-200"
+                  
+                  {/* Aksi Buttons - EXACT MATCH dengan UserList */}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center space-x-2">
+                      {/* Button Edit - Kuning */}
+                      <button 
+                        onClick={() => handleEdit(cctv)} 
+                        className="text-yellow-600 dark:text-yellow-400 bg-yellow-600/30 dark:bg-yellow-800/30 hover:text-yellow-900 dark:hover:text-yellow-300 p-2 hover:bg-yellow-100 dark:hover:bg-yellow-400/10 rounded-md transition-colors duration-200" 
                         title="Edit CCTV"
                         disabled={actionLoading[cctv.id_cctv]}
                       >
-                        <PencilIcon className="w-4 h-4" />
+                        <PencilIcon className="w-5 h-5" />
                       </button>
-                      <button
-                        onClick={() => handleDelete(cctv)}
-                        className="p-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-400/10 rounded-lg transition-colors duration-200"
-                        title="Hapus CCTV"
+                      
+                      {/* Button Delete - Merah */}
+                      <button 
+                        onClick={() => handleDelete(cctv)} 
+                        className="text-red-600 dark:text-red-400 bg-red-600/30 dark:bg-red-800/30 hover:text-red-900 dark:hover:text-red-300 p-2 hover:bg-red-100 dark:hover:bg-red-400/10 rounded-md transition-colors duration-200" 
+                        title="Delete CCTV"
                         disabled={actionLoading[cctv.id_cctv]}
                       >
-                        <TrashIcon className="w-4 h-4" />
+                        <TrashIcon className="w-5 h-5" />
                       </button>
                     </div>
                   </td>
                 </motion.tr>
-                {index !== sortedCCTVData.length - 1 && (
-                  <tr>
-                    <td colSpan="5" className="px-0 py-0">
-                      <div className="mx-6 h-px bg-gray-200 dark:bg-slate-700/50"></div>
-                    </td>
-                  </tr>
-                )}
-              </React.Fragment>
-            ))}
-          </motion.tbody>
-        </table>
-      </div>
+              ))}
+            </motion.tbody>
+          </table>
+        </div>
+      </motion.div>
       
-      {/* Pagination Component */}
+      {/* Pagination - Match UserList */}
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
         totalItems={totalItems}
         itemsPerPage={itemsPerPage}
         onPageChange={onPageChange}
-        itemName="CCTV"
+        itemName="Data CCTV"
         showFirstLast={true}
       />
-    </AnimatedSection.ExpandHeight>
+    </>
   );
 };
 

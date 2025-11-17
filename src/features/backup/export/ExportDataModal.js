@@ -159,9 +159,10 @@ const ExportDataModal = ({ isOpen, onClose }) => {
       // All selected options use blue gradient (dark to light from right)
       return {
         border: 'border-blue-400/50',
-        bg: 'bg-gradient-to-l from-blue-800 to-blue-500',
+        bg: 'bg-gradient-to-l from-blue-900 to-blue-600',
         icon: 'text-white',
         iconBg: 'bg-blue-600',
+        iconBorder: 'border border-white',
         title: 'text-white',
         desc: 'text-blue-100',
         hover: ''
@@ -174,6 +175,7 @@ const ExportDataModal = ({ isOpen, onClose }) => {
       bg: 'bg-white/5',
       icon: 'text-gray-400 dark:text-gray-500',
       iconBg: 'bg-white/5',
+      iconBorder: 'border border-gray-500',
       title: 'text-gray-900 dark:text-white',
       desc: 'text-gray-600 dark:text-white/60',
       hover: 'hover:bg-white/10'
@@ -188,16 +190,16 @@ const ExportDataModal = ({ isOpen, onClose }) => {
       className="fixed inset-0 bg-black/70 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
     >
       {/* Outer Container */}
-      <div className="rounded-lg shadow-2xl max-w-2xl w-full overflow-hidden bg-white dark:bg-gradient-to-b dark:from-slate-950 dark:to-blue-800 border border-blue-300 dark:border-slate-800 p-5">
+      <div className="rounded-md shadow-2xl max-w-2xl w-full overflow-hidden bg-white dark:bg-gradient-to-b dark:from-slate-950 dark:to-blue-800 border border-blue-300 dark:border-slate-800 p-5">
         
         {/* Inner Container */}
-        <div className="bg-gray-50/80 dark:bg-white/5 backdrop-blur-sm rounded-lg p-5 space-y-4">
+        <div className="bg-gray-50/80 dark:bg-white/5 backdrop-blur-sm rounded-md p-5 space-y-4">
           
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 flex items-center justify-center bg-blue-100 dark:bg-blue-800/30 border border-blue-300 dark:border-blue-400/30 rounded-lg">
-                <ArrowDownTrayIcon className="w-5 h-5 text-blue-600 dark:text-blue-300" />
+              <div className="w-8 h-8 flex items-center justify-center bg-blue-100 dark:bg-blue-800/30 border border-blue-300 dark:border-blue-800/20 rounded-md">
+                <ArrowDownTrayIcon className="w-5 h-5 text-blue-600 dark:text-blue-700" />
               </div>
               <div>
                 <h2 className="text-xl text-gray-900 dark:text-white font-semibold">Export Data</h2>
@@ -208,7 +210,7 @@ const ExportDataModal = ({ isOpen, onClose }) => {
             <button
               onClick={handleClose}
               disabled={isExporting}
-              className="text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-white/10 rounded-lg p-1.5 disabled:opacity-50 transition-all"
+              className="text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-white/10 rounded-md p-1.5 disabled:opacity-50 transition-all"
             >
               <XMarkIcon className="w-6 h-6" />
             </button>
@@ -220,7 +222,7 @@ const ExportDataModal = ({ isOpen, onClose }) => {
           {/* Notification */}
           {notification.show && (
             <div className={`
-              p-4 rounded-lg border flex items-start gap-3
+              p-4 rounded-md border flex items-start gap-3
               ${notification.type === 'success' 
                 ? 'bg-green-100 dark:bg-green-500/20 border-green-300 dark:border-green-400/40' 
                 : 'bg-red-100 dark:bg-red-500/20 border-red-300 dark:border-red-400/40'
@@ -240,7 +242,7 @@ const ExportDataModal = ({ isOpen, onClose }) => {
           {/* Export Options */}
           <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2" style={{
             scrollbarWidth: 'thin',
-            scrollbarColor: '#94a3b8 transparent'
+            scrollbarColor: '#94a3b8 transparent',
           }}>
             {exportOptions.map((option) => {
               const isSelected = selectedExport === option.id;
@@ -253,7 +255,7 @@ const ExportDataModal = ({ isOpen, onClose }) => {
                   onClick={() => !option.disabled && setSelectedExport(option.id)}
                   disabled={isExporting || option.disabled}
                   className={`
-                    w-full p-4 rounded-lg border transition-all duration-200
+                    w-full p-4 rounded-md border transition-all duration-200
                     ${colorClasses.bg} ${colorClasses.border} ${!option.disabled && colorClasses.hover}
                     disabled:cursor-not-allowed disabled:opacity-60
                     ${isSelected ? 'shadow-lg scale-[0.98]' : 'hover:scale-[0.99]'}
@@ -261,8 +263,9 @@ const ExportDataModal = ({ isOpen, onClose }) => {
                 >
                   <div className="flex items-start gap-4">
                     <div className={`
-                      w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0
+                      w-12 h-12 rounded-md flex items-center justify-center flex-shrink-0
                       ${colorClasses.iconBg}
+                      ${colorClasses.iconBorder}
                     `}>
                       <Icon className={`w-6 h-6 ${colorClasses.icon}`} />
                     </div>
@@ -284,14 +287,14 @@ const ExportDataModal = ({ isOpen, onClose }) => {
                     </div>
 
                     <div className={`
-                      w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-1
+                      w-4 h-4 rounded-full border border-1 flex items-center justify-center flex-shrink-0 mt-1
                       ${isSelected 
-                        ? 'border-white' 
+                        ? 'border-blue-500' 
                         : 'border-gray-300 dark:border-white/30'
                       }
                     `}>
                       {isSelected && (
-                        <div className="w-3 h-3 rounded-full bg-white" />
+                        <div className="w-3.5 h-3.5 rounded-full bg-gray-400/80" />
                       )}
                     </div>
                   </div>
@@ -306,7 +309,7 @@ const ExportDataModal = ({ isOpen, onClose }) => {
           <button
             onClick={handleClose}
             disabled={isExporting}
-            className="px-6 py-2.5 bg-gray-300 dark:bg-gray-400/30 rounded-lg text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-400 dark:hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="px-6 py-2.5 bg-gray-300 dark:bg-gray-400/30 rounded-md text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-400 dark:hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             Batal
           </button>
@@ -314,7 +317,7 @@ const ExportDataModal = ({ isOpen, onClose }) => {
           <button
             onClick={handleExport}
             disabled={!selectedExport || isExporting || selectedOption?.disabled}
-            className="px-8 py-2.5 bg-gray-300 dark:bg-gray-400/30 rounded-lg text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-400 dark:hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+            className="px-8 py-2.5 bg-gray-300 dark:bg-gray-400/30 rounded-md text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-400 dark:hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
           >
             {isExporting && (
               <svg className="animate-spin h-5 w-5 text-gray-700 dark:text-gray-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

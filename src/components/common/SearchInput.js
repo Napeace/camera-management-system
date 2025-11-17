@@ -6,7 +6,7 @@ const SearchInput = memo(({
   onChange, 
   placeholder = "Search...", 
   disabled,
-  debounceDelay = 500
+  debounceDelay = 300
 }) => {
   const [localValue, setLocalValue] = useState(value);
 
