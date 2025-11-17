@@ -154,7 +154,7 @@ const CCTVList = ({
           <svg className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
           </svg>
-          <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">No CCTV Found</h3>
+          <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">Kamera CCTV tidak ditemukan</h3>
           <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">No CCTV cameras have been added yet.</p>
         </div>
       </div>
@@ -186,10 +186,10 @@ const CCTVList = ({
             <thead>
               <tr>
                 {/* Kamera with Sort */}
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-white tracking-wider">
                   <button
                     onClick={handleSortToggle}
-                    className="flex items-center hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 group"
+                    className="inline-flex items-center justify-center hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 group"
                     title="Klik untuk mengurutkan (A-Z / Z-A)"
                   >
                     <VideoCameraIcon className="w-4 h-4 mr-2" />
@@ -210,8 +210,8 @@ const CCTVList = ({
                 </th>
                 
                 {/* IP Address */}
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
-                  <div className="flex items-center">
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-white tracking-wider">
+                  <div className="flex items-center justify-center">
                     <ServerIcon className="w-4 h-4 mr-2" />
                     IP Address
                   </div>
@@ -219,7 +219,7 @@ const CCTVList = ({
                 
                 {/* Lokasi */}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
-                  <div className="flex items-center">
+                  <div className="flex items-center justify-center">
                     <BuildingOfficeIcon className="w-4 h-4 mr-2" />
                     Lokasi
                   </div>
@@ -227,7 +227,7 @@ const CCTVList = ({
                 
                 {/* Status */}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
-                  <div className="flex items-center">
+                  <div className="flex items-center justify-center">
                     <SignalIcon className="w-4 h-4 mr-2" />
                     Status
                   </div>
@@ -235,7 +235,7 @@ const CCTVList = ({
                 
                 {/* Aksi */}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
-                  <div className="flex items-center">
+                  <div className="flex items-center justify-center">
                     <AdjustmentsVerticalIcon className="w-4 h-4 mr-2" />
                     Aksi
                   </div>
@@ -258,7 +258,7 @@ const CCTVList = ({
                   className="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors duration-150"
                 >
                   {/* Kamera */}
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 text-center whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
                         {cctv.titik_letak}
@@ -272,10 +272,10 @@ const CCTVList = ({
                   </td>
                   
                   {/* IP Address */}
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 text-center whitespace-nowrap">
                     {cctv.titik_letak && cctv.titik_letak.toLowerCase().startsWith('analog') ? (
                       <a
-                        href={`http://${cctv.ip_address}/`}
+                        href={`https://drive.google.com/drive/folders/18KI2sri-z_9qBVsKTym-MCEw8qebPJFR?usp=drive_link`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm font-mono text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline decoration-blue-600/30 hover:decoration-blue-600 dark:decoration-blue-400/30 dark:hover:decoration-blue-400 underline-offset-2 transition-all duration-200 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded inline-flex items-center gap-1.5"
@@ -294,19 +294,19 @@ const CCTVList = ({
                   </td>
                   
                   {/* Lokasi */}
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 text-center whitespace-nowrap">
                     <div className="text-sm text-gray-900 dark:text-white">
                       {getLocationName(cctv)}
                     </div>
                   </td>
                   
                   {/* Status */}
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 text-center whitespace-nowrap">
                     {getStatusBadge(cctv.is_streaming)}
                   </td>
                   
-                  {/* Aksi Buttons - EXACT MATCH dengan UserList */}
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  {/* Aksi Buttons */}
+                  <td className="px-6 py-4 text-center whitespace-nowrap">
                     <div className="flex items-center space-x-2">
                       {/* Button Edit - Kuning */}
                       <button 

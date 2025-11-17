@@ -60,6 +60,11 @@ class UserService {
                 const minLength = err.ctx?.min_length || 5;
                 return `${fieldName} minimal ${minLength} karakter`;
               } else if (err.type === 'string_too_long') {
+                // ✅ Custom untuk username: hardcode 20 karakter
+                if (fieldKey === 'username') {
+                  return `${fieldName} maksimal 20 karakter`;
+                }
+                // Untuk field lain, gunakan maxLength dari context backend
                 const maxLength = err.ctx?.max_length || 100;
                 return `${fieldName} maksimal ${maxLength} karakter`;
               } else if (err.type === 'missing') {
