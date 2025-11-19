@@ -102,7 +102,7 @@ const historyService = {
     }
   },
 
-  // ✅ FIXED: Export History to Excel - Works WITHOUT backend changes!
+   
   async exportHistory(startDate = null, endDate = null) {
     try {
       console.log('📤 Exporting history with params:', { startDate, endDate });
@@ -141,7 +141,7 @@ const historyService = {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
       });
       
-      // ✅ Extract filename - Compatible with FastAPI FileResponse
+       
       let filename = 'Riwayat_History.xlsx'; // Default fallback
       
       // FastAPI sends: Content-Disposition: attachment; filename=Riwayat_2024-11-01_dari_2024-11-14_20241114120000.xlsx

@@ -62,7 +62,6 @@ const Pagination = ({
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
   
-  // ✅ FIX: Calculate items shown in current page
   const itemsInCurrentPage = endItem - startItem + 1;
 
   return (

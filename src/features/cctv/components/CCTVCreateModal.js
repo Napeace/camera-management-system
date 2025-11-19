@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import cctvService from '../../services/cctvService';
+import cctvService from '../../../services/cctvService';
 import { XMarkIcon, ExclamationCircleIcon, VideoCameraIcon } from '@heroicons/react/24/outline';
-import CustomLocationSelect from '../../components/common/CustomLocationSelect';
+import CustomLocationSelect from '../../../components/common/CustomLocationSelect';
 
 const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }) => {
     const [loading, setLoading] = useState(false);
@@ -9,7 +9,6 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
     const [isAnimating, setIsAnimating] = useState(false);
     const [shouldShow, setShouldShow] = useState(false);
     
-    // ✅ Toggle state untuk IP Address vs Analog
     const [isAnalogMode, setIsAnalogMode] = useState(false);
     
     // Form data untuk IP Address mode
@@ -20,7 +19,6 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
         status: true,
     });
     
-    // ✅ Form data untuk Analog mode
     const [analogFormData, setAnalogFormData] = useState({
         nama_lokasi: '',
         ip_address: '',
@@ -60,7 +58,6 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
         if (error) setError('');
     };
     
-    // ✅ Handle input untuk form analog
     const handleAnalogInputChange = (e) => {
         const { name, value } = e.target;
         setAnalogFormData(prev => ({
@@ -97,7 +94,6 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
         return true;
     };
     
-    // ✅ Validasi untuk Analog mode
     const validateAnalogForm = () => {
         const { nama_lokasi, ip_address } = analogFormData;
         
@@ -124,7 +120,6 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        // ✅ Validasi sesuai mode
         if (isAnalogMode) {
             if (!validateAnalogForm()) {
                 return;
@@ -141,7 +136,6 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
         try {
             let newCCTV;
             
-            // ✅ Submit sesuai mode
             if (isAnalogMode) {
                 // Submit analog CCTV
                 const analogData = {

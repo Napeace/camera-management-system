@@ -8,7 +8,7 @@ import MainLayout from '../../components/layout/MainLayout';
 import Sidebar from '../../components/layout/Sidebar';
 import HistoryList from './components/HistoryList';
 import HistoryFilters from './components/HistoryFilters';
-import HistoryCreateModal from './HistoryCreateModal';
+import HistoryCreateModal from './components/HistoryCreateModal';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import useStaggerAnimation from '../../hooks/useStaggerAnimation';
 import useHistoryPage from './hooks/useHistoryPage';

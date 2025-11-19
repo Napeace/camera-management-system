@@ -43,7 +43,6 @@ export const AuthProvider = ({ children }) => {
     }
   }, []); // Hanya berjalan sekali saat komponen pertama kali mount
 
-  // ✅ FIX: Fungsi login sekarang ASYNC dan return Promise
   const login = async (userData, authToken) => {
     try {
       console.log('🔐 AuthContext: Starting login process for:', userData.username);

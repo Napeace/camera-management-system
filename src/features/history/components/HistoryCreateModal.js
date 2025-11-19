@@ -1,9 +1,9 @@
 // features/history/components/HistoryCreateModal.js
 import React, { useState, useEffect } from 'react';
-import historyService from '../../services/historyService';
-import cctvService from '../../services/cctvService';
+import historyService from '../../../services/historyService';
+import cctvService from '../../../services/cctvService';
 import { XMarkIcon, ExclamationCircleIcon, VideoCameraIcon } from '@heroicons/react/24/outline';
-import CustomCCTVSelect from './components/CustomCCTVSelect';
+import CustomCCTVSelect from './CustomCCTVSelect';
 
 const HistoryCreateModal = ({ isOpen, onClose, onHistoryCreated }) => {
     const [loading, setLoading] = useState(false);

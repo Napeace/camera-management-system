@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import cctvService from '../../services/cctvService';
+import cctvService from '../../../services/cctvService';
 import { XMarkIcon, ExclamationCircleIcon, VideoCameraIcon } from '@heroicons/react/24/outline';
-import CustomLocationSelect from '../../components/common/CustomLocationSelect';
+import CustomLocationSelect from '../../../components/common/CustomLocationSelect';
 
 const CCTVEditModal = ({ isOpen, onClose, cctvToEdit, onCCTVUpdated, locationGroups = [] }) => {
     const [loading, setLoading] = useState(false);

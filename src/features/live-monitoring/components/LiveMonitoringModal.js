@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
-import HLSVideoPlayer from './components/HLSVideoPlayer';
-import RecordingControls from './components/RecordingControls';
+import HLSVideoPlayer from './HLSVideoPlayer';
+import RecordingControls from './RecordingControls';
 
 const LiveMonitoringModal = ({ camera, onClose }) => {
     const [playerState, setPlayerState] = useState('loading');
-    const videoRef = useRef(null); // ✅ Tambah ref untuk video element
+    const videoRef = useRef(null);  
 
-    // ✅ SEMUA HOOKS DIPINDAHKAN KE ATAS SINI
+     
     // Prevent body scroll when modal is open
     useEffect(() => {
         // Hanya jalankan jika modalnya tampil (ada data camera)
@@ -27,7 +27,7 @@ const LiveMonitoringModal = ({ camera, onClose }) => {
         return () => window.removeEventListener('keydown', handleEsc);
     }, [onClose]);
 
-    // ✅ KONDISI DITEMPATKAN SETELAH SEMUA HOOKS
+     
     if (!camera) {
         return null;
     }
@@ -101,7 +101,7 @@ const LiveMonitoringModal = ({ camera, onClose }) => {
                             </div>
                         ) : (
                             <HLSVideoPlayer
-                                ref={videoRef} // ✅ Pass ref ke player
+                                ref={videoRef}  
                                 streamUrls={{
                                     hls_url: streamUrl
                                 }}

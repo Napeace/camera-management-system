@@ -49,13 +49,13 @@ const useUserPage = () => {
         fetchUsers,
     } = useUsers();
 
-    // ✅ FIX: Statistics dari DATABASE (bukan dari filtered users)
+     
     const statistics = useMemo(() => {
         const total = users.length;
         const superAdmins = users.filter(u => u.user_role_name === 'SuperAdmin').length;
         const security = users.filter(u => u.user_role_name === 'Security').length;
         return { total, superAdmins, security };
-    }, [users]); // ✅ Hanya depend on 'users', bukan 'filteredUsers'
+    }, [users]);  
 
     // Memoized filtered users
     const filteredUsers = useMemo(() => {
@@ -267,7 +267,7 @@ const useUserPage = () => {
         users,
         paginatedUsers,
         filteredUsers,
-        statistics, // ✅ Sekarang statistics dari database, bukan dari filter
+        statistics,  
         totalPages,
         itemsPerPage,
         hasActiveFilters,

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { XMarkIcon, ExclamationCircleIcon, PlusIcon, MapPinIcon, PencilSquareIcon, TrashIcon, CheckIcon } from '@heroicons/react/24/outline';
-import locationService from '../../services/locationService';
-import { useToast } from '../../contexts/ToastContext';
-import ConfirmDialog from '../../components/common/ConfirmDialog';
+import locationService from '../../../services/locationService';
+import { useToast } from '../../../contexts/ToastContext';
+import ConfirmDialog from '../../../components/common/ConfirmDialog';
 
 const LocationManagementModal = ({ isOpen, onClose, onLocationCreated }) => {
     const { showSuccess, showError } = useToast();

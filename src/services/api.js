@@ -9,7 +9,6 @@ const apiClient = axios.create({
   },
 });
 
-// ✅ FIX: Interceptor untuk request - inject token di HEADER (bukan query params)
 apiClient.interceptors.request.use(
   (config) => {
     // Skip untuk login endpoint
@@ -21,7 +20,6 @@ apiClient.interceptors.request.use(
     const token = localStorage.getItem('access_token');
     
     if (token) {
-      // ✅ CRITICAL FIX: Token harus di Authorization Header (OAuth2PasswordBearer)
       config.headers['Authorization'] = `Bearer ${token}`;
       
       console.log('✅ Token injected to Authorization header');

@@ -132,6 +132,7 @@ const Sidebar = ({
       id: 'cctv',
       label: 'Manajemen CCTV',
       icon: VideoCameraIcon,
+      roleRequired: 'superadmin',
       path: '/cctv'
     },
     {

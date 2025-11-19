@@ -19,7 +19,7 @@ class UserService {
     throw new Error(response.data.message || "Struktur respons API tidak valid.");
   }
 
-  // ✅ UPDATED: Helper untuk menangani error dengan custom message untuk NIP
+   
   _handleError(error) {
     console.error('API Error Details:', {
       status: error.response?.status,
@@ -41,7 +41,7 @@ class UserService {
     if (error.response?.data) {
       const data = error.response.data;
       
-      // ✅ Handle FastAPI validation errors (array of objects)
+       
       if (data.detail) {
         if (Array.isArray(data.detail)) {
           // FastAPI validation error format
@@ -50,7 +50,7 @@ class UserService {
               const fieldKey = err.loc ? err.loc[err.loc.length - 1] : 'Field';
               const fieldName = fieldMapping[fieldKey] || fieldKey;
               
-              // ✅ NEW: Custom handling untuk NIP pattern validation
+               
               if (fieldKey === 'nip' && err.type === 'string_pattern_mismatch') {
                 return 'NIP harus berupa angka';
               }
@@ -60,7 +60,7 @@ class UserService {
                 const minLength = err.ctx?.min_length || 5;
                 return `${fieldName} minimal ${minLength} karakter`;
               } else if (err.type === 'string_too_long') {
-                // ✅ Custom untuk username: hardcode 20 karakter
+                 
                 if (fieldKey === 'username') {
                   return `${fieldName} maksimal 20 karakter`;
                 }

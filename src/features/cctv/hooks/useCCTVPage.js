@@ -8,7 +8,6 @@ const useCCTVPage = () => {
     const bottomRef = useRef(null);
     const hasShownErrorRef = useRef(false);
     
-    // ✅ Flag untuk kontrol auto-scroll
     const shouldScrollRef = useRef(false);
 
     // State for CCTV data
@@ -45,7 +44,6 @@ const useCCTVPage = () => {
         loading: false
     });
 
-    // ✅ Auto-scroll hanya ketika pagination berubah (bukan setelah edit/delete)
     useEffect(() => {
         if (bottomRef.current && !loading && shouldScrollRef.current) {
             bottomRef.current.scrollIntoView({ 
@@ -181,7 +179,7 @@ const useCCTVPage = () => {
         try {
             switch (action) {
                 case 'delete':
-                    shouldScrollRef.current = false; // ✅ Jangan scroll setelah delete
+                    shouldScrollRef.current = false;  
                     await cctvService.deleteCCTV(cctv.id_cctv);
                     setConfirmDialog({ isOpen: false });
                     await fetchAllData();
@@ -215,14 +213,14 @@ const useCCTVPage = () => {
     }, []);
 
     const handleCCTVCreated = useCallback(async (newCCTV) => {
-        shouldScrollRef.current = false; // ✅ Jangan scroll setelah create
+        shouldScrollRef.current = false;  
         await fetchAllData();
         const cctvName = newCCTV?.titik_letak || newCCTV?.title || 'CCTV baru';
         showSuccess('CCTV Berhasil Dibuat', `${cctvName} berhasil ditambahkan`);
     }, [fetchAllData, showSuccess]);
 
     const handleCCTVUpdated = useCallback(async (updatedCCTV) => {
-        shouldScrollRef.current = false; // ✅ Jangan scroll setelah update
+        shouldScrollRef.current = false;  
         await fetchAllData();
         const cctvName = updatedCCTV?.titik_letak || updatedCCTV?.title || 'CCTV';
         showSuccess('CCTV Berhasil Diperbarui', `${cctvName} berhasil diperbarui`);
@@ -237,7 +235,7 @@ const useCCTVPage = () => {
         }
     }, []);
 
-    // ✅ Wrapper untuk setCurrentPage yang mengaktifkan scroll
+     
     const handlePageChange = useCallback((page) => {
         shouldScrollRef.current = true; // Aktifkan scroll saat ganti halaman
         setCurrentPage(page);
@@ -270,7 +268,7 @@ const useCCTVPage = () => {
         currentPage,
         totalPages,
         itemsPerPage,
-        setCurrentPage: handlePageChange, // ✅ Gunakan wrapper function
+        setCurrentPage: handlePageChange,  
         
         // Actions
         handleRefresh,

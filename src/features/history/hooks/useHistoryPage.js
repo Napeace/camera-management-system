@@ -164,7 +164,7 @@ const useHistoryPage = () => {
     setCurrentPage(page);
   }, []);
 
-  // ✅ UPDATED: Export to Excel with smart filtering
+   
   const handleExportToPDF = useCallback(async () => {
     console.log('🚀 Export triggered with state:', {
       startDate,
@@ -173,7 +173,7 @@ const useHistoryPage = () => {
       totalHistoryLength: historyData.length
     });
 
-    // ✅ Validate: Check if there's data to export
+     
     if (filteredHistory.length === 0) {
       showError(
         'Tidak Ada Data',
@@ -185,7 +185,7 @@ const useHistoryPage = () => {
     setIsExporting(true);
     
     try {
-      // ✅ Smart export logic:
+       
       // - If startDate & endDate are set → use them
       // - If not set → backend will use default (last 30 days)
       const exportStartDate = startDate;

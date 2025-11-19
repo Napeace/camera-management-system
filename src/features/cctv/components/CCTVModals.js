@@ -1,7 +1,7 @@
 import React from 'react';
-import CCTVCreateModal from '../CCTVCreateModal';
-import CCTVEditModal from '../CCTVEditModal';
-import LocationManagementModal from '../LocationManagementModal';
+import CCTVCreateModal from './CCTVCreateModal';
+import CCTVEditModal from './CCTVEditModal';
+import LocationManagementModal from './LocationManagementModal';
 import ConfirmDialog from '../../../components/common/ConfirmDialog';
 
 const CCTVModals = ({

@@ -1,9 +1,8 @@
-// src/features/user/UserCreateModal.js - Styled with Password Toggle
+// src/features/user/UserEditModal.js - Fixed Error Handling
 import React, { useState, useEffect } from 'react';
-import userService from '../../services/userService';
-import { XMarkIcon, ExclamationCircleIcon, EyeIcon, EyeSlashIcon, UserIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, ExclamationCircleIcon, EyeIcon, EyeSlashIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
 
-const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
+const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [isAnimating, setIsAnimating] = useState(false);
@@ -18,12 +17,12 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
 
   // Handle animation
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && userToEdit) {
       setIsAnimating(true);
       setFormData({
-        nama: '',
-        nip: '',
-        username: '',
+        nama: userToEdit.nama || '',
+        nip: String(userToEdit.nip || ''),
+        username: userToEdit.username || '',
         password: '',
       });
       setError('');
@@ -34,7 +33,7 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
       const timer = setTimeout(() => setIsAnimating(false), 300);
       return () => clearTimeout(timer);
     }
-  }, [isOpen]);
+  }, [isOpen, userToEdit]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -42,46 +41,50 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
     if (error) setError('');
   };
 
-  const validateForm = () => {
-    const { nama, nip, username, password } = formData;
-    if (!nama.trim() || !nip.trim() || !username.trim() || !password.trim()) {
-      setError('Semua field dengan tanda * wajib diisi');
-      return false;
-    }
-    if (password.length < 6) {
-      setError('Password harus minimal 6 karakter');
-      return false;
-    }
-    return true;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
-
     setLoading(true);
     setError('');
     
     try {
-      const userData = {
-        nama: formData.nama.trim(),
-        nip: formData.nip.trim(),
-        username: formData.username.trim(),
-        password: formData.password,
-        id_role: 2
-      };
+      if (!formData.nama.trim() || !formData.nip.trim() || !formData.username.trim()) {
+        setError('Nama Lengkap, NIP, dan Username wajib diisi');
+        setLoading(false);
+        return;
+      }
 
-      await userService.createUser(userData);
-            
-      if (onUserCreated) {
-        await onUserCreated();
+      const userData = {
+        nama: String(formData.nama).trim(),
+        nip: String(formData.nip).trim(),
+        username: String(formData.username).trim(),
+      };
+      
+      if (formData.password) {
+        if (formData.password.length < 6) {
+          setError('Password harus minimal 6 karakter');
+          setLoading(false);
+          return;
+        }
+        userData.password = formData.password;
       }
       
+       
+      if (onSave) {
+        await onSave(userToEdit.id_user, userData);
+      }
+
+       
       onClose();
-      
+
+      if (onUserUpdated) {
+        onUserUpdated(userData);
+      }
+            
     } catch (error) {
-      console.error('Create user error:', error);
-      setError(error.message || 'Gagal membuat user. Silakan coba lagi.');
+       
+      console.error('Update user error:', error);
+      setError(error.message || 'Gagal memperbarui user.');
+      // ❌ REMOVED: throw error; (ini yang bikin error bubble ke parent)
     } finally {
       setLoading(false);
     }
@@ -117,9 +120,11 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 flex items-center justify-center bg-blue-100 dark:bg-blue-800/30 border border-blue-300 dark:border-blue-400/30 rounded-lg">
-                <UserIcon className="w-5 h-5 text-blue-600 dark:text-blue-300" />
+                <PencilSquareIcon className="w-5 h-5 text-blue-600 dark:text-blue-300" />
               </div>
-              <h2 className="text-xl text-gray-900 dark:text-white font-semibold">Tambah Pengguna Baru</h2>
+              <h2 className="text-xl text-gray-900 dark:text-white font-semibold">
+                Edit Pengguna
+              </h2>
             </div>
             <button 
               onClick={handleClose} 
@@ -137,8 +142,8 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="bg-red-100 dark:bg-red-500/20 border border-red-300 dark:border-red-400/40 rounded-lg p-4">
-                <div className="flex items-center">
-                  <ExclamationCircleIcon className="w-5 h-5 text-red-600 dark:text-red-300 mr-2 flex-shrink-0" />
+                <div className="flex items-start">
+                  <ExclamationCircleIcon className="w-5 h-5 text-red-600 dark:text-red-300 mr-2 flex-shrink-0 mt-0.5" />
                   <div className="text-sm text-red-700 dark:text-red-200 whitespace-pre-line">
                     {error}
                   </div>
@@ -153,7 +158,7 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
               </label>
               <input 
                 type="text" 
-                id="nama" 
+                id="nama"
                 name="nama" 
                 required 
                 value={formData.nama} 
@@ -163,7 +168,7 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
                 placeholder="Masukkan nama lengkap"
               />
             </div>
-
+            
             {/* NIP */}
             <div>
               <label htmlFor="nip" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
@@ -171,7 +176,7 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
               </label>
               <input 
                 type="text" 
-                id="nip" 
+                id="nip"
                 name="nip" 
                 required 
                 value={formData.nip} 
@@ -181,7 +186,7 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
                 placeholder="Masukkan NIP"
               />
             </div>
-
+            
             {/* Username */}
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
@@ -189,7 +194,7 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
               </label>
               <input 
                 type="text" 
-                id="username" 
+                id="username"
                 name="username" 
                 required 
                 value={formData.username} 
@@ -199,24 +204,23 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
                 placeholder="Masukkan username"
               />
             </div>
-
+            
             {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                Password <span className="text-red-500">*</span>
+                Password Baru
               </label>
               <div className="relative">
                 <input 
                   type={showPassword ? "text" : "password"}
-                  id="password" 
+                  id="password"
                   name="password" 
-                  required 
                   value={formData.password} 
                   onChange={handleInputChange} 
                   disabled={loading}
                   minLength="6"
                   className="block w-full px-4 py-3 pr-12 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 disabled:opacity-50 transition-all"
-                  placeholder="Minimal 6 karakter"
+                  placeholder="Kosongkan jika tidak ingin mengubah"
                 />
                 <button
                   type="button"
@@ -231,13 +235,16 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
                   )}
                 </button>
               </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Kosongkan jika tidak ingin mengubah password
+              </p>
             </div>
           </form>
         </div>
 
         {/* Buttons - Outside Inner Container */}
         <div className="flex gap-3 justify-end mt-4">
-          <button
+          <button 
             type="button" 
             onClick={handleClose} 
             disabled={loading}
@@ -245,7 +252,7 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
           >
             Batal
           </button>
-          <button
+          <button 
             type="submit" 
             onClick={handleSubmit}
             disabled={loading}
@@ -257,7 +264,7 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
             )}
-            {loading ? 'Menyimpan...' : 'Simpan'}
+            {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
           </button>
         </div>
       </div>
@@ -265,4 +272,4 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
   );
 };
 
-export default UserCreateModal;
+export default UserEditModal;

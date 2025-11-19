@@ -81,7 +81,7 @@ function LoginPage() {
     };
   }, [navigate, isAuthenticated, isLoading]);
 
-  // ✅ FIX: Ubah handleSubmit jadi ASYNC dengan AWAIT
+   
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -113,7 +113,7 @@ function LoginPage() {
         // 4. Redirect based on role (both go to /dashboard)
         console.log('🚀 Redirecting to dashboard...');
         
-        // ✅ FIX: Semua role redirect ke /dashboard (tidak ada /dashboard-security)
+         
         navigate('/dashboard', { replace: true });
         
       } else {

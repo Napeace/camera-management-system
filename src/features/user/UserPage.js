@@ -3,8 +3,8 @@ import { motion } from 'framer-motion';
 import MainLayout from '../../components/layout/MainLayout';
 import Sidebar from '../../components/layout/Sidebar';
 import UserList from './components/UserList';
-import UserCreateModal from './UserCreateModal';
-import UserEditModal from './UserEditModal';
+import UserCreateModal from './components/UserCreateModal';
+import UserEditModal from './components/UserEditModal';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import UserStatistics from './components/UserStatistics';
 import UserFilters from './components/UserFilters';
@@ -13,7 +13,7 @@ import useUserPage from './hooks/useUserPage';
 const UserPage = () => {
     const bottomRef = useRef(null);
     
-    // ✅ FIX: Flag untuk kontrol kapan harus scroll
+     
     const [shouldScrollOnChange, setShouldScrollOnChange] = useState(false);
 
     const {
@@ -63,7 +63,7 @@ const UserPage = () => {
         animations
     } = useUserPage();
 
-    // ✅ FIX: Scroll hanya ketika pagination di-klik (bukan saat create/edit)
+     
     useEffect(() => {
         if (shouldScrollOnChange && bottomRef.current && !loading) {
             bottomRef.current.scrollIntoView({
@@ -75,7 +75,7 @@ const UserPage = () => {
         }
     }, [currentPage, loading, shouldScrollOnChange]);
 
-    // ✅ Wrapper untuk pagination change yang set flag scroll
+     
     const handlePaginationChangeWithScroll = (page) => {
         setShouldScrollOnChange(true); // Set flag untuk scroll
         handlePaginationChange(page);

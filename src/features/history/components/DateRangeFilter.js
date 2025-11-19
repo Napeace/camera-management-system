@@ -62,7 +62,7 @@ const DateRangeFilter = ({
     return '';
   };
 
-  // ✅ FIXED: Handle date selection with validation
+   
   const handleDateClick = (date) => {
     if (selectingStart) {
       setTempStartDate(date);
@@ -75,7 +75,7 @@ const DateRangeFilter = ({
       }
       setTempEndDate(date);
       
-      // ✅ Only apply filter when BOTH dates are selected
+       
       onStartDateChange(tempStartDate);
       onEndDateChange(date);
       
@@ -84,7 +84,7 @@ const DateRangeFilter = ({
     }
   };
 
-  // ✅ FIXED: Clear filter - reset both dates
+   
   const handleClearFilter = () => {
     setTempStartDate(null);
     setTempEndDate(null);

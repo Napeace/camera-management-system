@@ -6,7 +6,7 @@ import Sidebar from '../../components/layout/Sidebar';
 import LiveMonitoringStats from './components/LiveMonitoringStats';
 import LiveMonitoringFilters from './components/LiveMonitoringFilters';
 import LiveMonitoringGrid from './components/LiveMonitoringGrid';
-import LiveMonitoringModal from './LiveMonitoringModal';
+import LiveMonitoringModal from './components/LiveMonitoringModal';
 import useLiveMonitoring from './hooks/useLiveMonitoring';
 import useStaggerAnimation from '../../hooks/useStaggerAnimation';
 

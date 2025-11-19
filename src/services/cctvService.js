@@ -222,7 +222,7 @@ class CCTVService {
     }
   }
 
-  // ✅ Create new CCTV Analog
+   
   async createCCTVAnalog(analogData) {
     try {
       console.log('Creating Analog CCTV with data:', analogData);

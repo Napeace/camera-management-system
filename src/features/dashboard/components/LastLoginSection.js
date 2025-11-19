@@ -98,13 +98,13 @@ const LastLoginSection = ({ lastLoginData = [], onSeeMore }) => {
                         >
                             <div className="mt-3 mr-3 ml-3 grid grid-cols-[auto_1fr_auto] items-center gap-3">
                                 {/* Kolom 1: Icon - fixed width */}
-                                <div className="dark:bg-orange-500/10 p-1.5 rounded-3xl">
+                                <div className="bg-orange-500/10 p-1.5 rounded-3xl">
                                     <UsersIcon className="w-7 h-7 fill-orange-500 stroke-slate-800/50 stroke-[1]" />
                                 </div>
 
                                 {/* Kolom 2: Text logged in - CENTER dengan background fit-content */}
                                 <div className="flex justify-center">
-                                    <div className="dark:bg-orange-500/10 px-3 py-1.5 rounded-xl">
+                                    <div className="bg-orange-500/10 px-3 py-1.5 rounded-xl">
                                         <p className="font-medium text-dark dark:text-white text-xs text-center">
                                             {login.action}
                                         </p>
@@ -112,7 +112,7 @@ const LastLoginSection = ({ lastLoginData = [], onSeeMore }) => {
                                 </div>
 
                                 {/* Kolom 3: Tanggal - auto width, align right */}
-                                <div className="dark:bg-orange-500/10 px-3 py-1.5 rounded-xl">
+                                <div className="bg-orange-500/10 px-3 py-1.5 rounded-xl">
                                     <p className="text-xs text-dark dark:text-white whitespace-nowrap">
                                         {login.date}
                                     </p>

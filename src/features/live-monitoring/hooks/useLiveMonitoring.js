@@ -75,7 +75,7 @@ const useLiveMonitoring = () => {
         loadInitialData();
     }, [searchParams]);
 
-    // ✅ FIXED: Reset status filter when location changes
+     
     useEffect(() => {
         if (locationFilter) {
             setStatusFilter(''); // Reset status filter to show all cameras
@@ -83,7 +83,7 @@ const useLiveMonitoring = () => {
         }
     }, [locationFilter]);
 
-    // ✅ Load streams + Apply filter
+     
     useEffect(() => {
         const loadStreamsForLocation = async () => {
             if (locationFilter) {

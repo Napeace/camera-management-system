@@ -40,7 +40,7 @@ const RecentHistoryTable = ({ onSeeMore }) => {
       try {
         console.log('📡 Fetching recent history (4 items)...');
         
-        // ✅ FIX: Use /history endpoint with limit parameter instead of /history/recent
+         
         const response = await historyService.getHistory({ 
           limit: 4,
           skip: 0 

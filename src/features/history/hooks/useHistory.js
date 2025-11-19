@@ -6,7 +6,7 @@ const useHistory = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ✅ FIX: Wrap dengan useCallback agar function stable
+   
   const fetchHistory = useCallback(async () => {
     try {
       setLoading(true);
@@ -39,11 +39,11 @@ const useHistory = () => {
     } finally {
       setLoading(false);
     }
-  }, []); // ✅ Empty dependency karena tidak depend pada apapun
+  }, []);  
 
   useEffect(() => {
     fetchHistory();
-  }, [fetchHistory]); // ✅ Sekarang aman untuk include di dependency
+  }, [fetchHistory]);  
 
   return {
     historyData,

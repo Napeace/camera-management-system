@@ -23,7 +23,7 @@ const ExportDataModal = ({ isOpen, onClose }) => {
       description: 'Export seluruh database dalam format SQL',
       icon: CircleStackIcon,
       color: 'blue',
-      disabled: false // ✅ Enabled
+      disabled: false 
     },
     {
       id: 'cctv',
@@ -118,7 +118,6 @@ const ExportDataModal = ({ isOpen, onClose }) => {
           handleClose();
         }, 1000);
       } else if (selectedExport === 'sql') {
-        // ✅ NEW: Export SQL Database Implementation
         console.log('🚀 Starting SQL database export...');
         
         const result = await exportService.exportSql(); // Export full database
