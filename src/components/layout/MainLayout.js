@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
@@ -12,11 +12,24 @@ const MainLayout = ({
   navbarSubtitle 
 }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   
   const { user, logout: authLogout, isLoading } = useAuth();
   const { isDarkMode } = useTheme();
+
+  // 🔥 NEW: Detect mobile screen for overlay mode
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // md breakpoint for true mobile
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleSidebarToggle = (collapsed) => {
     setSidebarCollapsed(collapsed);
@@ -46,15 +59,26 @@ const MainLayout = ({
     );
   }
 
-  // 🎯 RESPONSIVE WIDTH CALCULATION - PC/Laptop focus
+  // 🔥 Responsive margin - no margin on mobile (overlay mode)
   const getContentMargin = () => {
+    if (isMobile) {
+      return 'ml-0'; // No margin on mobile - sidebar is overlay
+    }
+    
+    // Tablet & Desktop: push content behavior
     if (sidebarCollapsed) {
       return 'ml-20'; // 80px - collapsed sidebar + 8px gap
     }
     return 'ml-72'; // 288px - expanded sidebar (256px + 32px gap)
   };
 
+  // 🔥 Responsive max width - full width on mobile
   const getContentMaxWidth = () => {
+    if (isMobile) {
+      return 'max-w-full'; // Full width on mobile
+    }
+    
+    // Tablet & Desktop: calculated width
     if (sidebarCollapsed) {
       return 'max-w-[calc(100vw-5rem)]'; // 100vw - 80px
     }
@@ -73,7 +97,7 @@ const MainLayout = ({
           />
         )}
         
-        {/* 🔥 FIXED: Responsive content area with proper width constraint */}
+        {/* 🔥 UPDATED: Responsive content area - full width on mobile */}
         <div 
           className={`
             flex-1 min-h-screen w-full

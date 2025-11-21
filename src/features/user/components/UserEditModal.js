@@ -10,7 +10,7 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     nama: '',
-    nip: '',
+    NIK: '',
     username: '',
     password: '',
   });
@@ -21,7 +21,7 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
       setIsAnimating(true);
       setFormData({
         nama: userToEdit.nama || '',
-        nip: String(userToEdit.nip || ''),
+        NIK: String(userToEdit.nik || ''),
         username: userToEdit.username || '',
         password: '',
       });
@@ -47,15 +47,15 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
     setError('');
     
     try {
-      if (!formData.nama.trim() || !formData.nip.trim() || !formData.username.trim()) {
-        setError('Nama Lengkap, NIP, dan Username wajib diisi');
+      if (!formData.nama.trim() || !formData.NIK.trim() || !formData.username.trim()) {
+        setError('Nama Lengkap, NIK, dan Username wajib diisi');
         setLoading(false);
         return;
       }
 
       const userData = {
         nama: String(formData.nama).trim(),
-        nip: String(formData.nip).trim(),
+        nik: String(formData.NIK).trim(),
         username: String(formData.username).trim(),
       };
       
@@ -169,21 +169,21 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
               />
             </div>
             
-            {/* NIP */}
+            {/* NIK */}
             <div>
-              <label htmlFor="nip" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                NIP <span className="text-red-500">*</span>
+              <label htmlFor="NIK" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                NIK <span className="text-red-500">*</span>
               </label>
               <input 
                 type="text" 
-                id="nip"
-                name="nip" 
+                id="NIK"
+                name="NIK" 
                 required 
-                value={formData.nip} 
+                value={formData.NIK} 
                 onChange={handleInputChange} 
                 disabled={loading}
                 className="block w-full px-4 py-3 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 disabled:opacity-50 transition-all"
-                placeholder="Masukkan NIP"
+                placeholder="Masukkan NIK"
               />
             </div>
             

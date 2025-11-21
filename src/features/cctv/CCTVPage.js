@@ -9,9 +9,13 @@ import CCTVList from './components/CCTVList';
 import CCTVModals from './components/CCTVModals';
 import useCCTVPage from './hooks/useCCTVPage';
 import useStaggerAnimation from '../../hooks/useStaggerAnimation';
+import { useAuth } from '../../contexts/AuthContext';
 
 const CCTVPage = () => {
     const navigate = useNavigate();
+
+    const { user } = useAuth();
+    const userRole = user?.role;
 
     const animations = useStaggerAnimation({
         staggerDelay: 0.08,
@@ -131,6 +135,7 @@ const CCTVPage = () => {
                             totalPages={totalPages}
                             onPageChange={setCurrentPage}
                             totalItems={filteredCctvData.length}
+                            userRole={userRole}
                         />
                     </motion.div>
 

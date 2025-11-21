@@ -3,6 +3,7 @@ import { useToast } from '../../../contexts/ToastContext';
 import cctvService from '../../../services/cctvService';
 import useCCTVStats from '../../../hooks/useCCTVStats';
 
+
 const useCCTVPage = () => {
     const { showSuccess, showError, showInfo } = useToast();
     const bottomRef = useRef(null);

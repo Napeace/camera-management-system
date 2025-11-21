@@ -51,7 +51,7 @@ const Sidebar = ({
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+      setIsMobile(window.innerWidth < 768); // md breakpoint for true mobile overlay
     };
     
     checkMobile();
@@ -132,7 +132,6 @@ const Sidebar = ({
       id: 'cctv',
       label: 'Manajemen CCTV',
       icon: VideoCameraIcon,
-      roleRequired: 'superadmin',
       path: '/cctv'
     },
     {
@@ -234,28 +233,34 @@ const Sidebar = ({
     );
   };
 
+  // 🔥 NEW: Improved width calculation for mobile overlay
   const sidebarWidth = () => {
     if (isMobile) {
-      return isCollapsed ? 'w-0' : 'w-sidebar-expanded';
+      // Mobile: Always full width when expanded, hidden when collapsed
+      return isCollapsed ? 'w-0' : 'w-72';
     }
+    // Desktop: Normal collapsed/expanded behavior
     return isCollapsed ? 'w-sidebar-collapsed' : 'w-sidebar-expanded';
   };
 
   return (
     <>
+      {/* 🔥 Mobile Overlay - show on mobile when sidebar is open */}
       {isMobile && !isCollapsed && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-sidebar-overlay md:hidden"
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
           onClick={() => onToggle(true)}
         />
       )}
 
+      {/* 🔥 Sidebar Container - Fixed positioning for mobile overlay */}
       <div className={`
-        fixed left-2 top-2 bottom-2 z-sidebar
+        ${isMobile ? 'fixed' : 'fixed'} left-2 top-2 bottom-2
+        ${isMobile ? 'z-50' : 'z-sidebar'}
         transition-all duration-500 ease-in-out flex flex-col
         bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-xl shadow-floating
         ${sidebarWidth()}
-        ${isMobile && isCollapsed ? '-translate-x-full' : 'translate-x-0'}
+        ${isMobile && isCollapsed ? '-translate-x-full opacity-0' : 'translate-x-0 opacity-100'}
         border border-slate-300/50 dark:border-slate-600/30
       `}>
 
@@ -275,6 +280,7 @@ const Sidebar = ({
             />
           </div>
 
+          {/* 🔥 Toggle button - hide on mobile, show on tablet/desktop */}
           {!isMobile && (
             <button
               onClick={toggleSidebar}
@@ -426,7 +432,7 @@ const Sidebar = ({
               <p className="font-medium text-sm text-slate-800 dark:text-white truncate">
                 {user.nama}
               </p>
-              <p className="text-xs text-slate-500 dark:text-gray-40m0 capitalize truncate">
+              <p className="text-xs text-slate-500 dark:text-gray-400 capitalize truncate">
                 {user.role === 'superadmin' ? 'Super Admin' : user.role}
               </p>
             </div>
@@ -434,14 +440,15 @@ const Sidebar = ({
         </footer>
       </div>
 
-      {isMobile && isCollapsed && (
+      {(isCollapsed && isMobile) && ( 
         <button
           onClick={() => onToggle(false)}
           className="
-            fixed top-4 left-4 z-sidebar-toggle w-10 h-10
+            fixed top-4 left-4 z-50 w-10 h-10
             bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-white rounded-xl
             flex items-center justify-center
-            shadow-lg border border-slate-400/50 dark:border-slate-500/50 md:hidden
+            shadow-lg border border-slate-400/50 dark:border-slate-500/50
+            hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors duration-200
           "
           aria-label="Open sidebar"
         >

@@ -33,7 +33,7 @@ const AnimatedRoutes = () => {
         <Route 
           path="/cctv" 
           element={
-            <ProtectedRoute requiredRole="superadmin">
+            <ProtectedRoute>
               <CCTVPage />
             </ProtectedRoute>
           } 

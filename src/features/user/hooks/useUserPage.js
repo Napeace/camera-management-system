@@ -66,7 +66,7 @@ const useUserPage = () => {
             filtered = filtered.filter(user =>
                 (user.nama && user.nama.toLowerCase().includes(searchLower)) ||
                 (user.username && user.username.toLowerCase().includes(searchLower)) ||
-                (user.nip && String(user.nip).toLowerCase().includes(searchLower))
+                (user.nik && String(user.nik).toLowerCase().includes(searchLower))
             );
         }
 

@@ -3,10 +3,10 @@ import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import useTableAnimation from '../../../hooks/useTableAnimation';
 import Pagination from '../../../components/common/Pagination';
-import { 
-  PencilIcon, 
-  TrashIcon, 
-  ExclamationTriangleIcon, 
+import {
+  PencilIcon,
+  TrashIcon,
+  ExclamationTriangleIcon,
   VideoCameraSlashIcon,
   VideoCameraIcon,
   ServerIcon,
@@ -18,48 +18,50 @@ import {
   ChevronDownIcon
 } from '@heroicons/react/24/outline';
 
-const CCTVList = ({ 
+const CCTVList = ({
   cctvData = [],
-  loading = false, 
-  error = null, 
-  onRefresh, 
-  onEdit, 
-  onDelete, 
+  loading = false,
+  error = null,
+  onRefresh,
+  onEdit,
+  onDelete,
   locationGroups = [],
   currentPage = 1,
   totalPages = 1,
   onPageChange,
   totalItems = 0,
-  itemsPerPage = 10
+  itemsPerPage = 10,
+  userRole = 'security' // tambahan: menerima role user
 }) => {
   const [actionLoading, setActionLoading] = useState({});
+  const shouldShowActions = userRole === 'superadmin'; // logika kondisional
   const [sortOrder, setSortOrder] = useState(null); // null, 'asc', 'desc'
-  
+
   // Gunakan custom hook untuk table animation tanpa hover scale
   const tableAnimations = useTableAnimation({
     staggerDelay: 0.05,
     duration: 0.3,
     enableHover: false
   });
-  
+
   // Sorting logic menggunakan useMemo untuk performance
   const sortedCCTVData = useMemo(() => {
     if (!sortOrder) return cctvData;
-    
+
     const sorted = [...cctvData].sort((a, b) => {
       const nameA = (a.titik_letak || '').toLowerCase();
       const nameB = (b.titik_letak || '').toLowerCase();
-      
+
       if (sortOrder === 'asc') {
         return nameA.localeCompare(nameB);
       } else {
         return nameB.localeCompare(nameA);
       }
     });
-    
+
     return sorted;
   }, [cctvData, sortOrder]);
-  
+
   // Toggle sorting
   const handleSortToggle = () => {
     if (sortOrder === null) {
@@ -70,7 +72,7 @@ const CCTVList = ({
       setSortOrder(null);
     }
   };
-  
+
   const getStatusBadge = (status) => {
     if (status) {
       return (
@@ -94,18 +96,20 @@ const CCTVList = ({
   };
 
   const getLocationName = (cctv) => {
-    return cctv.location_name || 
-           cctv.nama_lokasi || 
-           cctv.cctv_location_name ||
-           (locationGroups && locationGroups.find(loc => loc.id === cctv.id_location)?.name) ||
-           '-';
+    return (
+      cctv.location_name ||
+      cctv.nama_lokasi ||
+      cctv.cctv_location_name ||
+      (locationGroups && locationGroups.find((loc) => loc.id === cctv.id_location)?.name) ||
+      '-'
+    );
   };
 
-  const handleEdit = (cctv) => onEdit && onEdit(cctv);
-  
+  const handleEdit = (cctv) => shouldShowActions && onEdit && onEdit(cctv);
+
   const handleDelete = (cctv) => {
     console.log('CCTVList handleDelete called with:', cctv);
-    if (onDelete) {
+    if (shouldShowActions && onDelete) {
       onDelete(cctv);
     }
   };
@@ -122,7 +126,7 @@ const CCTVList = ({
                 <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-1/6"></div>
                 <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-1/4"></div>
                 <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-1/5"></div>
-                <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-1/6"></div>
+                <div className="h-4 bg-400 dark:bg-slate-700 rounded w-1/6"></div>
               </div>
             ))}
           </div>
@@ -163,7 +167,7 @@ const CCTVList = ({
 
   return (
     <>
-      <motion.div 
+      <motion.div
         className="bg-white dark:bg-slate-950/80 rounded-t-xl shadow-sm border border-gray-200 dark:border-slate-500/30 overflow-hidden"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -208,7 +212,7 @@ const CCTVList = ({
                     </div>
                   </button>
                 </th>
-                
+
                 {/* IP Address */}
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-white tracking-wider">
                   <div className="flex items-center justify-center">
@@ -216,7 +220,7 @@ const CCTVList = ({
                     IP Address
                   </div>
                 </th>
-                
+
                 {/* Lokasi */}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
                   <div className="flex items-center justify-center">
@@ -224,7 +228,7 @@ const CCTVList = ({
                     Lokasi
                   </div>
                 </th>
-                
+
                 {/* Status */}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
                   <div className="flex items-center justify-center">
@@ -232,17 +236,19 @@ const CCTVList = ({
                     Status
                   </div>
                 </th>
-                
+
                 {/* Aksi */}
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
-                  <div className="flex items-center justify-center">
-                    <AdjustmentsVerticalIcon className="w-4 h-4 mr-2" />
-                    Aksi
-                  </div>
-                </th>
+                {shouldShowActions && (
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
+                    <div className="flex items-center justify-center">
+                      <AdjustmentsVerticalIcon className="w-4 h-4 mr-2" />
+                      Aksi
+                    </div>
+                  </th>
+                )}
               </tr>
             </thead>
-            
+
             {/* Animated tbody - Match UserList styling */}
             <motion.tbody
               className="bg-transparent divide-y divide-gray-200 dark:divide-slate-600/30"
@@ -252,7 +258,7 @@ const CCTVList = ({
               key={sortOrder}
             >
               {sortedCCTVData.map((cctv) => (
-                <motion.tr 
+                <motion.tr
                   key={cctv.id_cctv}
                   variants={tableAnimations.row}
                   className="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors duration-150"
@@ -270,7 +276,7 @@ const CCTVList = ({
                       )}
                     </div>
                   </td>
-                  
+
                   {/* IP Address */}
                   <td className="px-6 py-4 text-center whitespace-nowrap">
                     {['192.168.10.48', '192.168.10.46', '192.168.10.98'].includes(cctv.ip_address) ? (
@@ -288,7 +294,7 @@ const CCTVList = ({
                       </a>
                     ) : cctv.titik_letak && cctv.titik_letak.toLowerCase().startsWith('analog') ? (
                       <a
-                        href={`https://docs.google.com/document/d/1r0JR9EyceCoYsUv9iHmmo7FX4puOzueK/edit?usp=sharing&ouid=114749900704014060268&rtpof=true&sd=true`}
+                        href="https://docs.google.com/document/d/1r0JR9EyceCoYsUv9iHmmo7FX4puOzueK/edit?usp=sharing&ouid=114749900704014060268&rtpof=true&sd=true"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm font-mono text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline decoration-blue-600/30 hover:decoration-blue-600 dark:decoration-blue-400/30 dark:hover:decoration-blue-400 underline-offset-2 transition-all duration-200 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded inline-flex items-center gap-1.5"
@@ -305,50 +311,52 @@ const CCTVList = ({
                       </div>
                     )}
                   </td>
-                  
+
                   {/* Lokasi */}
                   <td className="px-6 py-4 text-center whitespace-nowrap">
                     <div className="text-sm text-gray-900 dark:text-white">
                       {getLocationName(cctv)}
                     </div>
                   </td>
-                  
+
                   {/* Status */}
                   <td className="px-6 py-4 text-center whitespace-nowrap">
                     {getStatusBadge(cctv.is_streaming)}
                   </td>
-                  
+
                   {/* Aksi Buttons */}
-                  <td className="px-6 py-4 text-center whitespace-nowrap">
-                    <div className="flex items-center space-x-2">
-                      {/* Button Edit - Kuning */}
-                      <button 
-                        onClick={() => handleEdit(cctv)} 
-                        className="text-yellow-600 dark:text-yellow-400 bg-yellow-600/30 dark:bg-yellow-800/30 hover:text-yellow-900 dark:hover:text-yellow-300 p-2 hover:bg-yellow-100 dark:hover:bg-yellow-400/10 rounded-md transition-colors duration-200" 
-                        title="Edit CCTV"
-                        disabled={actionLoading[cctv.id_cctv]}
-                      >
-                        <PencilIcon className="w-5 h-5" />
-                      </button>
-                      
-                      {/* Button Delete - Merah */}
-                      <button 
-                        onClick={() => handleDelete(cctv)} 
-                        className="text-red-600 dark:text-red-400 bg-red-600/30 dark:bg-red-800/30 hover:text-red-900 dark:hover:text-red-300 p-2 hover:bg-red-100 dark:hover:bg-red-400/10 rounded-md transition-colors duration-200" 
-                        title="Delete CCTV"
-                        disabled={actionLoading[cctv.id_cctv]}
-                      >
-                        <TrashIcon className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </td>
+                  {shouldShowActions && (
+                    <td className="px-6 py-4 text-center whitespace-nowrap">
+                      <div className="flex items-center justify-center space-x-2">
+                        {/* Button Edit - Kuning */}
+                        <button
+                          onClick={() => handleEdit(cctv)}
+                          className="text-yellow-600 dark:text-yellow-400 bg-yellow-600/30 dark:bg-yellow-800/30 hover:text-yellow-900 dark:hover:text-yellow-300 p-2 hover:bg-yellow-100 dark:hover:bg-yellow-400/10 rounded-md transition-colors duration-200"
+                          title="Edit CCTV"
+                          disabled={actionLoading[cctv.id_cctv]}
+                        >
+                          <PencilIcon className="w-5 h-5" />
+                        </button>
+
+                        {/* Button Delete - Merah */}
+                        <button
+                          onClick={() => handleDelete(cctv)}
+                          className="text-red-600 dark:text-red-400 bg-red-600/30 dark:bg-red-800/30 hover:text-red-900 dark:hover:text-red-300 p-2 hover:bg-red-100 dark:hover:bg-red-400/10 rounded-md transition-colors duration-200"
+                          title="Delete CCTV"
+                          disabled={actionLoading[cctv.id_cctv]}
+                        >
+                          <TrashIcon className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </motion.tr>
               ))}
             </motion.tbody>
           </table>
         </div>
       </motion.div>
-      
+
       {/* Pagination - Match UserList */}
       <Pagination
         currentPage={currentPage}

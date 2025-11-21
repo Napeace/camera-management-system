@@ -27,7 +27,7 @@ const UserFilters = ({
                     <SearchInput
                         value={searchTerm}
                         onChange={onSearchChange}
-                        placeholder="Cari berdasarkan nama, username, atau NIP..."
+                        placeholder="Cari berdasarkan nama, username, atau NIK..."
                         disabled={loading}
                     />
                 </div>

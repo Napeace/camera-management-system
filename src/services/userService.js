@@ -31,7 +31,7 @@ class UserService {
     // Mapping field names ke Bahasa Indonesia
     const fieldMapping = {
       'nama': 'Nama Lengkap',
-      'nip': 'NIP',
+      'nik': 'NIK',
       'username': 'Username',
       'password': 'Password'
     };
@@ -51,8 +51,8 @@ class UserService {
               const fieldName = fieldMapping[fieldKey] || fieldKey;
               
                
-              if (fieldKey === 'nip' && err.type === 'string_pattern_mismatch') {
-                return 'NIP harus berupa angka';
+              if (fieldKey === 'NIK' && err.type === 'string_pattern_mismatch') {
+                return 'NIK harus berupa angka';
               }
               
               // Custom message berdasarkan tipe error

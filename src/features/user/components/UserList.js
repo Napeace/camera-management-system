@@ -203,14 +203,14 @@ const UserList = ({
                   variants={tableAnimations.row}
                   className="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors duration-150"
                 >
-                  {/* Nama Pengguna + NIP - Responsive text & padding */}
+                  {/* Nama Pengguna + NIK - Responsive text & padding */}
                   <td className="px-3 lg:px-6 py-3 lg:py-4 whitespace-nowrap">
                     <div>
                       <div className="text-xs lg:text-sm font-medium text-gray-900 dark:text-white">
                         {user.nama}
                       </div>
                       <div className="text-[10px] lg:text-xs text-gray-500 dark:text-gray-400">
-                        NIP: {user.nip}
+                        NIK: {user.nik}
                       </div>
                     </div>
                   </td>

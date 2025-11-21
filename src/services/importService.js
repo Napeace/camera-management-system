@@ -42,28 +42,54 @@ class ImportService {
     let errorMessage = 'Terjadi kesalahan saat import data';
     
     if (error.response?.data) {
-      if (typeof error.response.data === 'string') {
-        errorMessage = error.response.data;
-      } else if (error.response.data.detail) {
-        // Handle Pydantic validation errors
-        if (Array.isArray(error.response.data.detail)) {
-          const firstError = error.response.data.detail[0];
-          errorMessage = firstError.msg || 'Validation error';
-        } else {
-          errorMessage = error.response.data.detail;
+      const data = error.response.data;
+      
+      // Handle FastAPI validation errors
+      if (data.detail) {
+        if (Array.isArray(data.detail)) {
+          // FastAPI validation error format
+          errorMessage = data.detail
+            .map(err => {
+              const field = err.loc ? err.loc[err.loc.length - 1] : 'Field';
+              return `${field}: ${err.msg}`;
+            })
+            .join('\n');
+        } else if (typeof data.detail === 'string') {
+          errorMessage = data.detail;
         }
-      } else if (error.response.data.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.response.status === 401) {
-        errorMessage = 'Sesi Anda telah berakhir. Silakan login kembali.';
-      } else if (error.response.status === 403) {
-        errorMessage = 'Anda tidak memiliki akses untuk import data.';
-      } else if (error.response.status === 404) {
-        errorMessage = 'Endpoint import tidak ditemukan.';
-      } else if (error.response.status === 400) {
-        errorMessage = 'Format data tidak valid. Periksa kembali file Excel Anda.';
-      } else if (error.response.status >= 500) {
-        errorMessage = 'Terjadi kesalahan server. Silakan coba lagi.';
+      } else if (data.message) {
+        errorMessage = data.message;
+      } else if (typeof data === 'string') {
+        errorMessage = data;
+      } else {
+        // Status code specific messages
+        switch (error.response.status) {
+          case 400:
+            errorMessage = 'Format file tidak valid. Pastikan kolom Excel sesuai template.';
+            break;
+          case 401:
+            errorMessage = 'Sesi Anda telah berakhir. Silakan login kembali.';
+            break;
+          case 403:
+            errorMessage = 'Anda tidak memiliki akses untuk import data.';
+            break;
+          case 404:
+            errorMessage = 'Endpoint import tidak ditemukan.';
+            break;
+          case 413:
+            errorMessage = 'File terlalu besar. Maksimal ukuran file adalah 10MB.';
+            break;
+          case 422:
+            errorMessage = 'Data tidak valid. Periksa kembali format data di Excel.';
+            break;
+          case 500:
+          case 502:
+          case 503:
+            errorMessage = 'Terjadi kesalahan server. Silakan coba lagi.';
+            break;
+          default:
+            errorMessage = 'Terjadi kesalahan saat import data.';
+        }
       }
     } else if (error.request) {
       errorMessage = 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.';
@@ -81,27 +107,38 @@ class ImportService {
    */
   async importCctv(formData) {
     try {
-      const token = this._getAuthToken();
       console.log('Importing CCTV data from Excel file');
       
-      // Append token ke formData
-      formData.append('token', token);
-      
-      const response = await apiClient.post(`/cctv/import`, formData, {
+      const response = await apiClient.post('/cctv/import', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
         timeout: 120000, // 2 minutes timeout untuk import operations
       });
       
-      console.log('Import CCTV response:', response);
+      console.log('Import CCTV response:', response.data);
       
-      // Backend mengembalikan { status: "success", imported_count: X }
+      // Handle different response formats
+      let importedCount = 0;
+      
       if (response.data.status === 'success') {
+        // Format 1: { status: "success", imported_count: X }
+        if (response.data.imported_count !== undefined) {
+          importedCount = response.data.imported_count;
+        } 
+        // Format 2: { status: "success", data: X, message: "..." }
+        else if (typeof response.data.data === 'number') {
+          importedCount = response.data.data;
+        }
+        // Format 3: { status: "success", message: "...", data: X }
+        else if (response.data.data && typeof response.data.data === 'number') {
+          importedCount = response.data.data;
+        }
+        
         return {
           success: true,
-          imported_count: response.data.imported_count || 0,
-          message: `Berhasil mengimport ${response.data.imported_count} data CCTV`
+          imported_count: importedCount,
+          message: `Berhasil mengimport ${importedCount} data CCTV`
         };
       }
       
@@ -114,27 +151,39 @@ class ImportService {
 
   /**
    * Import data Users dari file Excel
+   * Format Excel:
+   * - Nama (required)
+   * - Username (required)
+   * - Nik (required, format: 1234.56789 atau 12345.123456)
+   * - Password (optional, default: Rsch123)
+   * - Role (required, contoh: SuperAdmin atau Security)
+   * 
    * @param {FormData} formData - FormData yang berisi file Excel
-   * @returns {Promise<Object>} Response dengan detail import
+   * @returns {Promise<Object>} Response dengan imported_count
    */
   async importUsers(formData) {
     try {
-      const token = this._getAuthToken();
       console.log('Importing Users data from Excel file');
       
-      // Append token ke formData
-      formData.append('token', token);
-      
-      const response = await apiClient.post(`/users/import`, formData, {
+      const response = await apiClient.post('/users/import', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
         timeout: 120000, // 2 minutes timeout untuk import operations
       });
       
-      console.log('Import Users response:', response);
+      console.log('Import Users response:', response.data);
       
-      return this._handleResponse(response);
+      // Backend mengembalikan { status: "success", imported_count: X }
+      if (response.data.status === 'success') {
+        return {
+          success: true,
+          imported_count: response.data.imported_count || 0,
+          message: `Berhasil mengimport ${response.data.imported_count} user baru`
+        };
+      }
+      
+      throw new Error('Import gagal: Response tidak valid');
       
     } catch (error) {
       this._handleError(error);

@@ -28,7 +28,7 @@ const useUsers = () => {
         filteredUsers = filteredUsers.filter(user => 
           (user.nama && user.nama.toLowerCase().includes(searchTerm)) ||
           (user.username && user.username.toLowerCase().includes(searchTerm)) ||
-          (user.nip && String(user.nip).toLowerCase().includes(searchTerm))
+          (user.nik && String(user.nik).toLowerCase().includes(searchTerm))
         );
       }
       

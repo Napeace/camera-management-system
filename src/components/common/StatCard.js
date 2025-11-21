@@ -185,7 +185,11 @@ export const StatCardWithMultipleActions = ({
   const colors = colorConfig[color] || colorConfig.blue;
 
   return (
-    <div className="relative overflow-hidden bg-white dark:bg-slate-950/60 backdrop-blur-sm rounded-xl border-2 border-blue-300 dark:border-blue-900 p-6 shadow-sm">
+    <div className={`
+          relative overflow-hidden bg-white dark:bg-slate-950/60 backdrop-blur-sm 
+          rounded-xl border-2 border-blue-300 dark:border-blue-900 p-6 shadow-sm
+          min-h-[152px]
+        `}>      
       {/* Gradient Background */}
       <div className={`absolute inset-0 bg-gradient-to-bl ${colors.gradient} pointer-events-none`}></div>
       
@@ -209,7 +213,7 @@ export const StatCardWithMultipleActions = ({
                 ${colors.primaryBtn}
                 disabled:from-gray-400 disabled:to-gray-300
                 dark:disabled:from-slate-800 dark:disabled:to-slate-700
-                text-white px-4 py-2.5 rounded-lg font-medium
+                text-white px-4 py-2 rounded-lg font-medium
                 transition-all duration-200
                 flex items-center justify-center gap-2 text-sm
                 shadow-sm hover:shadow-md
@@ -244,7 +248,7 @@ export const StatCardWithMultipleActions = ({
                 ${colors.secondaryBtn}
                 disabled:from-gray-400 disabled:to-gray-300
                 dark:disabled:from-slate-800 dark:disabled:to-slate-700
-                text-white px-4 py-2.5 rounded-lg font-medium
+                text-white px-4 py-2 rounded-lg font-medium
                 transition-all duration-200
                 flex items-center justify-center gap-2 text-sm
                 shadow-sm hover:shadow-md
