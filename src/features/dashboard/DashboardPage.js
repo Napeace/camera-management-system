@@ -40,7 +40,7 @@ const DashboardPage = () => {
         staggerDelay: 0.15,
         initialDelay: 0.1,
         duration: 0.5,
-        yOffset: 30
+        yOffset: 0
     });
 
     // Fetch dashboard data using custom hook

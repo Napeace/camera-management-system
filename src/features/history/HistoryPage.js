@@ -24,7 +24,8 @@ const HistoryPage = () => {
   const animations = useStaggerAnimation({
     staggerDelay: 0.08,
     initialDelay: 0.1,
-    duration: 0.4
+    duration: 0.4,
+    yOffset: 0
   });
   
   const {
