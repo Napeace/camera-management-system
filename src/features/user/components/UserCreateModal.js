@@ -1,4 +1,4 @@
-// src/features/user/UserCreateModal.js - Styled with Password Toggle
+// src/features/user/UserCreateModal.js - FIXED with Backend NIK Format
 import React, { useState, useEffect } from 'react';
 import userService from '../../../services/userService';
 import { XMarkIcon, ExclamationCircleIcon, EyeIcon, EyeSlashIcon, UserIcon } from '@heroicons/react/24/outline';
@@ -11,7 +11,7 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     nama: '',
-    NIK: '',
+    nik: '',
     username: '',
     password: '',
   });
@@ -22,7 +22,7 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
       setIsAnimating(true);
       setFormData({
         nama: '',
-        NIK: '',
+        nik: '',
         username: '',
         password: '',
       });
@@ -43,15 +43,63 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
   };
 
   const validateForm = () => {
-    const { nama, NIK, username, password } = formData;
-    if (!nama.trim() || !NIK.trim() || !username.trim() || !password.trim()) {
-      setError('Semua field dengan tanda * wajib diisi');
+    const { nama, nik, username, password } = formData;
+    
+    if (!nama.trim()) {
+      setError('Nama Lengkap wajib diisi');
       return false;
     }
+    
+    if (nama.trim().length < 5) {
+      setError('Nama Lengkap minimal 5 karakter');
+      return false;
+    }
+    
+    if (!nik.trim()) {
+      setError('NIK wajib diisi');
+      return false;
+    }
+    
+    // ✅ Cek apakah NIK mengandung huruf
+    const containsLetters = /[a-zA-Z]/.test(nik.trim());
+    if (containsLetters) {
+      setError('NIK hanya boleh berisi angka dan titik (.), tidak boleh ada huruf');
+      return false;
+    }
+    
+    // ✅ Validasi format NIK sesuai backend: xxxx.xxxxx atau xxxxx.xxxxxx
+    const nikPattern = /^\d{4,5}\.\d{5,6}$/;
+    if (!nikPattern.test(nik.trim())) {
+      setError('NIK harus berformat xxxx.xxxxx atau xxxxx.xxxxxx (hanya angka dan titik)');
+      return false;
+    }
+    
+    // ✅ Validasi panjang total NIK (9-11 karakter termasuk titik)
+    if (nik.trim().length < 9 || nik.trim().length > 11) {
+      setError('NIK harus 9-11 karakter (termasuk titik)');
+      return false;
+    }
+    
+    if (!username.trim()) {
+      setError('Username wajib diisi');
+      return false;
+    }
+    
+    if (username.trim().length < 5) {
+      setError('Username minimal 5 karakter');
+      return false;
+    }
+    
+    if (!password.trim()) {
+      setError('Password wajib diisi');
+      return false;
+    }
+    
     if (password.length < 6) {
       setError('Password harus minimal 6 karakter');
       return false;
     }
+    
     return true;
   };
 
@@ -63,24 +111,26 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
     setError('');
     
     try {
+      // ✅ Kirim data sesuai schema backend
       const userData = {
         nama: formData.nama.trim(),
-        NIK: formData.nik.trim(),
+        nik: formData.nik.trim(),
         username: formData.username.trim(),
         password: formData.password,
         id_role: 2
       };
 
-      await userService.createUser(userData);
+      const response = await userService.createUser(userData);
             
       if (onUserCreated) {
-        await onUserCreated();
+        await onUserCreated(response.data);
       }
       
       onClose();
       
     } catch (error) {
       console.error('Create user error:', error);
+      // Error message sudah ditangani di userService dengan bahasa Indonesia
       setError(error.message || 'Gagal membuat user. Silakan coba lagi.');
     } finally {
       setLoading(false);
@@ -137,8 +187,8 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="bg-red-100 dark:bg-red-500/20 border border-red-300 dark:border-red-400/40 rounded-lg p-4">
-                <div className="flex items-center">
-                  <ExclamationCircleIcon className="w-5 h-5 text-red-600 dark:text-red-300 mr-2 flex-shrink-0" />
+                <div className="flex items-start">
+                  <ExclamationCircleIcon className="w-5 h-5 text-red-600 dark:text-red-300 mr-2 flex-shrink-0 mt-0.5" />
                   <div className="text-sm text-red-700 dark:text-red-200 whitespace-pre-line">
                     {error}
                   </div>
@@ -159,27 +209,33 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
                 value={formData.nama} 
                 onChange={handleInputChange} 
                 disabled={loading}
+                minLength="5"
+                maxLength="50"
                 className="block w-full px-4 py-3 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 disabled:opacity-50 transition-all"
-                placeholder="Masukkan nama lengkap"
+                placeholder="Masukkan nama lengkap (min. 5 karakter)"
               />
             </div>
 
             {/* NIK */}
             <div>
-              <label htmlFor="NIK" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+              <label htmlFor="nik" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 NIK <span className="text-red-500">*</span>
               </label>
               <input 
                 type="text" 
-                id="NIK" 
-                name="NIK" 
+                id="nik" 
+                name="nik" 
                 required 
                 value={formData.nik} 
                 onChange={handleInputChange} 
                 disabled={loading}
+                maxLength="11"
                 className="block w-full px-4 py-3 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 disabled:opacity-50 transition-all"
-                placeholder="Masukkan NIK"
+                placeholder="Contoh: 1234.56789"
               />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Format: xxxx.xxxxx atau xxxxx.xxxxxx (9-11 karakter)
+              </p>
             </div>
 
             {/* Username */}
@@ -195,8 +251,10 @@ const UserCreateModal = ({ isOpen, onClose, onUserCreated }) => {
                 value={formData.username} 
                 onChange={handleInputChange} 
                 disabled={loading}
+                minLength="5"
+                maxLength="50"
                 className="block w-full px-4 py-3 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 disabled:opacity-50 transition-all"
-                placeholder="Masukkan username"
+                placeholder="Masukkan username (min. 5 karakter)"
               />
             </div>
 

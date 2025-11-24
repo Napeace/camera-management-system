@@ -1,4 +1,4 @@
-// src/features/user/UserEditModal.js - Fixed Error Handling
+// src/features/user/UserEditModal.js - FIXED with Backend NIK Format
 import React, { useState, useEffect } from 'react';
 import { XMarkIcon, ExclamationCircleIcon, EyeIcon, EyeSlashIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
 
@@ -10,7 +10,7 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     nama: '',
-    NIK: '',
+    nik: '',
     username: '',
     password: '',
   });
@@ -21,7 +21,7 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
       setIsAnimating(true);
       setFormData({
         nama: userToEdit.nama || '',
-        NIK: String(userToEdit.nik || ''),
+        nik: String(userToEdit.nik || ''),
         username: userToEdit.username || '',
         password: '',
       });
@@ -41,50 +41,98 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
     if (error) setError('');
   };
 
+  const validateForm = () => {
+    const { nama, nik, username, password } = formData;
+    
+    if (!nama.trim()) {
+      setError('Nama Lengkap wajib diisi');
+      return false;
+    }
+    
+    if (nama.trim().length < 5) {
+      setError('Nama Lengkap minimal 5 karakter');
+      return false;
+    }
+    
+    if (!nik.trim()) {
+      setError('NIK wajib diisi');
+      return false;
+    }
+    
+    // ✅ Cek apakah NIK mengandung huruf
+    const containsLetters = /[a-zA-Z]/.test(nik.trim());
+    if (containsLetters) {
+      setError('NIK hanya boleh berisi angka dan titik (.), tidak boleh ada huruf');
+      return false;
+    }
+    
+    // ✅ Validasi format NIK sesuai backend: xxxx.xxxxx atau xxxxx.xxxxxx
+    const nikPattern = /^\d{4,5}\.\d{5,6}$/;
+    if (!nikPattern.test(nik.trim())) {
+      setError('NIK harus berformat xxxx.xxxxx atau xxxxx.xxxxxx (hanya angka dan titik)');
+      return false;
+    }
+    
+    // ✅ Validasi panjang total NIK (9-11 karakter termasuk titik)
+    if (nik.trim().length < 9 || nik.trim().length > 11) {
+      setError('NIK harus 9-11 karakter (termasuk titik)');
+      return false;
+    }
+    
+    if (!username.trim()) {
+      setError('Username wajib diisi');
+      return false;
+    }
+    
+    if (username.trim().length < 5) {
+      setError('Username minimal 5 karakter');
+      return false;
+    }
+    
+    if (password && password.length < 6) {
+      setError('Password harus minimal 6 karakter');
+      return false;
+    }
+    
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) return;
+    
     setLoading(true);
     setError('');
     
     try {
-      if (!formData.nama.trim() || !formData.NIK.trim() || !formData.username.trim()) {
-        setError('Nama Lengkap, NIK, dan Username wajib diisi');
-        setLoading(false);
-        return;
-      }
-
       const userData = {
-        nama: String(formData.nama).trim(),
-        nik: String(formData.NIK).trim(),
-        username: String(formData.username).trim(),
+        nama: formData.nama.trim(),
+        nik: formData.nik.trim(),
+        username: formData.username.trim(),
       };
       
+      // Only include password if it's provided
       if (formData.password) {
-        if (formData.password.length < 6) {
-          setError('Password harus minimal 6 karakter');
-          setLoading(false);
-          return;
-        }
         userData.password = formData.password;
       }
       
-       
+      // Call parent's save handler
       if (onSave) {
         await onSave(userToEdit.id_user, userData);
       }
 
-       
+      // Close modal
       onClose();
 
+      // Notify parent of successful update
       if (onUserUpdated) {
         onUserUpdated(userData);
       }
             
     } catch (error) {
-       
       console.error('Update user error:', error);
       setError(error.message || 'Gagal memperbarui user.');
-      // ❌ REMOVED: throw error; (ini yang bikin error bubble ke parent)
     } finally {
       setLoading(false);
     }
@@ -164,27 +212,33 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
                 value={formData.nama} 
                 onChange={handleInputChange} 
                 disabled={loading}
+                minLength="5"
+                maxLength="50"
                 className="block w-full px-4 py-3 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 disabled:opacity-50 transition-all"
-                placeholder="Masukkan nama lengkap"
+                placeholder="Masukkan nama lengkap (min. 5 karakter)"
               />
             </div>
             
             {/* NIK */}
             <div>
-              <label htmlFor="NIK" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+              <label htmlFor="nik" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 NIK <span className="text-red-500">*</span>
               </label>
               <input 
                 type="text" 
-                id="NIK"
-                name="NIK" 
+                id="nik"
+                name="nik" 
                 required 
-                value={formData.NIK} 
+                value={formData.nik} 
                 onChange={handleInputChange} 
                 disabled={loading}
+                maxLength="11"
                 className="block w-full px-4 py-3 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 disabled:opacity-50 transition-all"
-                placeholder="Masukkan NIK"
+                placeholder="Contoh: 1234.56789"
               />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Format: xxxx.xxxxx atau xxxxx.xxxxxx (9-11 karakter)
+              </p>
             </div>
             
             {/* Username */}
@@ -200,8 +254,10 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
                 value={formData.username} 
                 onChange={handleInputChange} 
                 disabled={loading}
+                minLength="5"
+                maxLength="50"
                 className="block w-full px-4 py-3 bg-gray-50 dark:bg-white/15 border border-gray-200 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 disabled:opacity-50 transition-all"
-                placeholder="Masukkan username"
+                placeholder="Masukkan username (min. 5 karakter)"
               />
             </div>
             
@@ -236,7 +292,7 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
                 </button>
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Kosongkan jika tidak ingin mengubah password
+                Kosongkan jika tidak ingin mengubah password (min. 6 karakter)
               </p>
             </div>
           </form>
