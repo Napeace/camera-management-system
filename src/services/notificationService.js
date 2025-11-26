@@ -49,6 +49,20 @@ const notificationService = {
   },
 
   /**
+   * Delete semua notifikasi user (mark all as read)
+   * @returns {Promise} Promise dengan jumlah notifikasi yang dihapus
+   */
+  markAllAsRead: async () => {
+    try {
+      const response = await apiClient.delete('/notification/');
+      return response.data;
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Format waktu relatif (2 detik lalu, 1 menit lalu, dll)
    * @param {string} dateString - ISO date string
    * @returns {string} Formatted relative time

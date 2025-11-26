@@ -174,7 +174,7 @@ const UserList = ({
                 </th>
                 
                 {/* Akses Terakhir - Hidden on screens < 1280px */}
-                <th className="hidden xl:table-cell px-3 lg:px-6 py-2 lg:py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
+                <th className="px-3 lg:px-6 py-2 lg:py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
                   <div className="flex items-center">
                     <KeyIcon className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2" />
                     Akses Terakhir
@@ -230,7 +230,7 @@ const UserList = ({
                   </td>
 
                   {/* Akses Terakhir - Hidden on screens < 1280px */}
-                  <td className="hidden xl:table-cell px-3 lg:px-6 py-3 lg:py-4 whitespace-nowrap">
+                  <td className="px-3 lg:px-6 py-3 lg:py-4 whitespace-nowrap">
                     <div className="text-xs lg:text-sm text-gray-900 dark:text-white">
                       {formatDate(user.last_login)}
                     </div>

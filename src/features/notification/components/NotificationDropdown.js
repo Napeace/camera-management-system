@@ -10,6 +10,7 @@ const NotificationDropdown = () => {
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [markingAllRead, setMarkingAllRead] = useState(false);
   const [error, setError] = useState(null);
   const buttonRef = useRef(null);
   
@@ -56,24 +57,44 @@ const NotificationDropdown = () => {
     setShowNotifications(false);
   };
 
+  // Handle mark all as read
+  const handleMarkAllAsRead = async () => {
+    try {
+      setMarkingAllRead(true);
+      await notificationService.markAllAsRead();
+      
+      // Clear semua notifikasi dari UI
+      setNotifications([]);
+      
+      // Optional: tutup dropdown setelah mark all
+      // setShowNotifications(false);
+    } catch (err) {
+      console.error('Error marking all as read:', err);
+      setError('Gagal menandai semua sebagai dibaca');
+      
+      // Refresh notifikasi jika gagal
+      fetchNotifications();
+    } finally {
+      setMarkingAllRead(false);
+    }
+  };
+
   // Jumlah notifikasi (semua notifikasi dianggap unread sampai di-delete)
   const unreadCount = notifications.length;
 
   // Update dropdown position when opened
   useEffect(() => {
-    const updatePosition = (event) => {
-      const dropdownElement = document.getElementById('notification-dropdown-portal');
-      if (dropdownElement && dropdownElement.contains(event?.target)) {
-        return;
-      }
+    const updatePosition = () => {
+      if (!showNotifications || !buttonRef.current) return;
 
-      if (showNotifications && buttonRef.current) {
-        const rect = buttonRef.current.getBoundingClientRect();
-        setDropdownPosition({
-          top: rect.bottom + 8,
-          right: window.innerWidth - rect.right - 15
-        });
-      }
+      const dropdownElement = document.getElementById('notification-dropdown-portal');
+      if (!dropdownElement) return;
+
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right - 15
+      });
     };
 
     updatePosition();
@@ -86,6 +107,30 @@ const NotificationDropdown = () => {
     return () => {
       window.removeEventListener('scroll', updatePosition, true);
       window.removeEventListener('resize', updatePosition);
+    };
+  }, [showNotifications]);
+
+  // Auto-close dropdown saat window resize (maximize/restore down)
+  useEffect(() => {
+    if (!showNotifications) return;
+
+    let resizeTimer;
+    const handleWindowResize = () => {
+      // Clear timer sebelumnya
+      clearTimeout(resizeTimer);
+      
+      // Set timer baru - tutup dropdown setelah resize berhenti
+      resizeTimer = setTimeout(() => {
+        console.log('🔄 Window resized, closing notification dropdown');
+        setShowNotifications(false);
+      }, 100); // Delay 100ms untuk avoid close saat resize smooth
+    };
+
+    window.addEventListener('resize', handleWindowResize);
+
+    return () => {
+      clearTimeout(resizeTimer);
+      window.removeEventListener('resize', handleWindowResize);
     };
   }, [showNotifications]);
 
@@ -204,9 +249,28 @@ const NotificationDropdown = () => {
           
           {/* Footer */}
           <div className="px-3 py-2 border-t border-slate-200 dark:border-slate-700/50 bg-slate-100/70 dark:bg-[#0B1739]/40">
-            <p className="flex items-center justify-center text-xs text-slate-600 dark:text-gray-500 font-medium tracking-wide">
-              CAMERA MANAGEMENT SYSTEM RS. CITRA HUSADA
-            </p>
+            {notifications.length > 0 ? (
+              <button
+                onClick={handleMarkAllAsRead}
+                disabled={markingAllRead}
+                className="w-full py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:text-gray-400 flex items-center justify-center space-x-1.5"
+              >
+                {markingAllRead ? (
+                  <>
+                    <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-blue-500 border-t-transparent"></div>
+                    <span>Memproses...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Tandai Semua Sudah Dibaca</span>
+                  </>
+                )}
+              </button>
+            ) : (
+              <p className="flex items-center justify-center text-xs text-slate-600 dark:text-gray-500 font-medium tracking-wide py-1">
+                CAMERA MANAGEMENT SYSTEM RS. CITRA HUSADA
+              </p>
+            )}
           </div>
         </div>
       </div>,
