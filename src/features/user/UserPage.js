@@ -12,8 +12,6 @@ import useUserPage from './hooks/useUserPage';
 
 const UserPage = () => {
     const bottomRef = useRef(null);
-    
-     
     const [shouldScrollOnChange, setShouldScrollOnChange] = useState(false);
 
     const {
@@ -34,6 +32,8 @@ const UserPage = () => {
         totalPages,
         itemsPerPage,
         hasActiveFilters,
+        roles,
+        loadingRoles,
         
         // API States
         loading,
@@ -63,21 +63,18 @@ const UserPage = () => {
         animations
     } = useUserPage();
 
-     
     useEffect(() => {
         if (shouldScrollOnChange && bottomRef.current && !loading) {
             bottomRef.current.scrollIntoView({
                 behavior: 'smooth',
                 block: 'end'
             });
-            // Reset flag setelah scroll
             setShouldScrollOnChange(false);
         }
     }, [currentPage, loading, shouldScrollOnChange]);
 
-     
     const handlePaginationChangeWithScroll = (page) => {
-        setShouldScrollOnChange(true); // Set flag untuk scroll
+        setShouldScrollOnChange(true);
         handlePaginationChange(page);
     };
 
@@ -118,6 +115,8 @@ const UserPage = () => {
                         onRoleChange={handleRoleFilter}
                         onClearFilters={handleClearFilters}
                         itemVariants={animations.item}
+                        roles={roles}
+                        loadingRoles={loadingRoles}
                     />
 
                     {/* User List Component */}

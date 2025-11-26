@@ -96,6 +96,28 @@ class UserService {
     throw new Error(errorMessage);
   }
 
+  // ============================================
+  // ROLE METHODS
+  // ============================================
+  
+  async getAllRoles() {
+    try {
+      const response = await apiClient.get('/role/?skip=0&limit=100');
+      const result = this._handleResponse(response);
+      
+      return {
+        data: Array.isArray(result.data) ? result.data : [],
+        total: Array.isArray(result.data) ? result.data.length : 0,
+      };
+    } catch (error) {
+      this._handleError(error);
+    }
+  }
+
+  // ============================================
+  // USER METHODS
+  // ============================================
+
   async getAllUsers(filters = {}) {
     try {
       // Build query parameters

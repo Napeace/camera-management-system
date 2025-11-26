@@ -1,5 +1,7 @@
-// src/features/user/UserEditModal.js - FIXED with Backend NIK Format
+// src/features/user/UserEditModal.js - WITH CustomRoleSelect
 import React, { useState, useEffect } from 'react';
+import userService from '../../../services/userService';
+import CustomRoleSelect from '../../../components/common/CustomRoleSelect';
 import { XMarkIcon, ExclamationCircleIcon, EyeIcon, EyeSlashIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
 
 const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) => {
@@ -8,14 +10,38 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
   const [isAnimating, setIsAnimating] = useState(false);
   const [shouldShow, setShouldShow] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [roles, setRoles] = useState([]);
+  const [loadingRoles, setLoadingRoles] = useState(true);
   const [formData, setFormData] = useState({
     nama: '',
     nik: '',
     username: '',
     password: '',
+    id_role: '',
   });
 
-  // Handle animation
+  // Fetch roles when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchRoles();
+    }
+  }, [isOpen]);
+
+  // Fetch roles from backend
+  const fetchRoles = async () => {
+    try {
+      setLoadingRoles(true);
+      const response = await userService.getAllRoles();
+      setRoles(response.data || []);
+    } catch (error) {
+      console.error('Error fetching roles:', error);
+      setError('Gagal memuat daftar role');
+    } finally {
+      setLoadingRoles(false);
+    }
+  };
+
+  // Handle animation and populate form
   useEffect(() => {
     if (isOpen && userToEdit) {
       setIsAnimating(true);
@@ -24,6 +50,7 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
         nik: String(userToEdit.nik || ''),
         username: userToEdit.username || '',
         password: '',
+        id_role: userToEdit.id_role || '',
       });
       setError('');
       setShowPassword(false);
@@ -42,7 +69,7 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
   };
 
   const validateForm = () => {
-    const { nama, nik, username, password } = formData;
+    const { nama, nik, username, password, id_role } = formData;
     
     if (!nama.trim()) {
       setError('Nama Lengkap wajib diisi');
@@ -59,21 +86,18 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
       return false;
     }
     
-    // ✅ Cek apakah NIK mengandung huruf
     const containsLetters = /[a-zA-Z]/.test(nik.trim());
     if (containsLetters) {
       setError('NIK hanya boleh berisi angka dan titik (.), tidak boleh ada huruf');
       return false;
     }
     
-    // ✅ Validasi format NIK sesuai backend: xxxx.xxxxx atau xxxxx.xxxxxx
     const nikPattern = /^\d{4,5}\.\d{5,6}$/;
     if (!nikPattern.test(nik.trim())) {
       setError('NIK harus berformat xxxx.xxxxx atau xxxxx.xxxxxx (hanya angka dan titik)');
       return false;
     }
     
-    // ✅ Validasi panjang total NIK (9-11 karakter termasuk titik)
     if (nik.trim().length < 9 || nik.trim().length > 11) {
       setError('NIK harus 9-11 karakter (termasuk titik)');
       return false;
@@ -94,6 +118,11 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
       return false;
     }
     
+    if (!id_role) {
+      setError('Role wajib dipilih');
+      return false;
+    }
+    
     return true;
   };
 
@@ -110,6 +139,7 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
         nama: formData.nama.trim(),
         nik: formData.nik.trim(),
         username: formData.username.trim(),
+        id_role: parseInt(formData.id_role),
       };
       
       // Only include password if it's provided
@@ -155,13 +185,11 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
         shouldShow ? 'opacity-100' : 'opacity-0'
       }`}
     >
-      {/* Outer Container */}
       <div 
         className={`rounded-lg shadow-2xl max-w-md w-full overflow-hidden bg-white dark:bg-gradient-to-b dark:from-slate-950 dark:to-blue-800 border border-blue-300 dark:border-slate-800 p-5 transform transition-all duration-300 ${
           shouldShow ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
         }`}
       >
-        {/* Inner Container */}
         <div className="bg-gray-50/80 dark:bg-white/5 backdrop-blur-sm rounded-lg p-5 space-y-4">
           
           {/* Header */}
@@ -183,7 +211,6 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
             </button>
           </div>
           
-          {/* Border separator */}
           <div className="h-px bg-gray-200 dark:bg-white/10"></div>
 
           {/* Form */}
@@ -241,6 +268,21 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
               </p>
             </div>
             
+            {/* Role - Using CustomRoleSelect */}
+            <div>
+              <label htmlFor="id_role" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                Role <span className="text-red-500">*</span>
+              </label>
+              <CustomRoleSelect
+                value={formData.id_role}
+                onChange={handleInputChange}
+                disabled={loading || loadingRoles}
+                roles={roles}
+                variant="form"
+                name="id_role"
+              />
+            </div>
+
             {/* Username */}
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
@@ -298,7 +340,7 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
           </form>
         </div>
 
-        {/* Buttons - Outside Inner Container */}
+        {/* Buttons */}
         <div className="flex gap-3 justify-end mt-4">
           <button 
             type="button" 
@@ -311,7 +353,7 @@ const UserEditModal = ({ isOpen, onClose, onSave, onUserUpdated, userToEdit }) =
           <button 
             type="submit" 
             onClick={handleSubmit}
-            disabled={loading}
+            disabled={loading || loadingRoles}
             className="px-8 py-2.5 bg-gray-300 dark:bg-gray-400/30 rounded-lg text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-400 dark:hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
           >
             {loading && (

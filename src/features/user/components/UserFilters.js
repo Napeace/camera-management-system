@@ -11,7 +11,9 @@ const UserFilters = ({
     onSearchChange,
     onRoleChange,
     onClearFilters,
-    itemVariants
+    itemVariants,
+    roles = [],
+    loadingRoles = false
 }) => {
     return (
         <motion.div
@@ -40,7 +42,9 @@ const UserFilters = ({
                     <CustomRoleSelect
                         value={roleFilter}
                         onChange={onRoleChange}
-                        disabled={loading}
+                        disabled={loading || loadingRoles}
+                        roles={roles}
+                        variant="default"
                     />
                 </div>
                 

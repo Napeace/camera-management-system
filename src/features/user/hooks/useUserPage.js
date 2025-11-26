@@ -1,9 +1,10 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import useUsers from '../../../hooks/useUsers';
 import useStaggerAnimation from '../../../hooks/useStaggerAnimation';
+import userService from '../../../services/userService';
 
 const useUserPage = () => {
     const { user } = useAuth();
@@ -23,6 +24,10 @@ const useUserPage = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
+
+    // Roles state
+    const [roles, setRoles] = useState([]);
+    const [loadingRoles, setLoadingRoles] = useState(true);
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -49,13 +54,30 @@ const useUserPage = () => {
         fetchUsers,
     } = useUsers();
 
-     
+    // Fetch roles on mount
+    useEffect(() => {
+        const fetchRoles = async () => {
+            try {
+                setLoadingRoles(true);
+                const response = await userService.getAllRoles();
+                setRoles(response.data || []);
+            } catch (error) {
+                console.error('Error fetching roles:', error);
+                showError('Gagal Memuat Role', 'Tidak dapat memuat daftar role');
+            } finally {
+                setLoadingRoles(false);
+            }
+        };
+
+        fetchRoles();
+    }, [showError]);
+
     const statistics = useMemo(() => {
         const total = users.length;
         const superAdmins = users.filter(u => u.user_role_name === 'SuperAdmin').length;
         const security = users.filter(u => u.user_role_name === 'Security').length;
         return { total, superAdmins, security };
-    }, [users]);  
+    }, [users]);
 
     // Memoized filtered users
     const filteredUsers = useMemo(() => {
@@ -267,10 +289,12 @@ const useUserPage = () => {
         users,
         paginatedUsers,
         filteredUsers,
-        statistics,  
+        statistics,
         totalPages,
         itemsPerPage,
         hasActiveFilters,
+        roles,
+        loadingRoles,
         
         // API States
         loading,
