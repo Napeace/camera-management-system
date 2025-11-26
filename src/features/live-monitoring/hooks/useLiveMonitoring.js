@@ -30,6 +30,12 @@ const useLiveMonitoring = () => {
     // State for all stats
     const [allStats, setAllStats] = useState({ total: 0, online: 0, offline: 0 });
 
+    // NEW: State for custom camera selection
+    const [viewMode, setViewMode] = useState('location'); // 'location' | 'custom'
+    const [selectedCameraIds, setSelectedCameraIds] = useState([]); // max 16 camera IDs
+    const [allAvailableCameras, setAllAvailableCameras] = useState([]); // all cameras from all locations
+    const [isCameraSelectorOpen, setIsCameraSelectorOpen] = useState(false);
+
     // Auto-scroll when pagination changes
     useEffect(() => {
         if (bottomRef.current && !loading) {
@@ -54,6 +60,13 @@ const useLiveMonitoring = () => {
                 const groups = await liveMonitoringService.getLocationGroups();
                 setLocationGroups(groups);
 
+                // NEW: Load all available cameras for custom selection
+                const allCamerasResult = await liveMonitoringService.getAllCamerasWithStreams();
+                if (allCamerasResult.success) {
+                    setAllAvailableCameras(allCamerasResult.data);
+                    console.log('✅ Loaded all available cameras:', allCamerasResult.data.length);
+                }
+
                 // Check if camera ID in URL params (for deep linking)
                 const cameraIdFromUrl = searchParams.get('camera');
                 if (cameraIdFromUrl) {
@@ -77,16 +90,16 @@ const useLiveMonitoring = () => {
 
      
     useEffect(() => {
-        if (locationFilter) {
+        if (locationFilter && viewMode === 'location') {
             setStatusFilter(''); // Reset status filter to show all cameras
             setCurrentPage(1);   // Reset to first page
         }
-    }, [locationFilter]);
+    }, [locationFilter, viewMode]);
 
-     
+    // Load streams for location (LOCATION MODE)
     useEffect(() => {
         const loadStreamsForLocation = async () => {
-            if (locationFilter) {
+            if (locationFilter && viewMode === 'location') {
                 try {
                     setLoading(true);
                     setAllCctvData([]);
@@ -114,7 +127,6 @@ const useLiveMonitoring = () => {
                     }));
                     
                     console.log('🟡 [useLiveMonitoring] Transformed cameras:', transformedCameras);
-                    console.log('🟡 [useLiveMonitoring] First camera sample:', transformedCameras[0]);
                     
                     // Store full data
                     setAllCctvData(transformedCameras);
@@ -139,14 +151,36 @@ const useLiveMonitoring = () => {
                 } finally {
                     setLoading(false);
                 }
-            } else {
+            } else if (viewMode === 'location') {
                 // Clear data when no location selected
                 setAllCctvData([]);
                 setCctvCameras([]);
             }
         };
         loadStreamsForLocation();
-    }, [locationFilter, statusFilter]);
+    }, [locationFilter, statusFilter, viewMode]);
+
+    // NEW: Handle custom mode - filter by selected camera IDs
+    useEffect(() => {
+        if (viewMode === 'custom' && selectedCameraIds.length > 0) {
+            console.log('🎯 [Custom Mode] Filtering cameras by IDs:', selectedCameraIds);
+            
+            // Filter from allAvailableCameras based on selectedCameraIds
+            let customCameras = allAvailableCameras.filter(cam => 
+                selectedCameraIds.includes(cam.id_cctv)
+            );
+            
+            // Apply status filter if active
+            if (statusFilter) {
+                const isOnline = statusFilter === 'online';
+                customCameras = customCameras.filter(cam => cam.is_streaming === isOnline);
+            }
+            
+            setCctvCameras(customCameras);
+            setCurrentPage(1);
+            console.log('✅ [Custom Mode] Displaying cameras:', customCameras.length);
+        }
+    }, [viewMode, selectedCameraIds, statusFilter, allAvailableCameras]);
 
     // Prevent body scroll when modal is open
     useEffect(() => {
@@ -174,7 +208,14 @@ const useLiveMonitoring = () => {
 
     // Handlers
     const handleStatusFilter = (e) => setStatusFilter(e.target.value);
-    const handleLocationFilter = (e) => setLocationFilter(e.target.value);
+    const handleLocationFilter = (e) => {
+        setLocationFilter(e.target.value);
+        // Reset to location mode when changing location
+        if (viewMode === 'custom') {
+            setViewMode('location');
+            setSelectedCameraIds([]);
+        }
+    };
     
     const handleCameraClick = (camera) => {
         setFullscreenCamera({
@@ -195,6 +236,38 @@ const useLiveMonitoring = () => {
     };
     
     const handlePaginationChange = (page) => setCurrentPage(page);
+
+    // NEW: Custom camera selection handlers
+    const handleOpenCameraSelector = () => {
+        setIsCameraSelectorOpen(true);
+    };
+
+    const handleCloseCameraSelector = () => {
+        setIsCameraSelectorOpen(false);
+    };
+
+    const handleApplyCustomSelection = (cameraIds) => {
+        console.log('🎯 Applying custom camera selection:', cameraIds);
+        setSelectedCameraIds(cameraIds);
+        setViewMode('custom');
+        setIsCameraSelectorOpen(false);
+        setCurrentPage(1);
+    };
+
+    const handleResetCustomSelection = () => {
+        console.log('🔄 Resetting to location mode');
+        setSelectedCameraIds([]);
+        setViewMode('location');
+        setIsCameraSelectorOpen(false);
+        setCurrentPage(1);
+        // Re-trigger location filter if a location was selected
+        if (locationFilter) {
+            // Force re-fetch by toggling locationFilter
+            const currentLocation = locationFilter;
+            setLocationFilter('');
+            setTimeout(() => setLocationFilter(currentLocation), 0);
+        }
+    };
 
     // Grid layout helpers
     const getAutoGridLayout = () => {
@@ -225,7 +298,7 @@ const useLiveMonitoring = () => {
     const endIndex = startIndex + itemsPerPage;
     const paginatedCameras = cctvCameras.slice(startIndex, endIndex);
 
-    const gridKey = `grid-${locationFilter}-${statusFilter}-${gridLayout}-${currentPage}`;
+    const gridKey = `grid-${locationFilter}-${statusFilter}-${gridLayout}-${currentPage}-${viewMode}`;
 
     return {
         // Data & Loading
@@ -259,7 +332,17 @@ const useLiveMonitoring = () => {
         // Fullscreen Modal
         fullscreenCamera,
         handleCameraClick,
-        handleCloseFullscreen
+        handleCloseFullscreen,
+
+        // NEW: Custom Camera Selection
+        viewMode,
+        selectedCameraIds,
+        allAvailableCameras,
+        isCameraSelectorOpen,
+        handleOpenCameraSelector,
+        handleCloseCameraSelector,
+        handleApplyCustomSelection,
+        handleResetCustomSelection,
     };
 };
 

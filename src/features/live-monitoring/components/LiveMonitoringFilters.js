@@ -9,7 +9,7 @@ const LiveMonitoringFilters = ({ gridLayout, onGridLayoutChange }) => {
                 <button
                     key={layout}
                     onClick={() => onGridLayoutChange(layout)}
-                    className={`w-12 h-12 text-xs font-semibold rounded-xl transition-all ${
+                    className={`w-14 h-14 text-xs font-semibold rounded-xl transition-all ${
                         gridLayout === layout
                             ? 'bg-blue-600 text-white shadow-lg'
                             : 'bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-300 dark:border-slate-600'

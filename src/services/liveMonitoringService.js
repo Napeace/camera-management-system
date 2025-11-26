@@ -182,6 +182,70 @@ class LiveMonitoringService {
   }
 
   /**
+   * NEW: Get all cameras with streams from all locations
+   * Used for: Custom camera selection modal
+   */
+  async getAllCamerasWithStreams() {
+    try {
+      console.log('Fetching all cameras with streams for custom selection...');
+      
+      const token = localStorage.getItem('access_token');
+      const params = new URLSearchParams();
+      if (token) {
+        params.append('token', token);
+      }
+      
+      params.append('skip', 0);
+      params.append('limit', 1000);
+      
+      const response = await apiClient.get(`/cctv/?${params.toString()}`);
+      
+      // Handle response structure
+      let cctvData = [];
+      if (response.data && response.data.data) {
+        cctvData = Array.isArray(response.data.data) ? response.data.data : [];
+      } else if (Array.isArray(response.data)) {
+        cctvData = response.data;
+      }
+      
+      // Transform to consistent format for custom selection
+      const transformedCameras = cctvData.map(cctv => ({
+        id: cctv.id_cctv,
+        id_cctv: cctv.id_cctv,
+        name: cctv.titik_letak,
+        titik_letak: cctv.titik_letak,
+        location: cctv.cctv_location_name,
+        location_name: cctv.cctv_location_name,
+        id_location: cctv.id_location,
+        ip_address: cctv.ip_address,
+        stream_key: cctv.stream_key,
+        is_streaming: Boolean(cctv.is_streaming),
+        // Generate stream URLs
+        streamUrls: cctv.stream_key ? {
+          hls_url: `http://localhost:8888/${cctv.stream_key}/index.m3u8`
+        } : null,
+        stream_urls: cctv.stream_key ? {
+          hls_url: `http://localhost:8888/${cctv.stream_key}/index.m3u8`
+        } : null
+      }));
+      
+      console.log('All cameras with streams:', transformedCameras.length);
+      
+      return {
+        success: true,
+        data: transformedCameras
+      };
+    } catch (error) {
+      console.error('Error fetching all cameras with streams:', error);
+      return {
+        success: false,
+        data: [],
+        error: error.message
+      };
+    }
+  }
+
+  /**
    * Calculate real-time statistics from all CCTV
    * Used for: Live Monitoring stats display
    */
