@@ -26,20 +26,52 @@ const LiveMonitoringStats = ({
                         CCTV RS. Citra Husada
                     </label>
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm">
+                        {/* Total Card */}
                         <div className="relative overflow-hidden flex items-center gap-2 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm px-4 sm:px-6 py-2.5 sm:py-3 rounded-2xl border-2 border-indigo-500">
                             <div className="absolute inset-0 bg-gradient-to-bl from-indigo-500/20 via-indigo-500/10 to-transparent dark:from-indigo-900/30 dark:via-indigo-900/15 dark:to-transparent pointer-events-none"></div>
-                            <span className="relative z-10 text-sm text-gray-900 dark:text-white font-semibold">{allStats.total}</span>
-                            <span className="relative z-10 text-sm text-gray-900 dark:text-white">Total</span>
+                            {loading ? (
+                                <>
+                                    <div className="relative z-10 w-8 h-5 bg-gray-300 dark:bg-slate-700 animate-pulse rounded"></div>
+                                    <span className="relative z-10 text-sm text-gray-900 dark:text-white">Total</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span className="relative z-10 text-sm text-gray-900 dark:text-white font-semibold">{allStats.total}</span>
+                                    <span className="relative z-10 text-sm text-gray-900 dark:text-white">Total</span>
+                                </>
+                            )}
                         </div>
+                        
+                        {/* Online Card */}
                         <div className="relative overflow-hidden flex items-center gap-2 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm px-4 sm:px-6 py-2.5 sm:py-3 rounded-2xl border-2 border-green-500">
                             <div className="absolute inset-0 bg-gradient-to-bl from-green-500/20 via-green-500/10 to-transparent dark:from-green-900/30 dark:via-green-900/15 dark:to-transparent pointer-events-none"></div>
-                            <span className="relative z-10 text-sm text-gray-900 dark:text-white font-semibold">{allStats.online}</span>
-                            <span className="relative z-10 text-sm text-gray-900 dark:text-white">Online</span>
+                            {loading ? (
+                                <>
+                                    <div className="relative z-10 w-8 h-5 bg-gray-300 dark:bg-slate-700 animate-pulse rounded"></div>
+                                    <span className="relative z-10 text-sm text-gray-900 dark:text-white">Online</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span className="relative z-10 text-sm text-gray-900 dark:text-white font-semibold">{allStats.online}</span>
+                                    <span className="relative z-10 text-sm text-gray-900 dark:text-white">Online</span>
+                                </>
+                            )}
                         </div>
+                        
+                        {/* Offline Card */}
                         <div className="relative overflow-hidden flex items-center gap-2 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm px-4 sm:px-6 py-2.5 sm:py-3 rounded-2xl border-2 border-red-500">
                             <div className="absolute inset-0 bg-gradient-to-bl from-red-500/20 via-red-500/10 to-transparent dark:from-red-900/30 dark:via-red-900/15 dark:to-transparent pointer-events-none"></div>
-                            <span className="relative z-10 text-sm text-gray-900 dark:text-white font-semibold">{allStats.offline}</span>
-                            <span className="relative z-10 text-sm text-gray-900 dark:text-white">Offline</span>
+                            {loading ? (
+                                <>
+                                    <div className="relative z-10 w-8 h-5 bg-gray-300 dark:bg-slate-700 animate-pulse rounded"></div>
+                                    <span className="relative z-10 text-sm text-gray-900 dark:text-white">Offline</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span className="relative z-10 text-sm text-gray-900 dark:text-white font-semibold">{allStats.offline}</span>
+                                    <span className="relative z-10 text-sm text-gray-900 dark:text-white">Offline</span>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import liveMonitoringService from '../../../services/liveMonitoringService';
+import cctvService from '../../../services/cctvService';
+import useCCTVStats from '../../../hooks/useCCTVStats';
 
 const useLiveMonitoring = () => {
     const [searchParams] = useSearchParams();
@@ -10,6 +12,10 @@ const useLiveMonitoring = () => {
     // State for CCTV data
     const [cctvCameras, setCctvCameras] = useState([]);
     const [allCctvData, setAllCctvData] = useState([]);
+    
+    // NEW: State for all CCTV data (for stats calculation - from cctvService)
+    const [allCctvForStats, setAllCctvForStats] = useState([]);
+    
     const [locationGroups, setLocationGroups] = useState([]);
     const [loading, setLoading] = useState(false);
     const [initialLoading, setInitialLoading] = useState(true);
@@ -27,13 +33,13 @@ const useLiveMonitoring = () => {
     // State for pagination
     const [currentPage, setCurrentPage] = useState(1);
 
-    // State for all stats
-    const [allStats, setAllStats] = useState({ total: 0, online: 0, offline: 0 });
+    // NEW: Calculate stats using the same hook as CCTVPage
+    const allStats = useCCTVStats(allCctvForStats);
 
     // NEW: State for custom camera selection
     const [viewMode, setViewMode] = useState('location'); // 'location' | 'custom'
     const [selectedCameraIds, setSelectedCameraIds] = useState([]); // max 16 camera IDs
-    const [allAvailableCameras, setAllAvailableCameras] = useState([]); // all cameras from all locations
+    const [allAvailableCameras, setAllAvailableCameras] = useState([]); // all cameras for selector
     const [isCameraSelectorOpen, setIsCameraSelectorOpen] = useState(false);
 
     // Auto-scroll when pagination changes
@@ -60,11 +66,18 @@ const useLiveMonitoring = () => {
                 const groups = await liveMonitoringService.getLocationGroups();
                 setLocationGroups(groups);
 
-                // NEW: Load all available cameras for custom selection
-                const allCamerasResult = await liveMonitoringService.getAllCamerasWithStreams();
+                // NEW: Load all available cameras for selector (basic data only, no streaming check)
+                const allCamerasResult = await liveMonitoringService.getAllCamerasForSelector();
                 if (allCamerasResult.success) {
                     setAllAvailableCameras(allCamerasResult.data);
-                    console.log('✅ Loaded all available cameras:', allCamerasResult.data.length);
+                    console.log('✅ Loaded all available cameras for selector:', allCamerasResult.data.length);
+                }
+
+                // NEW: Fetch all CCTV data for stats calculation (same as CCTVPage)
+                const cctvResult = await cctvService.getAllCCTV();
+                if (cctvResult.success && cctvResult.data) {
+                    setAllCctvForStats(cctvResult.data);
+                    console.log('✅ Loaded all CCTV for stats:', cctvResult.data.length);
                 }
 
                 // Check if camera ID in URL params (for deep linking)
@@ -81,6 +94,7 @@ const useLiveMonitoring = () => {
             } catch (error) {
                 console.error('Error loading initial data:', error);
                 setLocationGroups([]);
+                setAllCctvForStats([]);
             } finally {
                 setInitialLoading(false);
             }
@@ -160,27 +174,72 @@ const useLiveMonitoring = () => {
         loadStreamsForLocation();
     }, [locationFilter, statusFilter, viewMode]);
 
-    // NEW: Handle custom mode - filter by selected camera IDs
+    // NEW: Handle custom mode - fetch streams from backend using /streams/batch
     useEffect(() => {
-        if (viewMode === 'custom' && selectedCameraIds.length > 0) {
-            console.log('🎯 [Custom Mode] Filtering cameras by IDs:', selectedCameraIds);
-            
-            // Filter from allAvailableCameras based on selectedCameraIds
-            let customCameras = allAvailableCameras.filter(cam => 
-                selectedCameraIds.includes(cam.id_cctv)
-            );
-            
-            // Apply status filter if active
-            if (statusFilter) {
-                const isOnline = statusFilter === 'online';
-                customCameras = customCameras.filter(cam => cam.is_streaming === isOnline);
+        const loadCustomStreams = async () => {
+            if (viewMode === 'custom' && selectedCameraIds.length > 0) {
+                try {
+                    setLoading(true);
+                    setAllCctvData([]);
+                    setCctvCameras([]);
+                    
+                    console.log('🎯 [Custom Mode] Fetching streams for selected cameras:', selectedCameraIds);
+                    
+                    // Call backend /streams/batch endpoint
+                    const result = await liveMonitoringService.getStreamsByCctvIds(selectedCameraIds);
+                    
+                    if (!result.success) {
+                        console.error('❌ [Custom Mode] Failed to fetch streams:', result.error);
+                        alert(`Gagal memuat streams: ${result.error}`);
+                        setAllCctvData([]);
+                        setCctvCameras([]);
+                        setLoading(false);
+                        return;
+                    }
+                    
+                    console.log('🟢 [Custom Mode] Batch streams received:', result);
+                    console.log('🟢 [Custom Mode] Cameras count:', result.data.length);
+                    console.log('🟢 [Custom Mode] MediaMTX status:', result.mediamtx_status);
+                    
+                    // Store full data
+                    setAllCctvData(result.data);
+                    
+                    // Apply status filter if active
+                    let filtered = result.data;
+                    if (statusFilter) {
+                        const isOnline = statusFilter === 'online';
+                        filtered = result.data.filter(cam => cam.is_streaming === isOnline);
+                        console.log('🔍 [Custom Mode] Filtered by status:', statusFilter, '→', filtered.length);
+                    }
+                    
+                    setCctvCameras(filtered);
+                    setCurrentPage(1);
+                    
+                    console.log('✅ [Custom Mode] Displaying cameras:', filtered.length);
+                    
+                    // Show warning if some cameras not found
+                    if (result.total_requested !== result.total_found) {
+                        console.warn(`⚠️ Requested ${result.total_requested} cameras, but only found ${result.total_found}`);
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ [Custom Mode] Error loading custom streams:', error);
+                    setAllCctvData([]);
+                    setCctvCameras([]);
+                    alert('Terjadi kesalahan saat memuat streams kamera');
+                } finally {
+                    setLoading(false);
+                }
+            } else if (viewMode === 'custom') {
+                // Clear data when no cameras selected
+                setAllCctvData([]);
+                setCctvCameras([]);
             }
-            
-            setCctvCameras(customCameras);
-            setCurrentPage(1);
-            console.log('✅ [Custom Mode] Displaying cameras:', customCameras.length);
-        }
-    }, [viewMode, selectedCameraIds, statusFilter, allAvailableCameras]);
+        };
+        
+        loadCustomStreams();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [viewMode, selectedCameraIds.join(','), statusFilter]);
 
     // Prevent body scroll when modal is open
     useEffect(() => {
@@ -192,22 +251,9 @@ const useLiveMonitoring = () => {
         }
     }, [fullscreenCamera]);
 
-    // Calculate all stats from all locations
-    useEffect(() => {
-        const calculateAllStats = async () => {
-            try {
-                const stats = await liveMonitoringService.getStatistics();
-                setAllStats(stats);
-            } catch (error) {
-                console.error('Error calculating stats:', error);
-                setAllStats({ total: 0, online: 0, offline: 0 });
-            }
-        };
-        calculateAllStats();
-    }, []);
-
     // Handlers
     const handleStatusFilter = (e) => setStatusFilter(e.target.value);
+    
     const handleLocationFilter = (e) => {
         setLocationFilter(e.target.value);
         // Reset to location mode when changing location
@@ -218,13 +264,19 @@ const useLiveMonitoring = () => {
     };
     
     const handleCameraClick = (camera) => {
+        console.log('🖱️ [handleCameraClick] Camera clicked:', camera);
         setFullscreenCamera({
             id: camera.id,
+            id_cctv: camera.id_cctv || camera.id,
             name: camera.name || camera.titik_letak,
+            titik_letak: camera.titik_letak || camera.name,
             location: camera.location || camera.location_name,
+            location_name: camera.location_name || camera.location,
             ip_address: camera.ip_address,
             status: camera.is_streaming,
             streamUrls: camera.streamUrls || camera.stream_urls,
+            stream_urls: camera.stream_urls || camera.streamUrls,
+            viewMode: viewMode, // ✅ Pass viewMode ke modal
         });
     };
     
@@ -247,19 +299,32 @@ const useLiveMonitoring = () => {
     };
 
     const handleApplyCustomSelection = (cameraIds) => {
-        console.log('🎯 Applying custom camera selection:', cameraIds);
+        console.log('🎯 [handleApplyCustomSelection] Applying custom camera selection:', cameraIds);
+        
+        if (cameraIds.length === 0) {
+            alert('Pilih minimal 1 kamera');
+            return;
+        }
+        
         setSelectedCameraIds(cameraIds);
         setViewMode('custom');
         setIsCameraSelectorOpen(false);
         setCurrentPage(1);
+        setStatusFilter(''); // Reset status filter when applying custom selection
+        
+        // The useEffect for custom mode will automatically fetch streams
+        console.log('✅ [handleApplyCustomSelection] Custom mode activated, streams will be fetched');
     };
 
     const handleResetCustomSelection = () => {
-        console.log('🔄 Resetting to location mode');
+        console.log('🔄 [handleResetCustomSelection] Resetting to location mode');
+        
         setSelectedCameraIds([]);
         setViewMode('location');
         setIsCameraSelectorOpen(false);
         setCurrentPage(1);
+        setStatusFilter(''); // Reset status filter
+        
         // Re-trigger location filter if a location was selected
         if (locationFilter) {
             // Force re-fetch by toggling locationFilter
@@ -267,6 +332,8 @@ const useLiveMonitoring = () => {
             setLocationFilter('');
             setTimeout(() => setLocationFilter(currentLocation), 0);
         }
+        
+        console.log('✅ [handleResetCustomSelection] Reset complete, back to location mode');
     };
 
     // Grid layout helpers
@@ -298,7 +365,7 @@ const useLiveMonitoring = () => {
     const endIndex = startIndex + itemsPerPage;
     const paginatedCameras = cctvCameras.slice(startIndex, endIndex);
 
-    const gridKey = `grid-${locationFilter}-${statusFilter}-${gridLayout}-${currentPage}-${viewMode}`;
+    const gridKey = `grid-${locationFilter}-${statusFilter}-${gridLayout}-${currentPage}-${viewMode}-${selectedCameraIds.join(',')}`;
 
     return {
         // Data & Loading
@@ -308,7 +375,7 @@ const useLiveMonitoring = () => {
         locationGroups,
         loading,
         initialLoading,
-        allStats,
+        allStats, // ✅ Now calculated from allCctvForStats using useCCTVStats hook
         bottomRef,
         
         // Filters

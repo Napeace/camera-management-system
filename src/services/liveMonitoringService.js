@@ -182,12 +182,12 @@ class LiveMonitoringService {
   }
 
   /**
-   * NEW: Get all cameras with streams from all locations
-   * Used for: Custom camera selection modal
+   * NEW: Get all cameras (basic data) for camera selector modal
+   * Used for: Populating camera selector modal (no streaming status check)
    */
-  async getAllCamerasWithStreams() {
+  async getAllCamerasForSelector() {
     try {
-      console.log('Fetching all cameras with streams for custom selection...');
+      console.log('Fetching all cameras for selector modal...');
       
       const token = localStorage.getItem('access_token');
       const params = new URLSearchParams();
@@ -208,7 +208,7 @@ class LiveMonitoringService {
         cctvData = response.data;
       }
       
-      // Transform to consistent format for custom selection
+      // Transform to consistent format for selector
       const transformedCameras = cctvData.map(cctv => ({
         id: cctv.id_cctv,
         id_cctv: cctv.id_cctv,
@@ -219,28 +219,114 @@ class LiveMonitoringService {
         id_location: cctv.id_location,
         ip_address: cctv.ip_address,
         stream_key: cctv.stream_key,
-        is_streaming: Boolean(cctv.is_streaming),
-        // Generate stream URLs
-        streamUrls: cctv.stream_key ? {
-          hls_url: `http://localhost:8888/${cctv.stream_key}/index.m3u8`
-        } : null,
-        stream_urls: cctv.stream_key ? {
-          hls_url: `http://localhost:8888/${cctv.stream_key}/index.m3u8`
-        } : null
+        is_streaming: Boolean(cctv.is_streaming) // From DB, might not be real-time
       }));
       
-      console.log('All cameras with streams:', transformedCameras.length);
+      console.log('All cameras for selector:', transformedCameras.length);
       
       return {
         success: true,
         data: transformedCameras
       };
     } catch (error) {
-      console.error('Error fetching all cameras with streams:', error);
+      console.error('Error fetching cameras for selector:', error);
       return {
         success: false,
         data: [],
         error: error.message
+      };
+    }
+  }
+
+  /**
+   * NEW: Get streams for multiple CCTVs by their IDs (custom selection)
+   * Used for: Live Monitoring page - custom camera selection mode
+   * This will ensure streams and get real-time status from MediaMTX
+   */
+  async getStreamsByCctvIds(cctvIds) {
+    try {
+      console.log('🎯 Fetching streams for custom CCTV selection:', cctvIds);
+      
+      const token = localStorage.getItem('access_token');
+      const params = new URLSearchParams();
+      if (token) {
+        params.append('token', token);
+      }
+      
+      // Backend endpoint: POST /streams/batch
+      const response = await apiClient.post(
+        `/streams/batch?${params.toString()}`,
+        { cctv_ids: cctvIds }
+      );
+      
+      console.log('Raw batch streams response:', response.data);
+      
+      // Handle success_response wrapper
+      let batchData;
+      if (response.data && response.data.status === 'success') {
+        batchData = response.data.data;
+      } else if (response.data && response.data.data) {
+        batchData = response.data.data;
+      } else {
+        batchData = response.data;
+      }
+      
+      console.log('Extracted batch data:', batchData);
+      
+      // Validate response
+      if (!batchData || !batchData.cameras) {
+        console.error('Invalid batch response structure:', batchData);
+        throw new Error('Invalid response structure from server');
+      }
+      
+      // Transform cameras to consistent format
+      const transformedCameras = batchData.cameras.map(cam => ({
+        id: cam.cctv_id,
+        id_cctv: cam.cctv_id,
+        name: cam.titik_letak,
+        titik_letak: cam.titik_letak,
+        location: cam.location_name,
+        location_name: cam.location_name,
+        ip_address: cam.ip_address,
+        stream_key: cam.stream_key,
+        is_streaming: Boolean(cam.is_streaming),
+        streamUrls: cam.stream_urls,
+        stream_urls: cam.stream_urls,
+        stream_status: cam.stream_status
+      }));
+      
+      console.log('✅ Transformed custom cameras:', transformedCameras.length);
+      
+      return {
+        success: true,
+        data: transformedCameras,
+        total_requested: batchData.total_requested,
+        total_found: batchData.total_found,
+        mediamtx_status: batchData.mediamtx_status
+      };
+    } catch (error) {
+      console.error('❌ Error fetching batch streams:', error);
+      console.error('Error response:', error.response);
+      
+      let errorMessage = 'Gagal mengambil streams untuk kamera yang dipilih';
+      
+      if (error.response) {
+        const errorData = error.response.data;
+        if (typeof errorData === 'string') {
+          errorMessage = errorData;
+        } else if (errorData?.detail) {
+          errorMessage = errorData.detail;
+        } else if (errorData?.message) {
+          errorMessage = errorData.message;
+        }
+      } else if (error.request) {
+        errorMessage = 'Koneksi bermasalah - tidak dapat terhubung ke server';
+      }
+      
+      return {
+        success: false,
+        data: [],
+        error: errorMessage
       };
     }
   }

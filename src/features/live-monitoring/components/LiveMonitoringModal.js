@@ -126,10 +126,12 @@ const LiveMonitoringModal = ({ camera, onClose }) => {
                             <h3 className="text-lg font-semibold text-white mb-1.5">
                                 {camera?.name || camera?.titik_letak}
                             </h3>
-                            <p className="text-gray-400 text-sm mb-1">
-                                {camera?.location || camera?.location_name}
-                            </p>
-                            <p className="text-xs text-gray-500">IP: {camera?.ip_address}</p>
+                            {camera?.viewMode !== 'custom' && (camera?.location || camera?.location_name) && (
+                                <p className="text-gray-400 text-sm mb-1">
+                                    {camera?.location || camera?.location_name}
+                                </p>
+                            )}
+                            <p className="text-xs text-gray-500">IP: {camera?.ip_address || 'N/A'}</p>
                         </div>
 
                         {/* Kolom Kanan: Status + Recording dalam 1 baris */}
