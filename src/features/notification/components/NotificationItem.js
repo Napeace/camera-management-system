@@ -9,20 +9,15 @@ const NotificationItem = ({ notification, onDelete }) => {
 
   const handleClick = async () => {
     try {
-      console.log('🔔 Notification clicked:', notification);
-      
-      // 1. Delete notifikasi terlebih dahulu
+       // 1. Delete notifikasi terlebih dahulu
       await notificationService.deleteNotification(notification.id_notification);
-      console.log('✅ Notification deleted');
-      
-      // 2. Update UI (optimistic)
+       // 2. Update UI (optimistic)
       if (onDelete) {
         onDelete(notification.id_notification);
       }
       
       // 3. Navigate ke history page dengan query param highlight
-      console.log(`📍 Navigating to /history?highlight=${notification.id_history}`);
-      navigate(`/history?highlight=${notification.id_history}`);
+       navigate(`/history?highlight=${notification.id_history}`);
       
     } catch (error) {
       console.error('❌ Failed to delete notification:', error);

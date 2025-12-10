@@ -135,10 +135,7 @@ class UserService {
       if (filters.role && filters.role.trim()) {
         queryParams.append('role', filters.role.trim());
       }
-      
-      console.log('API Call URL:', `/users/?${queryParams.toString()}`);
-      
-      const response = await apiClient.get(`/users/?${queryParams.toString()}`);
+       const response = await apiClient.get(`/users/?${queryParams.toString()}`);
       const result = this._handleResponse(response);
 
       return {
@@ -152,8 +149,7 @@ class UserService {
 
   async createUser(userData) {
     try {
-      console.log('Creating user with data:', userData);
-      const response = await apiClient.post('/users/', userData);
+       const response = await apiClient.post('/users/', userData);
       return this._handleResponse(response);
     } catch (error) {
       this._handleError(error);
@@ -162,8 +158,7 @@ class UserService {
 
   async updateUser(userId, userData) {
     try {
-      console.log('Updating user:', userId, 'with data:', userData);
-      const response = await apiClient.put(`/users/${userId}`, userData);
+       const response = await apiClient.put(`/users/${userId}`, userData);
       return this._handleResponse(response);
     } catch (error) {
       this._handleError(error);
@@ -191,9 +186,7 @@ class UserService {
   // Export Users to Excel/CSV
   async exportUsers(format = 'xlsx') {
     try {
-      console.log('Exporting users with format:', format);
-      
-      const response = await apiClient.get(`/users/export?format=${format}`, {
+       const response = await apiClient.get(`/users/export?format=${format}`, {
         responseType: 'blob',
         timeout: 60000,
       });
@@ -207,9 +200,7 @@ class UserService {
   // Import Users from Excel/CSV file
   async importUsers(formData) {
     try {
-      console.log('Importing users from file');
-      
-      const response = await apiClient.post('/users/import', formData, {
+       const response = await apiClient.post('/users/import', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

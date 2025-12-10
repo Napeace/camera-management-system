@@ -17,7 +17,7 @@ const HistoryPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { showSuccess, showError } = useToast();
+  const { showSuccess, showError, showInfo } = useToast();
   const scrollAttempted = useRef(false);
   const highlightProcessed = useRef(false);
   
@@ -84,9 +84,7 @@ const HistoryPage = () => {
     }
     
     if (!loading && filteredHistory.length > 0 && !scrollAttempted.current) {
-      console.log(`🎯 Attempting to find history ID: ${highlightId}`);
-      
-      const targetIndex = filteredHistory.findIndex(
+       const targetIndex = filteredHistory.findIndex(
         item => item.id_history === parseInt(highlightId)
       );
       
@@ -99,23 +97,15 @@ const HistoryPage = () => {
       }
       
       const targetPage = Math.floor(targetIndex / itemsPerPage) + 1;
-      console.log(`📄 Target is on page ${targetPage} (current: ${currentPage})`);
-      
-      if (targetPage !== currentPage) {
-        console.log(`🔄 Navigating to page ${targetPage}...`);
-        handlePageNavigation(targetPage);
+       if (targetPage !== currentPage) {
+         handlePageNavigation(targetPage);
         return;
       }
-      
-      console.log(`✅ Already on correct page, scrolling to row...`);
-      
-      const scrollTimer = setTimeout(() => {
+       const scrollTimer = setTimeout(() => {
         const targetRow = document.querySelector(`[data-history-id="${highlightId}"]`);
         
         if (targetRow) {
-          console.log('✅ Target row found, scrolling...');
-          
-          targetRow.scrollIntoView({ 
+           targetRow.scrollIntoView({ 
             behavior: 'smooth', 
             block: 'center' 
           });
@@ -124,8 +114,7 @@ const HistoryPage = () => {
           
           setTimeout(() => {
             targetRow.classList.remove('history-row-highlight');
-            console.log('🧹 Cleaning up query parameter...');
-            navigate('/history', { replace: true });
+             navigate('/history', { replace: true });
             highlightProcessed.current = highlightId;
           }, 2000);
           
@@ -151,12 +140,10 @@ const HistoryPage = () => {
     const currentHighlightId = searchParams.get('highlight');
     
     if (currentHighlightId && highlightProcessed.current !== currentHighlightId) {
-      console.log(`🔄 New highlight detected: ${currentHighlightId}, resetting refs...`);
-      scrollAttempted.current = false;
+       scrollAttempted.current = false;
       highlightProcessed.current = null;
     } else if (!currentHighlightId && highlightProcessed.current) {
-      console.log('🧹 Highlight cleared from URL, resetting refs...');
-      scrollAttempted.current = false;
+       scrollAttempted.current = false;
       highlightProcessed.current = null;
     }
   }, [location.search]);
@@ -208,6 +195,7 @@ const HistoryPage = () => {
               onAddHistory={handleOpenCreateModal}
               showSuccess={showSuccess}
               showError={showError}
+              showInfo={showInfo}
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={handlePageNavigation}

@@ -47,7 +47,7 @@ const useHistoryPage = () => {
       const parsed = new Date(dateString);
       return isNaN(parsed.getTime()) ? null : parsed;
     } catch (err) {
-      console.error('Failed to parse date:', dateString, err);
+      // console.error('Failed to parse date:', dateString, err); // Dihapus
       return null;
     }
   };
@@ -166,13 +166,6 @@ const useHistoryPage = () => {
 
    
   const handleExportToPDF = useCallback(async () => {
-    console.log('🚀 Export triggered with state:', {
-      startDate,
-      endDate,
-      filteredHistoryLength: filteredHistory.length,
-      totalHistoryLength: historyData.length
-    });
-
      
     if (filteredHistory.length === 0) {
       showError(
@@ -191,16 +184,8 @@ const useHistoryPage = () => {
       const exportStartDate = startDate;
       const exportEndDate = endDate;
 
-      console.log('📤 Calling export API with:', {
-        exportStartDate,
-        exportEndDate
-      });
-
       const result = await historyService.exportHistory(exportStartDate, exportEndDate);
-      
-      console.log('✅ Export successful:', result);
-
-      // Format date range for toast message
+       // Format date range for toast message
       let dateRangeMsg = '';
       if (exportStartDate && exportEndDate) {
         const startStr = exportStartDate.toLocaleDateString('id-ID');
@@ -215,7 +200,7 @@ const useHistoryPage = () => {
         `File ${result.filename || 'laporan kerusakan'} telah berhasil diunduh${dateRangeMsg}.`
       );
     } catch (error) {
-      console.error('❌ Export error:', error);
+      // console.error('❌ Export error:', error); // Dihapus
       showError(
         'Ekspor Gagal',
         error.message || 'Terjadi kesalahan saat mengekspor data history ke Excel'
@@ -223,7 +208,7 @@ const useHistoryPage = () => {
     } finally {
       setIsExporting(false);
     }
-  }, [startDate, endDate, filteredHistory.length, historyData.length, showSuccess, showError]);
+  }, [startDate, endDate, filteredHistory.length, showSuccess, showError]);
 
   // Modal handlers
   const handleOpenCreateModal = useCallback(() => {
@@ -240,7 +225,7 @@ const useHistoryPage = () => {
       await fetchHistory();
       setCurrentPage(1);
     } catch (error) {
-      console.error('Error after creating history:', error);
+      // console.error('Error after creating history:', error); // Dihapus
     }
   }, [showSuccess, fetchHistory]);
 
@@ -249,7 +234,7 @@ const useHistoryPage = () => {
     try {
       await fetchHistory();
     } catch (error) {
-      console.error('Error refreshing history data:', error);
+      // console.error('Error refreshing history data:', error); // Dihapus
       showError('Refresh Gagal', 'Gagal memuat ulang data history');
     }
   }, [fetchHistory, showError]);
@@ -269,7 +254,7 @@ const useHistoryPage = () => {
         loading: false 
       });
     } catch (err) {
-      console.error('Action failed:', err);
+      // console.error('Action failed:', err); // Dihapus
       setConfirmDialog(prev => ({ ...prev, loading: false }));
       showError('Aksi Gagal', 'Terjadi kesalahan saat memproses permintaan Anda');
     }

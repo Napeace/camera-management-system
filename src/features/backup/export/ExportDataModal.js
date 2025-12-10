@@ -20,7 +20,7 @@ const ExportDataModal = ({ isOpen, onClose }) => {
     {
       id: 'sql',
       title: 'Export Data SQL',
-      description: 'Export seluruh database dalam format SQL',
+      description: 'Export seluruh database dalam format .bak',
       icon: CircleStackIcon,
       color: 'blue',
       disabled: false 
@@ -106,24 +106,16 @@ const ExportDataModal = ({ isOpen, onClose }) => {
           handleClose();
         }, 1000);
       } else if (selectedExport === 'users') {
-        console.log('🚀 Starting user export...');
-        
-        const response = await userService.exportUsers('xlsx');
+         const response = await userService.exportUsers('xlsx');
         const filename = downloadBlobFile(response, 'Data_Pengguna.xlsx');
-        
-        console.log('✅ User export successful:', filename);
-        showNotification('success', `Export Pengguna berhasil! File "${filename}" telah diunduh.`);
+         showNotification('success', `Export Pengguna berhasil! File "${filename}" telah diunduh.`);
         
         setTimeout(() => {
           handleClose();
         }, 1000);
       } else if (selectedExport === 'sql') {
-        console.log('🚀 Starting SQL database export...');
-        
-        const result = await exportService.exportSql(); // Export full database
-        
-        console.log('✅ SQL export successful:', result.filename);
-        showNotification('success', `Export SQL berhasil! File "${result.filename}" telah diunduh.`);
+         const result = await exportService.exportSql(); // Export full database
+         showNotification('success', `Export SQL berhasil! File "${result.filename}" telah diunduh.`);
         
         setTimeout(() => {
           handleClose();

@@ -45,9 +45,9 @@ const ImportDataModal = ({ isOpen, onClose, onImportSuccess }) => {
 
   const showNotification = (type, message) => {
     setNotification({ show: true, type, message });
-    setTimeout(() => {
-      setNotification({ show: false, type: '', message: '' });
-    }, 5000);
+    // setTimeout(() => {
+    //   setNotification({ show: false, type: '', message: '' });
+    // }, 5000);
   };
 
   const handleFileSelect = (event) => {
@@ -128,9 +128,9 @@ const ImportDataModal = ({ isOpen, onClose, onImportSuccess }) => {
       }
 
       // Auto close setelah 2 detik jika berhasil
-      setTimeout(() => {
-        handleClose();
-      }, 2000);
+      // setTimeout(() => {
+      //   handleClose();
+      // }, 2000);
     } catch (error) {
       console.error('Import error:', error);
       
@@ -138,9 +138,9 @@ const ImportDataModal = ({ isOpen, onClose, onImportSuccess }) => {
       let errorMessage = error.message || 'Import gagal! Silakan coba lagi.';
       
       // Jika error message terlalu panjang, truncate dengan max 200 chars
-      if (errorMessage.length > 200) {
-        errorMessage = errorMessage.substring(0, 200) + '...';
-      }
+      // if (errorMessage.length > 200) {
+      //   errorMessage = errorMessage.substring(0, 200) + '...';
+      // }
       
       showNotification('error', errorMessage);
     } finally {

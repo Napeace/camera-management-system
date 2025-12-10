@@ -51,7 +51,7 @@ const backgroundClasses = {
   success: 'bg-white dark:bg-gradient-to-r dark:from-green-600 dark:to-green-800',
   error: 'bg-white dark:bg-gradient-to-r dark:from-red-700 dark:to-red-900',
   warning: 'bg-white dark:bg-gray-800',
-  info: 'bg-white dark:bg-gray-800',
+  info: 'bg-white dark:bg-gradient-to-r dark:from-blue-600 dark:to-blue-800',
 };
 
 // Icon container background
@@ -74,7 +74,7 @@ const messageColors = {
   success: 'text-gray-500 dark:text-white/90',
   error: 'text-gray-500 dark:text-white/90',
   warning: 'text-gray-500 dark:text-gray-400',
-  info: 'text-gray-500 dark:text-gray-400',
+  info: 'text-gray-500 dark:text-white/90',
 };
 
 // Close button colors
@@ -82,7 +82,7 @@ const closeButtonColors = {
   success: 'text-gray-400 hover:text-gray-500 dark:text-white/70 dark:hover:text-white',
   error: 'text-gray-400 hover:text-gray-500 dark:text-white/70 dark:hover:text-white',
   warning: 'text-gray-400 hover:text-gray-500 dark:hover:text-gray-300',
-  info: 'text-gray-400 hover:text-gray-500 dark:hover:text-gray-300',
+  info: 'text-gray-400 hover:text-gray-500 dark:text-white/70 dark:hover:text-white',
 };
 
 export default function Toast({ id, type = 'info', title, message, onClose, autoClose = true, duration = 2000 }) {
@@ -115,8 +115,8 @@ export default function Toast({ id, type = 'info', title, message, onClose, auto
   const messageColor = messageColors[type];
   const closeColor = closeButtonColors[type];
 
-  // Tentukan apakah perlu camera icon (hanya success & error)
-  const showCameraIcon = type === 'success' || type === 'error';
+  // Tentukan apakah perlu camera icon (sekarang termasuk info)
+  const showCameraIcon = type === 'success' || type === 'error' || type === 'info';
 
   return (
     <Transition
@@ -158,7 +158,7 @@ export default function Toast({ id, type = 'info', title, message, onClose, auto
           </div>
         </div>
 
-        {/* Camera Icon - Only for Success & Error */}
+        {/* Camera Icon - Now includes Info type */}
         {showCameraIcon && <CameraIcon />}
       </div>
     </Transition>

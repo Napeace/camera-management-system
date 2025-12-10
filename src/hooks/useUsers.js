@@ -13,14 +13,8 @@ const useUsers = () => {
     try {
       setLoading(true);
       setError(null);
-      
-      console.log('Fetching users with filters:', currentFilters);
-      
-      const response = await userService.getAllUsers(currentFilters);
-      
-      console.log('API Response:', response);
-      
-      let filteredUsers = response.data || [];
+       const response = await userService.getAllUsers(currentFilters);
+       let filteredUsers = response.data || [];
       
       // Apply local filtering jika API tidak support server-side filtering
       if (currentFilters.search) {
@@ -120,9 +114,7 @@ const useUsers = () => {
   }, [filters, fetchUsers]);
 
   const updateFilters = useCallback((newFilterValues) => {
-    console.log('Updating filters:', newFilterValues);
-    
-    const updatedFilters = { ...filters, ...newFilterValues };
+     const updatedFilters = { ...filters, ...newFilterValues };
     
     // Remove undefined/null values
     Object.keys(updatedFilters).forEach(key => {
@@ -130,10 +122,7 @@ const useUsers = () => {
         delete updatedFilters[key];
       }
     });
-    
-    console.log('Final filters:', updatedFilters);
-    
-    setFilters(updatedFilters);
+     setFilters(updatedFilters);
     fetchUsers(updatedFilters);
   }, [filters, fetchUsers]);
 

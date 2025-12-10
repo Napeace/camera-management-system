@@ -11,25 +11,17 @@ const useHistory = () => {
     try {
       setLoading(true);
       setError(null);
-      
-      console.log('🔄 Fetching history from backend...');
-      
-      const response = await historyService.getHistory({
+       const response = await historyService.getHistory({
         skip: 0,
         limit: 1000
       });
-      
-      console.log('✅ History Response:', response);
-      
-      if (response.data && response.data.status === 'success') {
+       if (response.data && response.data.status === 'success') {
         const histories = response.data.data;
         
         const sortedData = [...histories].sort(
           (a, b) => new Date(b.created_at) - new Date(a.created_at)
         );
-        
-        console.log('📊 Sorted History Data:', sortedData);
-        setHistoryData(sortedData);
+         setHistoryData(sortedData);
       } else {
         throw new Error('Invalid response format');
       }

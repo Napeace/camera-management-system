@@ -38,21 +38,13 @@ const RecentHistoryTable = ({ onSeeMore }) => {
       setError(null);
       
       try {
-        console.log('📡 Fetching recent history (4 items)...');
-        
-         
-        const response = await historyService.getHistory({ 
+         const response = await historyService.getHistory({ 
           limit: 4,
           skip: 0 
         });
-        
-        console.log('📥 Recent history response:', response);
-        
-        if (response.data && response.data.status === 'success') {
+         if (response.data && response.data.status === 'success') {
           const data = response.data.data || [];
-          console.log('✅ Recent history data:', data);
-          
-          // Take only first 4 items (sorted by latest from backend)
+           // Take only first 4 items (sorted by latest from backend)
           setHistoryData(data.slice(0, 4));
         } else {
           console.warn('⚠️ Unexpected response format:', response);

@@ -1,4 +1,4 @@
-// features/history/HistoryList.js - WITH PAGINATION INSIDE
+// features/history/HistoryList.js - HEADER ALWAYS VISIBLE
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
@@ -29,6 +29,7 @@ const HistoryList = ({
   onAddHistory,
   showSuccess,
   showError,
+  showInfo,
   currentPage = 1,
   totalPages = 1,
   onPageChange,
@@ -48,21 +49,21 @@ const HistoryList = ({
 
   // Handler for note button click
   const handleNoteClick = (item) => {
-    console.log('📝 Note clicked for:', item);
+ 
     setSelectedHistory(item);
     setIsNoteModalOpen(true);
   };
 
   // Handler for repair button click
   const handleRepairClick = (item) => {
-    console.log('🔧 Repair clicked for:', item);
+ 
     setSelectedHistory(item);
     setIsRepairConfirmOpen(true);
   };
 
   // Handler untuk close note modal - HANYA refresh jika ada update
   const handleNoteModalClose = async (wasUpdated = false) => {
-    console.log('🔄 Note modal closing, wasUpdated:', wasUpdated);
+ 
     
     const historyName = selectedHistory?.cctv_name || 'CCTV';
     
@@ -70,11 +71,11 @@ const HistoryList = ({
     setSelectedHistory(null);
     
     if (wasUpdated) {
-      console.log('✅ Ada update, refreshing data...');
+ 
       
       if (onDataUpdated) {
         await onDataUpdated();
-        console.log('✅ Data refresh completed after note update');
+ 
       }
 
       if (showSuccess) {
@@ -84,7 +85,7 @@ const HistoryList = ({
         );
       }
     } else {
-      console.log('ℹ️ Tidak ada update, skip refresh');
+ 
     }
   };
 
@@ -98,11 +99,11 @@ const HistoryList = ({
         service: true
       };
       
-      console.log('🔧 Marking as repaired:', selectedHistory.id_history);
+ 
       
       await historyService.updateHistory(selectedHistory.id_history, updateData);
       
-      console.log('✅ Marked as repaired successfully');
+ 
       
       const cctvName = selectedHistory.cctv_name || 'CCTV';
       
@@ -110,9 +111,9 @@ const HistoryList = ({
       setSelectedHistory(null);
       
       if (onDataUpdated) {
-        console.log('🔄 Calling onDataUpdated to refresh data...');
+ 
         await onDataUpdated();
-        console.log('✅ Data refresh completed after repair');
+ 
       }
 
       if (showSuccess) {
@@ -150,6 +151,9 @@ const HistoryList = ({
   // Check if export button should be disabled
   const isExportDisabled = loading || isExporting || !historyData || historyData.length === 0;
 
+  // Check if data is empty
+  const hasData = historyData && historyData.length > 0;
+
   if (loading) {
     return (
       <div className="bg-white dark:bg-slate-950/50 rounded-lg shadow-sm border border-gray-200 dark:border-slate-600/30">
@@ -185,20 +189,6 @@ const HistoryList = ({
     );
   }
 
-  if (!historyData || historyData.length === 0) {
-    return (
-      <div className="bg-white dark:bg-slate-950/50 rounded-lg shadow-sm border border-gray-200 dark:border-slate-600/30 p-6">
-        <div className="text-center py-8">
-          <svg className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">Data History tidak ditemukan</h3>
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">No CCTV camera errors have been recorded yet.</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <>
       <motion.div 
@@ -208,7 +198,7 @@ const HistoryList = ({
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
       >
-        {/* Header dengan Title dan Buttons */}
+        {/* Header dengan Title dan Buttons - ALWAYS VISIBLE */}
         <div className="px-6 py-4 rounded-t-xl bg-white dark:bg-slate-400/10 border-gray-200 border dark:border-slate-500/30">
           <div className="flex items-center justify-between">
             {/* Title */}
@@ -219,7 +209,7 @@ const HistoryList = ({
 
             {/* Action Buttons - RESPONSIVE THEME */}
             <div className="flex items-center gap-3">
-              {/* Button Tambahkan Riwayat - Responsive Gradient */}
+              {/* Button Tambahkan Riwayat - ALWAYS ENABLED */}
               <button
                 onClick={onAddHistory}
                 disabled={loading}
@@ -249,7 +239,7 @@ const HistoryList = ({
                 </div>
               </button>
 
-              {/* Button Laporan Kerusakan - With Smart Disable Logic */}
+              {/* Button Laporan Kerusakan - DISABLED WHEN NO DATA */}
               <button
                 onClick={onExportPDF}
                 disabled={isExportDisabled}
@@ -292,80 +282,100 @@ const HistoryList = ({
           </div>
         </div>
 
-        <div className="w-full overflow-x-auto overflow-y-hidden px-6">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-600/30">
-            <thead>
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider w-48">
-                  <div className="flex items-center">
-                    <VideoCameraIcon className="w-4 h-4 mr-2" />
-                    Kamera
-                  </div>
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
-                  <div className="flex items-center">
-                    <ServerIcon className="w-4 h-4 mr-1" />
-                    IP Address
-                  </div>
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider w-48">
-                  <div className="flex items-center">
-                    <BuildingOfficeIcon className="w-4 h-4 mr-2" />
-                    Lokasi
-                  </div>
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
-                  <div className="flex items-center">
-                    <CalendarIcon className="w-4 h-4 mr-2" />
-                    Tanggal
-                  </div>
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
-                  <div className="flex items-center">
-                    <SignalIcon className="w-4 h-4 mr-2" />
-                    Status
-                  </div>
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
-                  <div className="flex items-center">
-                    <AdjustmentsVerticalIcon className="w-4 h-4 mr-2" />
-                    Aksi
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            
-            <motion.tbody 
-              className="bg-transparent divide-y divide-gray-200 dark:divide-slate-600/30"
-              variants={tableAnimations.tbody}
-              initial="hidden"
-              animate="visible"
-            >
-              {historyData.map((item) => (
-                <HistoryListItem 
-                  key={item.id_history}
-                  item={item}
-                  rowVariants={tableAnimations.row}
-                  onNoteClick={handleNoteClick}
-                  onRepairClick={handleRepairClick}
-                />
-              ))}
-            </motion.tbody>
-          </table>
-        </div>
-      </motion.div>
+        {/* Table or Empty State */}
+        {hasData ? (
+          <>
+            {/* Table with Data */}
+            <div className="w-full overflow-x-auto overflow-y-hidden px-6">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-600/30">
+                <thead>
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider w-48">
+                      <div className="flex items-center">
+                        <VideoCameraIcon className="w-4 h-4 mr-2" />
+                        Kamera
+                      </div>
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
+                      <div className="flex items-center">
+                        <ServerIcon className="w-4 h-4 mr-1" />
+                        IP Address
+                      </div>
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider w-48">
+                      <div className="flex items-center">
+                        <BuildingOfficeIcon className="w-4 h-4 mr-2" />
+                        Lokasi
+                      </div>
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
+                      <div className="flex items-center">
+                        <CalendarIcon className="w-4 h-4 mr-2" />
+                        Tanggal
+                      </div>
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
+                      <div className="flex items-center">
+                        <SignalIcon className="w-4 h-4 mr-2" />
+                        Status
+                      </div>
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white tracking-wider">
+                      <div className="flex items-center">
+                        <AdjustmentsVerticalIcon className="w-4 h-4 mr-2" />
+                        Aksi
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                
+                <motion.tbody 
+                  className="bg-transparent divide-y divide-gray-200 dark:divide-slate-600/30"
+                  variants={tableAnimations.tbody}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  {historyData.map((item) => (
+                    <HistoryListItem 
+                      key={item.id_history}
+                      item={item}
+                      rowVariants={tableAnimations.row}
+                      onNoteClick={handleNoteClick}
+                      onRepairClick={handleRepairClick}
+                      showInfo={showInfo}
+                    />
+                  ))}
+                </motion.tbody>
+              </table>
+            </div>
 
-      {/* Pagination */}
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalItems={totalItems}
-        itemsPerPage={itemsPerPage}
-        onPageChange={onPageChange}
-        itemName="Data History"
-        showFirstLast={true}
-        maxPageButtons={5}
-      />
+            {/* Pagination - Only show when has data */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              itemsPerPage={itemsPerPage}
+              onPageChange={onPageChange}
+              itemName="Data History"
+              showFirstLast={true}
+              maxPageButtons={5}
+            />
+          </>
+        ) : (
+          <>
+            {/* Empty State */}
+            <div className="p-6">
+              <div className="text-center py-8">
+                <svg className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">Data History tidak ditemukan</h3>
+                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Belum ada riwayat aktivitas CCTV yang tercatat.</p>
+              </div>
+            </div>
+          </>
+        )}
+      </motion.div>
 
       {/* Note Modal */}
       <HistoryNoteModal

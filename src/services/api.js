@@ -21,9 +21,7 @@ apiClient.interceptors.request.use(
     
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
-      
-      console.log('✅ Token injected to Authorization header');
-    } else {
+     } else {
       console.warn('⚠️ No token found in localStorage');
     }
     
@@ -38,8 +36,7 @@ apiClient.interceptors.request.use(
 // Interceptor untuk response (menangani error global)
 apiClient.interceptors.response.use(
   (response) => {
-    console.log('✅ Response success:', response.config.url, response.status);
-    return response;
+     return response;
   },
   (error) => {
     console.error('❌ Response error:', error.config?.url, error.response?.status);

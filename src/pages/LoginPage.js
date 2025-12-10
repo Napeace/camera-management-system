@@ -94,27 +94,16 @@ function LoginPage() {
     setError('');
     
     try {
-      console.log('🔐 Login attempt for:', formData.username);
-      
-      // 1. Call backend login
+       // 1. Call backend login
       const result = await authService.login(formData);
       
       if (result.success) {
-        console.log('✅ Backend login successful:', result.user.username);
-        
-        // 2. ✅ CRITICAL FIX: AWAIT authLogin untuk memastikan token tersimpan
+         // 2. ✅ CRITICAL FIX: AWAIT authLogin untuk memastikan token tersimpan
         await authLogin(result.user, result.token);
-        console.log('✅ AuthContext login completed');
-        
-        // 3. ✅ CRITICAL FIX: Delay untuk memastikan state sync
+         // 3. ✅ CRITICAL FIX: Delay untuk memastikan state sync
         await new Promise(resolve => setTimeout(resolve, 300));
-        console.log('✅ State sync completed');
-        
-        // 4. Redirect based on role (both go to /dashboard)
-        console.log('🚀 Redirecting to dashboard...');
-        
-         
-        navigate('/dashboard', { replace: true });
+         // 4. Redirect based on role (both go to /dashboard)
+         navigate('/dashboard', { replace: true });
         
       } else {
         setError(result.message || 'Login failed. Please check your credentials.');

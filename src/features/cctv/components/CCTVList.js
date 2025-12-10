@@ -108,8 +108,7 @@ const CCTVList = ({
   const handleEdit = (cctv) => shouldShowActions && onEdit && onEdit(cctv);
 
   const handleDelete = (cctv) => {
-    console.log('CCTVList handleDelete called with:', cctv);
-    if (shouldShowActions && onDelete) {
+     if (shouldShowActions && onDelete) {
       onDelete(cctv);
     }
   };

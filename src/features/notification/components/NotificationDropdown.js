@@ -13,6 +13,7 @@ const NotificationDropdown = () => {
   const [markingAllRead, setMarkingAllRead] = useState(false);
   const [error, setError] = useState(null);
   const buttonRef = useRef(null);
+  const dropdownRef = useRef(null);
   
   // Fetch notifications dari backend
   const fetchNotifications = async () => {
@@ -82,32 +83,15 @@ const NotificationDropdown = () => {
   // Jumlah notifikasi (semua notifikasi dianggap unread sampai di-delete)
   const unreadCount = notifications.length;
 
-  // Update dropdown position when opened
+  // Calculate position only once when opening - FIX: Hapus scroll listener
   useEffect(() => {
-    const updatePosition = () => {
-      if (!showNotifications || !buttonRef.current) return;
+    if (!showNotifications || !buttonRef.current) return;
 
-      const dropdownElement = document.getElementById('notification-dropdown-portal');
-      if (!dropdownElement) return;
-
-      const rect = buttonRef.current.getBoundingClientRect();
-      setDropdownPosition({
-        top: rect.bottom + 8,
-        right: window.innerWidth - rect.right - 15
-      });
-    };
-
-    updatePosition();
-
-    if (showNotifications) {
-      window.addEventListener('scroll', updatePosition, true);
-      window.addEventListener('resize', updatePosition);
-    }
-
-    return () => {
-      window.removeEventListener('scroll', updatePosition, true);
-      window.removeEventListener('resize', updatePosition);
-    };
+    const rect = buttonRef.current.getBoundingClientRect();
+    setDropdownPosition({
+      top: rect.bottom + 8,
+      right: window.innerWidth - rect.right - 15
+    });
   }, [showNotifications]);
 
   // Auto-close dropdown saat window resize (maximize/restore down)
@@ -121,7 +105,6 @@ const NotificationDropdown = () => {
       
       // Set timer baru - tutup dropdown setelah resize berhenti
       resizeTimer = setTimeout(() => {
-        console.log('🔄 Window resized, closing notification dropdown');
         setShowNotifications(false);
       }, 100); // Delay 100ms untuk avoid close saat resize smooth
     };
@@ -134,12 +117,35 @@ const NotificationDropdown = () => {
     };
   }, [showNotifications]);
 
+  // Auto-close dropdown saat halaman di-scroll
+  useEffect(() => {
+    if (!showNotifications) return;
+
+    const handlePageScroll = (event) => {
+      // Cek apakah scroll berasal dari window/document, bukan dari dalam dropdown
+      const dropdown = document.getElementById('notification-dropdown-portal');
+      if (dropdown && dropdown.contains(event.target)) {
+        // Scroll dari dalam dropdown, jangan tutup
+        return;
+      }
+      
+      // Scroll dari halaman, tutup dropdown
+      setShowNotifications(false);
+    };
+
+    // Pakai capture phase (true) untuk detect scroll lebih awal
+    window.addEventListener('scroll', handlePageScroll, true);
+
+    return () => {
+      window.removeEventListener('scroll', handlePageScroll, true);
+    };
+  }, [showNotifications]);
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (buttonRef.current && !buttonRef.current.contains(event.target)) {
-        const dropdownElement = document.getElementById('notification-dropdown-portal');
-        if (dropdownElement && !dropdownElement.contains(event.target)) {
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
           setShowNotifications(false);
         }
       }
@@ -168,15 +174,15 @@ const NotificationDropdown = () => {
 
     return createPortal(
       <div 
+        ref={dropdownRef}
         id="notification-dropdown-portal"
-        className="fixed shadow-2xl overflow-hidden flex flex-col border border-slate-200 dark:border-blue-700 bg-white dark:bg-[#0A1537]"
+        className="fixed shadow-2xl flex flex-col border border-slate-200 dark:border-blue-700 bg-white dark:bg-[#0A1537]"
         style={{
           top: `${dropdownPosition.top}px`,
           right: `${dropdownPosition.right}px`,
           zIndex: 999999,
           width: '360px',
-          height: '410.36px',
-          minHeight: '490.91px',
+          maxHeight: '490px',
           borderRadius: '6.55px',
           borderWidth: '0.82px',
           backgroundImage: "url('/icons/Subtract.png')",
@@ -185,32 +191,57 @@ const NotificationDropdown = () => {
           backgroundPositionY: 'calc(100% + 70px)',
           backgroundRepeat: 'no-repeat'
         }}
+        onWheel={(e) => {
+          // Prevent scroll event bubbling to window
+          e.stopPropagation();
+        }}
       >
         {/* Header */}
-        <div className="p-3 bg-slate-100/70 dark:bg-[#091230]">
+        <div className="p-3 bg-slate-100/70 dark:bg-[#091230] flex-shrink-0">
           <h3 className="font-semibold text-slate-900 dark:text-white text-center text-lg">
             Notifikasi
           </h3>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-hidden flex flex-col relative">
+        <div className="flex-1 overflow-hidden flex flex-col relative min-h-0">
           {/* Notification List */}
           <div 
-            className="flex-1 overflow-y-auto"
+            className="flex-1 overflow-y-auto overflow-x-hidden"
             style={{
-              maxHeight: '400px'
+              scrollbarWidth: 'thin',
+              scrollbarColor: '#94a3b8 transparent'
+            }}
+            onScroll={(e) => {
+              // Prevent scroll event bubbling
+              e.stopPropagation();
             }}
           >
+            <style>{`
+              #notification-dropdown-portal .flex-1.overflow-y-auto::-webkit-scrollbar {
+                width: 6px;
+              }
+              #notification-dropdown-portal .flex-1.overflow-y-auto::-webkit-scrollbar-track {
+                background: transparent;
+              }
+              #notification-dropdown-portal .flex-1.overflow-y-auto::-webkit-scrollbar-thumb {
+                background: #94a3b8;
+                border-radius: 3px;
+              }
+              #notification-dropdown-portal .flex-1.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+                background: #64748b;
+              }
+            `}</style>
+
             {loading ? (
               // Loading state
-              <div className="p-8 text-center flex flex-col justify-center items-center h-full">
+              <div className="p-8 text-center flex flex-col justify-center items-center h-full min-h-[300px]">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-3"></div>
                 <p className="text-gray-500 dark:text-gray-400 text-sm">Memuat notifikasi...</p>
               </div>
             ) : error ? (
               // Error state
-              <div className="p-8 text-center flex flex-col justify-center items-center h-full">
+              <div className="p-8 text-center flex flex-col justify-center items-center h-full min-h-[300px]">
                 <svg className="w-12 h-12 mx-auto text-red-400 dark:text-red-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -238,7 +269,7 @@ const NotificationDropdown = () => {
               ))
             ) : (
               // Empty state
-              <div className="p-8 text-center flex flex-col justify-center items-center h-full">
+              <div className="p-8 text-center flex flex-col justify-center items-center h-full min-h-[300px]">
                 <svg className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
@@ -248,7 +279,7 @@ const NotificationDropdown = () => {
           </div>
           
           {/* Footer */}
-          <div className="px-3 py-2 border-t border-slate-200 dark:border-slate-700/50 bg-slate-100/70 dark:bg-[#0B1739]/40">
+          <div className="flex-shrink-0 px-3 py-2 border-t border-slate-200 dark:border-slate-700/50 bg-slate-100/70 dark:bg-[#0B1739]/40">
             {notifications.length > 0 ? (
               <button
                 onClick={handleMarkAllAsRead}

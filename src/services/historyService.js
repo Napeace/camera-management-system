@@ -51,26 +51,15 @@ const historyService = {
   // Update history record
   async updateHistory(historyId, historyData) {
     try {
-      console.log('📤 Sending update request:', {
-        historyId,
-        data: historyData
-      });
       
       const response = await apiClient.put(`/history/${historyId}`, historyData);
-      
-      console.log('📥 Update response:', response);
-      
-      if (response.data && response.data.status === 'success') {
+       if (response.data && response.data.status === 'success') {
         return response.data.data;
       }
       
       throw new Error(response.data?.message || 'Failed to update history');
     } catch (error) {
-      console.error('❌ Error updating history:', error);
-      console.error('❌ Error response:', error.response);
-      
       if (error.response?.data?.detail) {
-        console.error('❌ Error detail:', error.response.data.detail);
         
         if (Array.isArray(error.response.data.detail)) {
           const errorMsg = error.response.data.detail
@@ -105,9 +94,7 @@ const historyService = {
    
   async exportHistory(startDate = null, endDate = null) {
     try {
-      console.log('📤 Exporting history with params:', { startDate, endDate });
-      
-      const params = {
+       const params = {
         file_type: 'xlsx'
       };
       
@@ -125,18 +112,12 @@ const historyService = {
         const day = String(endDate.getDate()).padStart(2, '0');
         params.end_date = `${year}-${month}-${day}`;
       }
-      
-      console.log('📤 Final export params:', params);
-      
-      // Request with blob response type for file download
+       // Request with blob response type for file download
       const response = await apiClient.get('/history/export', {
         params,
         responseType: 'blob'
       });
-      
-      console.log('📥 Response headers:', response.headers);
-      
-      // Create blob from response
+       // Create blob from response
       const blob = new Blob([response.data], { 
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
       });
@@ -146,9 +127,7 @@ const historyService = {
       
       // FastAPI sends: Content-Disposition: attachment; filename=Riwayat_2024-11-01_dari_2024-11-14_20241114120000.xlsx
       const contentDisposition = response.headers['content-disposition'];
-      console.log('📄 Content-Disposition:', contentDisposition);
-      
-      if (contentDisposition) {
+       if (contentDisposition) {
         // Extract filename from various formats
         const patterns = [
           /filename\*?=['"]?(?:UTF-8'')?([^'";]+)['"]?/i,  // RFC 5987
@@ -162,13 +141,11 @@ const historyService = {
             try {
               // Try to decode if it's URL encoded
               filename = decodeURIComponent(match[1].trim());
-              console.log('✅ Extracted filename:', filename);
-              break;
+               break;
             } catch (e) {
               // If decode fails, use as-is
               filename = match[1].trim();
-              console.log('✅ Using filename as-is:', filename);
-              break;
+               break;
             }
           }
         }
@@ -180,8 +157,7 @@ const historyService = {
         const end = endDate ? endDate.toISOString().split('T')[0] : 'end';
         const timestamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0];
         filename = `Riwayat_${start}_dari_${end}_${timestamp}.xlsx`;
-        console.log('📝 Generated fallback filename:', filename);
-      }
+       }
       
       // Create download link and trigger download
       const url = window.URL.createObjectURL(blob);
@@ -194,15 +170,11 @@ const historyService = {
       // Cleanup
       link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
-      
-      console.log('✅ Export successful:', filename);
-      
-      return {
+       return {
         success: true,
         filename
       };
     } catch (error) {
-      console.error('❌ Error exporting history:', error);
       
       // Handle specific error responses
       if (error.response?.status === 404) {

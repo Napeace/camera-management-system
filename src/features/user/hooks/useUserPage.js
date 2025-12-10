@@ -20,7 +20,7 @@ const useUserPage = () => {
 
     // Local UI states
     const [searchTerm, setSearchTerm] = useState('');
-    const [roleFilter, setRoleFilter] = useState('');
+    const [roleFilter, setRoleFilter] = useState(''); // '' berarti 'Semua Role'
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
@@ -54,13 +54,20 @@ const useUserPage = () => {
         fetchUsers,
     } = useUsers();
 
-    // Fetch roles on mount
+    // Fetch roles on mount (DIPERBAIKI untuk menambahkan opsi 'Semua Role')
     useEffect(() => {
         const fetchRoles = async () => {
             try {
                 setLoadingRoles(true);
                 const response = await userService.getAllRoles();
-                setRoles(response.data || []);
+                
+                // Tambahkan opsi 'Semua Role' dengan id_role kosong ('')
+                const rolesData = [
+                    { id_role: '', nama_role: 'Semua Role' },
+                    ...(response.data || [])
+                ];
+                
+                setRoles(rolesData);
             } catch (error) {
                 console.error('Error fetching roles:', error);
                 showError('Gagal Memuat Role', 'Tidak dapat memuat daftar role');
@@ -74,15 +81,16 @@ const useUserPage = () => {
 
     const statistics = useMemo(() => {
         const total = users.length;
-        const superAdmins = users.filter(u => u.user_role_name === 'SuperAdmin').length;
+        const superAdmins = users.filter(u => u.user_role_name === 'Superadmin').length;
         const security = users.filter(u => u.user_role_name === 'Security').length;
         return { total, superAdmins, security };
     }, [users]);
 
-    // Memoized filtered users
+    // Memoized filtered users (LOGIKA ROLE FILTER DIPERBAIKI)
     const filteredUsers = useMemo(() => {
         let filtered = users;
 
+        // 1. Pemfilteran Pencarian
         if (searchTerm.trim()) {
             const searchLower = searchTerm.toLowerCase();
             filtered = filtered.filter(user =>
@@ -92,8 +100,17 @@ const useUserPage = () => {
             );
         }
 
-        if (roleFilter) {
-            filtered = filtered.filter(user => user.user_role_name === roleFilter);
+        // 2. Pemfilteran Role
+        // roleFilter adalah string ID role (misal: "1", "2") atau ''
+        if (roleFilter) { 
+            // Filter hanya aktif jika roleFilter bukan string kosong ('')
+            
+            const filterId = parseInt(roleFilter); 
+            
+            if (!isNaN(filterId)) {
+                // Lakukan pemfilteran berdasarkan user.id_role (number)
+                filtered = filtered.filter(user => user.id_role === filterId);
+            }
         }
 
         return filtered;
@@ -109,8 +126,10 @@ const useUserPage = () => {
     // Calculate total pages
     const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
-    // Helper function to extract error message
+    // ... (Fungsi extractErrorMessage, handlePageChange, dll.)
+
     const extractErrorMessage = useCallback((error) => {
+        // ... (Implementasi extractErrorMessage)
         if (error?.response?.data?.message) return error.response.data.message;
         if (error?.response?.data?.detail) return error.response.data.detail;
         if (typeof error?.response?.data === 'string') return error.response.data;
@@ -146,13 +165,14 @@ const useUserPage = () => {
     }, []);
 
     const handleRoleFilter = useCallback((e) => {
+        // e.target.value akan berisi '' (untuk 'Semua Role') atau string ID role ("1", "2")
         setRoleFilter(e.target.value);
         setCurrentPage(1);
     }, []);
 
     const handleClearFilters = useCallback(() => {
         setSearchTerm('');
-        setRoleFilter('');
+        setRoleFilter(''); // Reset ke '' (Semua Role)
         setCurrentPage(1);
         showInfo('Filter Dibersihkan', 'Semua filter telah direset');
     }, [showInfo]);
@@ -293,7 +313,7 @@ const useUserPage = () => {
         totalPages,
         itemsPerPage,
         hasActiveFilters,
-        roles,
+        roles, // Data roles kini mencakup 'Semua Role'
         loadingRoles,
         
         // API States

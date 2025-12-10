@@ -33,29 +33,19 @@ const LiveMonitoringModal = ({ camera, onClose }) => {
     }
 
     const handleLoadStart = () => {
-        console.log('🎬 Modal: Load start');
-        setPlayerState('loading');
+         setPlayerState('loading');
     };
 
     const handleLoadComplete = (success) => {
-        console.log('🎬 Modal: Load complete', success);
-        setPlayerState(success ? 'ready' : 'error');
+         setPlayerState(success ? 'ready' : 'error');
     };
 
     const handleError = (error) => {
-        console.log('🎬 Modal: Error', error);
-        setPlayerState('error');
+         setPlayerState('error');
     };
 
     const hasStreamUrls = camera?.streamUrls?.hls_url || camera?.stream_urls?.hls_url;
     const streamUrl = camera?.streamUrls?.hls_url || camera?.stream_urls?.hls_url;
-
-    console.log('🎬 Modal Render:', {
-        camera: camera?.name,
-        hasStreamUrls,
-        streamUrl,
-        status: camera?.status
-    });
 
     return (
         <div

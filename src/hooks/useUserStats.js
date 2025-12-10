@@ -18,7 +18,7 @@ import { useMemo } from 'react';
 function useUserStats(userData = []) {
     return useMemo(() => {
         const total = userData.length;
-        const superAdmins = userData.filter(u => u.user_role_name === 'SuperAdmin').length;
+        const superAdmins = userData.filter(u => u.user_role_name === 'Superadmin').length;
         const security = userData.filter(u => u.user_role_name === 'Security').length;
         
         return { total, superAdmins, security };

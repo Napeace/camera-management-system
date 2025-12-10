@@ -17,13 +17,11 @@ const CameraFeedPlaceholder = ({ camera, onClick }) => {
     }, [camera.id]);
 
     const handleLoadStart = () => {
-        console.log(`📹 [${camera.name}] Load start`);
-        setPlayerState('loading');
+         setPlayerState('loading');
     };
 
     const handleLoadComplete = (success) => {
-        console.log(`📹 [${camera.name}] Load complete:`, success);
-        if (success) {
+         if (success) {
             setPlayerState('ready');
             // Hide overlay after video loads
             setTimeout(() => {
@@ -33,8 +31,7 @@ const CameraFeedPlaceholder = ({ camera, onClick }) => {
     };
 
     const handleError = (error) => {
-        console.log(`📹 [${camera.name}] Error:`, error);
-        setPlayerState('error');
+         setPlayerState('error');
         setShowOverlay(true);
     };
 

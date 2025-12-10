@@ -7,9 +7,7 @@ class LiveMonitoringService {
    */
   async getStreamUrls(cctvId) {
     try {
-      console.log('Fetching stream URLs for CCTV:', cctvId);
-      
-      const token = localStorage.getItem('access_token');
+       const token = localStorage.getItem('access_token');
       const params = new URLSearchParams();
       if (token) {
         params.append('token', token);
@@ -17,9 +15,7 @@ class LiveMonitoringService {
       
       // Backend endpoint: /streams/cctv/{cctv_id}
       const response = await apiClient.get(`/streams/cctv/${cctvId}?${params.toString()}`);
-      console.log('Stream URLs Response:', response.data);
-      
-      // Handle success_response wrapper
+       // Handle success_response wrapper
       let streamData;
       if (response.data && response.data.status === 'success') {
         streamData = response.data.data;
@@ -28,10 +24,7 @@ class LiveMonitoringService {
       } else {
         streamData = response.data;
       }
-      
-      console.log('Extracted stream data:', streamData);
-      
-      return {
+       return {
         success: true,
         data: {
           ...streamData,
@@ -73,9 +66,7 @@ class LiveMonitoringService {
    */
   async getStreamsByLocation(locationId) {
     try {
-      console.log(`Fetching streams for location: ${locationId}`);
-      
-      const token = localStorage.getItem('access_token');
+       const token = localStorage.getItem('access_token');
       const params = new URLSearchParams();
       if (token) {
         params.append('token', token);
@@ -83,10 +74,7 @@ class LiveMonitoringService {
       
       // Backend endpoint: /streams/location/{location_id}
       const response = await apiClient.get(`/streams/location/${locationId}?${params.toString()}`);
-      
-      console.log('Raw location streams response:', response.data);
-      
-      // Handle success_response wrapper dari backend
+       // Handle success_response wrapper dari backend
       let locationData;
       if (response.data && response.data.status === 'success') {
         locationData = response.data.data;
@@ -95,10 +83,7 @@ class LiveMonitoringService {
       } else {
         locationData = response.data;
       }
-
-      console.log('Extracted location data:', locationData);
-
-      // Validate response structure
+       // Validate response structure
       if (!locationData || !locationData.cameras) {
         console.error('Invalid response structure:', locationData);
         throw new Error('Invalid response structure from server');
@@ -106,20 +91,14 @@ class LiveMonitoringService {
 
       // Transform camera data - backend sudah mengirim is_streaming
       locationData.cameras = locationData.cameras.map(cam => {
-        console.log('Camera before transform:', cam);
-        
-        const transformed = {
+         const transformed = {
           ...cam,
           // Backend mengirim is_streaming, pastikan boolean
           is_streaming: cam.is_streaming !== undefined ? Boolean(cam.is_streaming) : false
         };
-        
-        console.log('Camera after transform:', transformed);
-        return transformed;
+         return transformed;
       });
-
-      console.log('Final location data with transformed cameras:', locationData);
-      return locationData;
+       return locationData;
 
     } catch (error) {
       console.error('Error fetching streams by location:', error);
@@ -149,10 +128,7 @@ class LiveMonitoringService {
       // Get all CCTV without pagination for accurate stats
       params.append('skip', 0);
       params.append('limit', 1000); // High limit to get all
-      
-      console.log('Fetching all CCTV for stats calculation');
-      
-      const response = await apiClient.get(`/cctv/?${params.toString()}`);
+       const response = await apiClient.get(`/cctv/?${params.toString()}`);
       
       // Handle response structure
       let cctvData = [];
@@ -184,12 +160,11 @@ class LiveMonitoringService {
   /**
    * NEW: Get all cameras (basic data) for camera selector modal
    * Used for: Populating camera selector modal (no streaming status check)
+   * ✅ FILTER: Lokasi dengan awalan "analog" tidak ditampilkan
    */
   async getAllCamerasForSelector() {
     try {
-      console.log('Fetching all cameras for selector modal...');
-      
-      const token = localStorage.getItem('access_token');
+       const token = localStorage.getItem('access_token');
       const params = new URLSearchParams();
       if (token) {
         params.append('token', token);
@@ -208,8 +183,14 @@ class LiveMonitoringService {
         cctvData = response.data;
       }
       
+      // ✅ FILTER: Exclude cameras with location starting with "analog"
+      const filteredCctvData = cctvData.filter(cctv => {
+        const locationName = (cctv.cctv_location_name || '').toLowerCase();
+        return !locationName.startsWith('analog');
+      });
+      
       // Transform to consistent format for selector
-      const transformedCameras = cctvData.map(cctv => ({
+      const transformedCameras = filteredCctvData.map(cctv => ({
         id: cctv.id_cctv,
         id_cctv: cctv.id_cctv,
         name: cctv.titik_letak,
@@ -221,10 +202,7 @@ class LiveMonitoringService {
         stream_key: cctv.stream_key,
         is_streaming: Boolean(cctv.is_streaming) // From DB, might not be real-time
       }));
-      
-      console.log('All cameras for selector:', transformedCameras.length);
-      
-      return {
+       return {
         success: true,
         data: transformedCameras
       };
@@ -245,9 +223,7 @@ class LiveMonitoringService {
    */
   async getStreamsByCctvIds(cctvIds) {
     try {
-      console.log('🎯 Fetching streams for custom CCTV selection:', cctvIds);
-      
-      const token = localStorage.getItem('access_token');
+       const token = localStorage.getItem('access_token');
       const params = new URLSearchParams();
       if (token) {
         params.append('token', token);
@@ -258,10 +234,7 @@ class LiveMonitoringService {
         `/streams/batch?${params.toString()}`,
         { cctv_ids: cctvIds }
       );
-      
-      console.log('Raw batch streams response:', response.data);
-      
-      // Handle success_response wrapper
+       // Handle success_response wrapper
       let batchData;
       if (response.data && response.data.status === 'success') {
         batchData = response.data.data;
@@ -270,10 +243,7 @@ class LiveMonitoringService {
       } else {
         batchData = response.data;
       }
-      
-      console.log('Extracted batch data:', batchData);
-      
-      // Validate response
+       // Validate response
       if (!batchData || !batchData.cameras) {
         console.error('Invalid batch response structure:', batchData);
         throw new Error('Invalid response structure from server');
@@ -294,10 +264,7 @@ class LiveMonitoringService {
         stream_urls: cam.stream_urls,
         stream_status: cam.stream_status
       }));
-      
-      console.log('✅ Transformed custom cameras:', transformedCameras.length);
-      
-      return {
+       return {
         success: true,
         data: transformedCameras,
         total_requested: batchData.total_requested,
@@ -354,28 +321,32 @@ class LiveMonitoringService {
   /**
    * Get all locations for location filter dropdown
    * Used for: Live Monitoring location filter
+   * ✅ FILTER: Lokasi dengan awalan "analog" tidak ditampilkan
    */
   async getLocationGroups() {
     try {
-      console.log('Fetching locations for live monitoring...');
-      
-      const params = new URLSearchParams();
+       const params = new URLSearchParams();
       const token = localStorage.getItem('access_token');
       if (token) {
         params.append('token', token);
       }
       
       const response = await apiClient.get(`/location/?${params.toString()}`);
-      console.log('Locations API Response:', response.data);
-      
-      const locations = Array.isArray(response.data) ? response.data : 
+       const locations = Array.isArray(response.data) ? response.data : 
                        response.data.data ? response.data.data : [];
       
+      // ✅ FILTER: Exclude locations starting with "analog"
+      const filteredLocations = locations.filter(loc => {
+        const namaLokasi = (loc.nama_lokasi || loc.location_name || loc.name || '').toLowerCase();
+        return !namaLokasi.startsWith('analog');
+      });
+      
       // Transform to consistent format
-      return locations.map(loc => ({
+      const transformedLocations = filteredLocations.map(loc => ({
         id_location: loc.id_location || loc.id,
         nama_lokasi: loc.nama_lokasi || loc.location_name || loc.name
       }));
+       return transformedLocations;
     } catch (error) {
       console.error('Error fetching location groups:', error);
       return [];

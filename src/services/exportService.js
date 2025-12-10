@@ -69,17 +69,12 @@ class ExportService {
   async exportCctv(fileType = 'xlsx') {
     try {
       const token = this._getAuthToken();
-      console.log('Exporting CCTV with format:', fileType);
-      
-      // Gunakan query parameters seperti userService
+       // Gunakan query parameters seperti userService
       const response = await apiClient.get(`/cctv/export?token=${token}&file_type=${fileType}`, {
         responseType: 'blob', // Penting untuk download file
         timeout: 60000, // 60 seconds timeout
       });
-
-      console.log('Export response received:', response);
-
-      // Buat blob dari response
+       // Buat blob dari response
       const blob = new Blob([response.data], {
         type: fileType === 'csv' 
           ? 'text/csv;charset=utf-8;'
@@ -99,9 +94,7 @@ class ExportService {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-
-      console.log('Export completed successfully');
-      return { success: true, message: 'Export berhasil!' };
+       return { success: true, message: 'Export berhasil!' };
       
     } catch (error) {
       this._handleError(error);
@@ -116,9 +109,7 @@ class ExportService {
   async exportSql(tableName = null) {
     try {
       const token = this._getAuthToken();
-      console.log('🚀 Exporting SQL Database:', tableName || 'All tables');
-      
-      // Build URL dengan optional table_name parameter
+       // Build URL dengan optional table_name parameter
       let url = `/db/export/sql?token=${token}`;
       if (tableName) {
         url += `&table_name=${encodeURIComponent(tableName)}`;
@@ -128,10 +119,7 @@ class ExportService {
         responseType: 'blob', // Penting untuk download file
         timeout: 120000, // 120 seconds timeout (SQL dump bisa lama)
       });
-
-      console.log('✅ SQL Export response received:', response);
-
-      // Extract filename dari Content-Disposition header
+       // Extract filename dari Content-Disposition header
       let filename = 'database_backup.sql';
       const contentDisposition = response.headers['content-disposition'];
       
@@ -157,9 +145,7 @@ class ExportService {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url_blob);
-
-      console.log('✅ SQL Export completed successfully:', filename);
-      return { 
+       return { 
         success: true, 
         message: 'Export SQL Database berhasil!',
         filename: filename 

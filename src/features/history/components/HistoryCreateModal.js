@@ -23,24 +23,15 @@ const HistoryCreateModal = ({ isOpen, onClose, onHistoryCreated }) => {
             if (isOpen) {
                 setLoadingCCTV(true);
                 try {
-                    console.log('🔍 Fetching CCTV data...');
-                    
-                    const response = await cctvService.getAllCCTV({
+                     const response = await cctvService.getAllCCTV({
                         skip: 0,
                         limit: 500
                     });
-                    
-                    console.log('✅ CCTV Response:', response);
-                    
-                    // Filter: hanya CCTV yang belum dihapus (deleted_at === null)
+                     // Filter: hanya CCTV yang belum dihapus (deleted_at === null)
                     const availableCCTVs = response.data.filter(cctv => 
                         cctv.deleted_at === null || cctv.deleted_at === undefined
                     );
-                    
-                    console.log('✅ Available CCTVs (not deleted):', availableCCTVs.length);
-                    console.log('📊 CCTV Details:', availableCCTVs);
-                    
-                    setCctvList(availableCCTVs);
+                      setCctvList(availableCCTVs);
                 } catch (err) {
                     console.error('❌ Error fetching CCTV data:', err);
                     setError('Gagal memuat data CCTV: ' + err.message);
@@ -120,14 +111,8 @@ const HistoryCreateModal = ({ isOpen, onClose, onHistoryCreated }) => {
                 id_cctv: parseInt(formData.id_cctv),
                 note: formData.note.trim(),
             };
-            
-            console.log('Submitting history data:', historyData);
-            
-            const newHistory = await historyService.createHistory(historyData);
-            
-            console.log('History created successfully:', newHistory);
-            
-            if (onHistoryCreated) {
+             const newHistory = await historyService.createHistory(historyData);
+             if (onHistoryCreated) {
                 await onHistoryCreated(newHistory);
             }
             

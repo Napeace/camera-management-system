@@ -80,22 +80,18 @@ const locationService = {
     deleteLocation: async (locationId) => {
         try {
             const token = localStorage.getItem('access_token');
-            
-            const response = await api.delete('/location/', {
-                params: { 
-                    token,
-                    location_id: locationId 
-                }
+
+            const response = await api.delete(`/location/soft/${locationId}`, {
+                params: { token }
             });
+
             return response.data;
         } catch (error) {
             console.error('Error deleting location:', error);
-            if (error.response?.data?.detail) {
-                throw new Error(error.response.data.detail);
-            }
             throw error;
         }
     }
+
 };
 
 export default locationService;

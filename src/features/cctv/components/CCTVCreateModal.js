@@ -142,8 +142,7 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
                     nama_lokasi: analogFormData.nama_lokasi.trim(),
                     ip_address: analogFormData.ip_address.trim(),
                 };
-                console.log('Submitting Analog CCTV data:', analogData);
-                newCCTV = await cctvService.createCCTVAnalog(analogData);
+                 newCCTV = await cctvService.createCCTVAnalog(analogData);
             } else {
                 // Submit IP CCTV
                 const cctvData = {
@@ -152,13 +151,9 @@ const CCTVCreateModal = ({ isOpen, onClose, onCCTVCreated, locationGroups = [] }
                     id_location: parseInt(formData.id_location),
                     status: formData.status
                 };
-                console.log('Submitting IP CCTV data:', cctvData);
-                newCCTV = await cctvService.createCCTV(cctvData);
+                 newCCTV = await cctvService.createCCTV(cctvData);
             }
-            
-            console.log('CCTV created successfully:', newCCTV);
-            
-            if (onCCTVCreated) {
+             if (onCCTVCreated) {
                 await onCCTVCreated(newCCTV);
             }
             onClose();

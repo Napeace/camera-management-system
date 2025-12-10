@@ -1,9 +1,13 @@
-// features/history/components/HistoryListItem.js - WITH TEXT TRUNCATE
+// features/history/components/HistoryListItem.js - WITH FRIENDLY INFO MESSAGE
 import React from 'react';
 import { motion } from 'framer-motion';
 import { DocumentCheckIcon, DocumentPlusIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '../../../contexts/AuthContext';
 
-const HistoryListItem = ({ item, rowVariants, onNoteClick, onRepairClick }) => {
+const HistoryListItem = ({ item, rowVariants, onNoteClick, onRepairClick, showInfo }) => {
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === 'superadmin';
+
   const formatDateTime = (dateTimeString) => {
     try {
       // Backend mengirim format: "2025-10-27 10:30:00"
@@ -71,6 +75,26 @@ const HistoryListItem = ({ item, rowVariants, onNoteClick, onRepairClick }) => {
   };
 
   const handleRepairClick = () => {
+    // Check if already repaired first
+    if (isRepaired) {
+      return;
+    }
+
+    // Role check - only superadmin can confirm repair
+    if (!isSuperAdmin) {
+ 
+      if (showInfo) {
+        const cctvName = item.cctv_name || 'CCTV';
+        showInfo(
+          'History Belum Diperbaiki',
+          `Kamera ${cctvName} masih belum diperbaiki.`
+        );
+      }
+      return;
+    }
+
+    // If superadmin, proceed normally
+ 
     onRepairClick(item);
   };
 
@@ -147,7 +171,7 @@ const HistoryListItem = ({ item, rowVariants, onNoteClick, onRepairClick }) => {
                 ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                 : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50'
             }`}
-            title={isRepaired ? 'Sudah Diperbaiki' : 'Tandai Sudah Diperbaiki'}
+            title={isRepaired ? 'Sudah Diperbaiki' : ''}
           >
             <CheckCircleIcon className="w-5 h-5" />
           </button>

@@ -28,11 +28,7 @@ const HLSVideoPlayer = forwardRef(({
       setPlayerStatus('no-stream');
       return;
     }
-
-    console.log(`🎥 [${cameraName}] Initializing HLS player`);
-    console.log(`🎥 [${cameraName}] Stream URL:`, streamUrls.hls_url);
-    
-    setPlayerStatus('loading');
+      setPlayerStatus('loading');
     setErrorMessage('');
     onLoadStart && onLoadStart();
 
@@ -43,9 +39,7 @@ const HLSVideoPlayer = forwardRef(({
     }
 
     if (Hls.isSupported()) {
-      console.log(`✅ [${cameraName}] HLS.js supported`);
-      
-      const hls = new Hls({
+       const hls = new Hls({
         debug: false,
         enableWorker: true,
         lowLatencyMode: true,
@@ -64,12 +58,10 @@ const HLSVideoPlayer = forwardRef(({
       hlsRef.current = hls;
 
       hls.on(Hls.Events.MEDIA_ATTACHED, () => {
-        console.log(`✅ [${cameraName}] Media attached`);
-      });
+       });
 
       hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
-        console.log(`✅ [${cameraName}] Manifest parsed`, data.levels?.length, 'quality levels');
-        setPlayerStatus('playing');
+         setPlayerStatus('playing');
         onLoadComplete && onLoadComplete(true);
         
         if (autoPlay) {
@@ -77,31 +69,26 @@ const HLSVideoPlayer = forwardRef(({
           if (playPromise !== undefined) {
             playPromise
               .then(() => {
-                console.log(`✅ [${cameraName}] Autoplay started`);
-              })
+               })
               .catch(e => {
-                console.log(`⚠️ [${cameraName}] Autoplay prevented:`, e.message);
-              });
+               });
           }
         }
       });
 
       hls.on(Hls.Events.FRAG_LOADED, (event, data) => {
         if (playerStatus === 'loading') {
-          console.log(`✅ [${cameraName}] First fragment loaded`);
-          setPlayerStatus('playing');
+           setPlayerStatus('playing');
         }
       });
 
       hls.on(Hls.Events.ERROR, (event, data) => {
-        console.error(`❌ [${cameraName}] HLS error:`, data.type, data.details, data.fatal);
+        // console.error(`❌ [${cameraName}] HLS error:`, data.type, data.details, data.fatal); // Dihapus
         
         if (data.fatal) {
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
-              console.log(`🔴 [${cameraName}] Network error - Camera Offline`);
-              
-              const errorMsg = 'Camera Offline';
+               const errorMsg = 'Camera Offline';
               setPlayerStatus('error');
               setErrorMessage(errorMsg);
               onError && onError(errorMsg);
@@ -113,13 +100,11 @@ const HLSVideoPlayer = forwardRef(({
               break;
               
             case Hls.ErrorTypes.MEDIA_ERROR:
-              console.log(`🔄 [${cameraName}] Media error, attempting recovery...`);
-              hls.recoverMediaError();
+               hls.recoverMediaError();
               break;
               
             default:
-              console.log(`❌ [${cameraName}] Fatal error, cannot recover`);
-              const defaultErrorMsg = getErrorMessage(data);
+               const defaultErrorMsg = getErrorMessage(data);
               setPlayerStatus('error');
               setErrorMessage(defaultErrorMsg);
               onError && onError(defaultErrorMsg);
@@ -128,7 +113,7 @@ const HLSVideoPlayer = forwardRef(({
               break;
           }
         } else {
-          console.warn(`⚠️ [${cameraName}] Non-fatal error:`, data.details);
+          // console.warn(`⚠️ [${cameraName}] Non-fatal error:`, data.details); // Dihapus
         }
       });
 
@@ -136,22 +121,19 @@ const HLSVideoPlayer = forwardRef(({
       hls.attachMedia(video);
 
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      console.log(`✅ [${cameraName}] Using native HLS support`);
-      
-      video.src = streamUrls.hls_url;
+       video.src = streamUrls.hls_url;
       
       video.addEventListener('loadstart', () => {
         setPlayerStatus('loading');
       });
 
       video.addEventListener('loadeddata', () => {
-        console.log(`✅ [${cameraName}] Native HLS loaded`);
-        setPlayerStatus('playing');
+         setPlayerStatus('playing');
         onLoadComplete && onLoadComplete(true);
       });
 
       video.addEventListener('error', (e) => {
-        console.error(`❌ [${cameraName}] Native video error:`, e);
+        // console.error(`❌ [${cameraName}] Native video error:`, e); // Dihapus
         setPlayerStatus('error');
         setErrorMessage('Camera Offline');
         onError && onError('Camera Offline');
@@ -159,12 +141,10 @@ const HLSVideoPlayer = forwardRef(({
 
       if (autoPlay) {
         video.play().catch(e => {
-          console.log(`⚠️ [${cameraName}] Autoplay prevented:`, e.message);
-        });
+         });
       }
 
     } else {
-      console.error(`❌ [${cameraName}] HLS not supported in this browser`);
       setPlayerStatus('error');
       setErrorMessage('Browser tidak mendukung HLS streaming');
       onError && onError('Browser tidak mendukung HLS streaming');
@@ -175,12 +155,11 @@ const HLSVideoPlayer = forwardRef(({
         clearTimeout(retryTimeoutRef.current);
       }
       if (hlsRef.current) {
-        console.log(`🧹 [${cameraName}] Cleaning up HLS instance`);
-        hlsRef.current.destroy();
+         hlsRef.current.destroy();
         hlsRef.current = null;
       }
     };
-  }, [streamUrls?.hls_url, cameraName]);
+  }, [streamUrls?.hls_url, cameraName, autoPlay, onLoadStart, onLoadComplete, onError, playerStatus]);
 
   const getErrorMessage = (data) => {
     switch (data.type) {
@@ -200,7 +179,7 @@ const HLSVideoPlayer = forwardRef(({
     if (!video || !controls) return;
 
     if (video.paused) {
-      video.play().catch(e => console.log(`⚠️ [${cameraName}] Play failed:`, e));
+      video.play().catch(e => {}); // Dihapus
     } else {
       video.pause();
     }

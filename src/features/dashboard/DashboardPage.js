@@ -29,7 +29,7 @@ import {
 
 const DashboardPage = () => {
     const { user } = useAuth();
-    const { showSuccess, showError, showWarning, showInfo } = useToast();
+    const { showSuccess, showError, showInfo } = useToast();
     const navigate = useNavigate();
 
     const contentRef = useRef(null);
@@ -115,9 +115,7 @@ const DashboardPage = () => {
     // Handle stat card click
     const handleStatCardClick = useCallback(
         (statData) => {
-            console.log('Stat card clicked:', statData);
-
-            switch (statData.label) {
+             switch (statData.label) {
                 case 'Total Kamera':
                     showInfo('Camera Info', `You have ${statData.value} cameras in total`);
                     break;
@@ -126,7 +124,7 @@ const DashboardPage = () => {
                     break;
                 case 'Offline Kamera':
                     if (parseInt(statData.value) > 0) {
-                        showWarning('Offline Cameras', `${statData.value} cameras are currently offline`);
+                        showError('Offline Cameras', `${statData.value} cameras are currently offline`);
                     } else {
                         showSuccess('All Online', 'All cameras are online');
                     }
@@ -138,14 +136,13 @@ const DashboardPage = () => {
                     showInfo('Stat Info', `${statData.label}: ${statData.value}`);
             }
         },
-        [showInfo, showSuccess, showWarning]
+        [showInfo, showSuccess, showError]
     );
 
     // Handle page navigation
     const handlePageChange = useCallback(
         (pageId, path) => {
-            console.log(`Navigating to: ${pageId} (${path})`);
-            navigate(path);
+             navigate(path);
         },
         [navigate]
     );

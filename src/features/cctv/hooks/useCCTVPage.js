@@ -74,7 +74,12 @@ const useCCTVPage = () => {
                 cctvService.getAllCCTV()
             ]);
             setLocationGroups(locations || []);
-            setAllCctvData(cctvResult.data || []);
+
+            const activeCCTVs = (cctvResult.data || []).filter(cctv =>
+                cctv.deleted_at === null || cctv.deleted_at === undefined
+            );
+
+            setAllCctvData(activeCCTVs);
             
         } catch (err) {
             console.error('Error fetching initial data:', err);

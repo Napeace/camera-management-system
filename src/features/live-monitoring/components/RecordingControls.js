@@ -39,9 +39,7 @@ const RecordingControls = ({ videoRef, cameraName, isPlayerReady }) => {
         }
 
         try {
-            console.log('🎬 Starting recording...');
-            
-            // Capture stream dari video element
+             // Capture stream dari video element
             const video = videoRef.current;
             const stream = video.captureStream ? video.captureStream() : video.mozCaptureStream();
             streamRef.current = stream;
@@ -59,8 +57,7 @@ const RecordingControls = ({ videoRef, cameraName, isPlayerReady }) => {
             // Fallback jika VP9 tidak support
             if (!MediaRecorder.isTypeSupported(options.mimeType)) {
                 options.mimeType = 'video/webm;codecs=vp8';
-                console.log('⚠️ VP9 not supported, using VP8');
-            }
+             }
 
             const mediaRecorder = new MediaRecorder(stream, options);
             mediaRecorderRef.current = mediaRecorder;
@@ -70,14 +67,12 @@ const RecordingControls = ({ videoRef, cameraName, isPlayerReady }) => {
             mediaRecorder.ondataavailable = (event) => {
                 if (event.data && event.data.size > 0) {
                     recordedChunksRef.current.push(event.data);
-                    console.log(`📦 Chunk recorded: ${event.data.size} bytes`);
-                }
+                 }
             };
 
             // Event: ketika recording berhenti
             mediaRecorder.onstop = () => {
-                console.log('🎬 Recording stopped, processing...');
-                downloadRecording();
+                 downloadRecording();
             };
 
             // Mulai recording
@@ -99,10 +94,7 @@ const RecordingControls = ({ videoRef, cameraName, isPlayerReady }) => {
                     return newTime;
                 });
             }, 1000);
-
-            console.log('✅ Recording started successfully');
-
-        } catch (error) {
+         } catch (error) {
             console.error('❌ Error starting recording:', error);
             alert('Gagal memulai rekaman. Pastikan stream sedang berjalan.');
             cleanupRecording();
@@ -111,8 +103,7 @@ const RecordingControls = ({ videoRef, cameraName, isPlayerReady }) => {
 
     const stopRecording = () => {
         if (mediaRecorderRef.current && isRecording) {
-            console.log('⏹️ Stopping recording...');
-            mediaRecorderRef.current.stop();
+             mediaRecorderRef.current.stop();
             
             // Stop timer
             if (recordingTimerRef.current) {
@@ -132,9 +123,7 @@ const RecordingControls = ({ videoRef, cameraName, isPlayerReady }) => {
 
     const downloadRecording = () => {
         try {
-            console.log('💾 Creating download blob...');
-            
-            // Gabungkan semua chunks jadi satu blob
+             // Gabungkan semua chunks jadi satu blob
             const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
             const url = URL.createObjectURL(blob);
 
@@ -164,11 +153,7 @@ const RecordingControls = ({ videoRef, cameraName, isPlayerReady }) => {
                 URL.revokeObjectURL(url);
                 document.body.removeChild(a);
             }, 100);
-
-            console.log(`✅ Download triggered: ${filename}`);
-            console.log(`📊 File size: ${(blob.size / 1024 / 1024).toFixed(2)} MB`);
-
-            // Reset state
+              // Reset state
             cleanupRecording();
 
         } catch (error) {

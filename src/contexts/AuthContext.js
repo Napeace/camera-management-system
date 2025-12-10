@@ -29,10 +29,8 @@ export const AuthProvider = ({ children }) => {
         const userData = JSON.parse(storedUser);
         setToken(storedToken);
         setUser(userData);
-        console.log('✅ Auth restored from localStorage:', userData.username);
-      } else {
-        console.log('⚠️ No auth data found in localStorage');
-      }
+       } else {
+       }
     } catch (error) {
       console.error('❌ Failed to parse auth data from localStorage', error);
       // Bersihkan jika data rusak
@@ -45,20 +43,14 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (userData, authToken) => {
     try {
-      console.log('🔐 AuthContext: Starting login process for:', userData.username);
-      
-      // Set state (async)
+       // Set state (async)
       setUser(userData);
       setToken(authToken);
       
       // Set localStorage (sync)
       localStorage.setItem('access_token', authToken);
       localStorage.setItem('user', JSON.stringify(userData));
-      
-      console.log('✅ AuthContext: Login completed successfully');
-      console.log('✅ Token stored:', authToken.substring(0, 20) + '...');
-      
-      // Return Promise yang resolve setelah state update
+        // Return Promise yang resolve setelah state update
       return new Promise((resolve) => {
         // Tunggu sedikit untuk memastikan state ter-update
         setTimeout(() => {
@@ -75,19 +67,14 @@ export const AuthProvider = ({ children }) => {
   // Fungsi untuk menangani logout - return Promise untuk async handling
   const logout = async () => {
     try {
-      console.log('🚪 AuthContext: Starting logout process');
-      
-      // Clear state
+       // Clear state
       setUser(null);
       setToken(null);
       
       // Clear localStorage
       localStorage.removeItem('access_token');
       localStorage.removeItem('user');
-      
-      console.log('✅ AuthContext: Logout completed successfully');
-      
-      // Return success
+       // Return success
       return Promise.resolve();
       
     } catch (error) {
@@ -100,19 +87,16 @@ export const AuthProvider = ({ children }) => {
   const isAuthenticated = () => {
     // Cek berdasarkan state token, lebih cepat daripada baca localStorage terus-menerus
     const authenticated = !!token;
-    console.log('🔍 isAuthenticated check:', authenticated);
-    return authenticated;
+     return authenticated;
   };
 
   // Fungsi untuk mengecek role user
   const hasRole = (requiredRole) => {
     if (!user || !user.role) {
-      console.log('⚠️ hasRole check: No user or role found');
-      return false;
+       return false;
     }
     const hasAccess = user.role === requiredRole;
-    console.log(`🔍 hasRole check: ${user.role} === ${requiredRole}?`, hasAccess);
-    return hasAccess;
+     return hasAccess;
   };
 
   // Nilai yang akan disediakan untuk semua komponen di dalamnya

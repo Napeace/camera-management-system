@@ -108,17 +108,11 @@ const HistoryNoteModal = ({ isOpen, onClose, historyItem }) => {
                 service: historyItem.service,
                 note: trimmedNote.length > 0 ? trimmedNote : null
             };
-
-            console.log('💾 Auto-saving note for history:', historyItem.id_history, updateData);
-
-            const response = await historyService.updateHistory(
+             const response = await historyService.updateHistory(
                 historyItem.id_history,
                 updateData
             );
-
-            console.log('✅ Note auto-saved successfully:', response);
-
-            setOriginalNote(trimmedNote);
+             setOriginalNote(trimmedNote);
             setHasUnsavedChanges(false);
             setWasActuallySaved(true);
             setShowSavedIndicator(true);
@@ -160,9 +154,7 @@ const HistoryNoteModal = ({ isOpen, onClose, historyItem }) => {
         if (saveTimeoutRef.current) {
             clearTimeout(saveTimeoutRef.current);
         }
-
-        console.log('🚪 Closing modal with wasActuallySaved:', wasActuallySaved);
-        onClose(wasActuallySaved);
+         onClose(wasActuallySaved);
     };
 
     const handleBackdropClick = (e) => {

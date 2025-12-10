@@ -37,10 +37,8 @@ const MainLayout = ({
 
   const handleLogout = async () => {
     try {
-      console.log('MainLayout: Starting logout process');
-      authLogout();
-      console.log('MainLayout: Logout completed, navigating to login');
-      navigate('/login', { replace: true });
+       authLogout();
+       navigate('/login', { replace: true });
     } catch (error) {
       console.error('MainLayout: Logout error:', error);
     }

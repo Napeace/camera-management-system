@@ -59,7 +59,7 @@ class CCTVService {
       const params = new URLSearchParams();
       
       params.append('skip', filters.skip || 0);
-      params.append('limit', filters.limit || 50);
+      params.append('limit', filters.limit || 500);
       
       if (filters.search) {
         params.append('search', filters.search);
@@ -72,14 +72,8 @@ class CCTVService {
       if (filters.id_location) {
         params.append('id_location', filters.id_location);
       }
-
-      console.log('Fetching CCTV data with params:', params.toString());
-      
-      const response = await apiClient.get(`/cctv/?${params.toString()}`);
-      
-      console.log('CCTV API Response:', response.data);
-      
-      // Handle response structure - backend wraps in success_response
+       const response = await apiClient.get(`/cctv/?${params.toString()}`);
+       // Handle response structure - backend wraps in success_response
       let cctvData = [];
       if (response.data && response.data.data) {
         cctvData = Array.isArray(response.data.data) ? response.data.data : [];
@@ -95,10 +89,7 @@ class CCTVService {
         // Ensure is_streaming is boolean
         is_streaming: cctv.is_streaming !== undefined ? Boolean(cctv.is_streaming) : false
       }));
-      
-      console.log('Transformed CCTV data:', transformedData);
-      
-      return {
+       return {
         data: transformedData,
         total: transformedData.length,
         success: true
@@ -122,12 +113,8 @@ class CCTVService {
   // Get all locations for dropdown
   async getAllLocations() {
     try {
-      console.log('Fetching locations...');
-      
-      const response = await apiClient.get('/location/');
-      console.log('Locations API Response:', response.data);
-      
-      const locations = Array.isArray(response.data) ? response.data : 
+       const response = await apiClient.get('/location/');
+       const locations = Array.isArray(response.data) ? response.data : 
                        response.data.data ? response.data.data : [];
       
       return locations;
@@ -140,12 +127,8 @@ class CCTVService {
   // Test CCTV connection
   async testCCTVConnection(cctvId) {
     try {
-      console.log('Testing CCTV connection:', cctvId);
-      
-      const response = await apiClient.get(`/cctv/${cctvId}/test`);
-      console.log('Connection test response:', response.data);
-      
-      return {
+       const response = await apiClient.get(`/cctv/${cctvId}/test`);
+       return {
         success: true,
         data: response.data.data || response.data
       };
@@ -163,8 +146,7 @@ class CCTVService {
   async testConnection() {
     try {
       const response = await apiClient.get('/');
-      console.log('API Connection Test:', response.data);
-      return { success: true, data: response.data };
+       return { success: true, data: response.data };
     } catch (error) {
       console.error('API Connection Test Failed:', error);
       return { success: false, error: error.message };
@@ -174,22 +156,13 @@ class CCTVService {
   // Create new CCTV (IP Address)
   async createCCTV(cctvData) {
     try {
-      console.log('Creating IP CCTV with data:', cctvData);
-      
-      const requestData = {
+       const requestData = {
         titik_letak: cctvData.titik_letak,
         ip_address: cctvData.ip_address,
         id_location: parseInt(cctvData.id_location)
       };
-      
-      console.log('POST URL:', '/cctv/ip');
-      console.log('Request Data:', requestData);
-      
-      const response = await apiClient.post('/cctv/ip', requestData);
-      
-      console.log('Create IP CCTV Response:', response.data);
-      
-      // Extract data dari success_response wrapper
+        const response = await apiClient.post('/cctv/ip', requestData);
+       // Extract data dari success_response wrapper
       if (response.data && response.data.data) {
         return response.data.data;
       }
@@ -225,21 +198,12 @@ class CCTVService {
    
   async createCCTVAnalog(analogData) {
     try {
-      console.log('Creating Analog CCTV with data:', analogData);
-      
-      const requestData = {
+       const requestData = {
         nama_lokasi: analogData.nama_lokasi,
         ip_address: analogData.ip_address
       };
-      
-      console.log('POST URL:', '/cctv/analog');
-      console.log('Request Data:', requestData);
-      
-      const response = await apiClient.post('/cctv/analog', requestData);
-      
-      console.log('Create Analog CCTV Response:', response.data);
-      
-      // Extract data dari success_response wrapper
+        const response = await apiClient.post('/cctv/analog', requestData);
+       // Extract data dari success_response wrapper
       if (response.data && response.data.data) {
         return response.data.data;
       }
@@ -280,10 +244,7 @@ class CCTVService {
       if (cctvData.titik_letak) updateData.titik_letak = cctvData.titik_letak;
       if (cctvData.ip_address) updateData.ip_address = cctvData.ip_address;
       if (cctvData.id_location) updateData.id_location = parseInt(cctvData.id_location);
-
-      console.log('Updating CCTV', cctvId, 'with data:', updateData);
-
-      const response = await apiClient.put(`/cctv/${cctvId}`, updateData);
+       const response = await apiClient.put(`/cctv/${cctvId}`, updateData);
       return response.data;
     } catch (error) {
       console.error('Error updating CCTV:', error);
@@ -317,19 +278,13 @@ class CCTVService {
   // Delete CCTV
   async deleteCCTV(cctvId) {
     try {
-      console.log('=== DELETE CCTV DEBUG ===');
-      console.log('CCTV ID:', cctvId);
-      
-      const response = await apiClient.delete(`/cctv/${cctvId}`, {
+        const response = await apiClient.delete(`/cctv/${cctvId}`, {
         timeout: 15000,
         headers: {
           'Content-Type': 'application/json'
         }
       });
-      
-      console.log('Delete response:', response.data);
-      
-      if (response.data) {
+       if (response.data) {
         if (response.data.status === 'success') {
           return {
             success: true,
