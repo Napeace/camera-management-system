@@ -1,41 +1,92 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import HLSVideoPlayer from '../components/HLSVideoPlayer';
 
-const CameraFeedPlaceholder = ({ camera, onClick }) => {
-    const [playerState, setPlayerState] = useState('idle'); // idle, loading, ready, error
-    const [showOverlay, setShowOverlay] = useState(true);
+ 
+const CameraFeedPlaceholder = React.memo(({ camera, onClick }) => {
+    const [playerState, setPlayerState] = useState('idle');
+    const mountedRef = useRef(true);
+    const loadStartTimeRef = useRef(null);
+    const isTransitioningRef = useRef(false); 
     
-    // Check if stream URLs exist
-    const hasStreamUrls = camera.streamUrls?.hls_url || camera.stream_urls?.hls_url;
-    const streamUrl = camera.streamUrls?.hls_url || camera.stream_urls?.hls_url;
+ 
+    const streamUrl = useMemo(() => 
+        camera.streamUrls?.hls_url || camera.stream_urls?.hls_url,
+        [camera.streamUrls, camera.stream_urls]
+    );
+    
+    const hasStreamUrls = useMemo(() => 
+        Boolean(streamUrl),
+        [streamUrl]
+    );
 
-    // Reset overlay on camera change
+ 
+    const cameraKey = useMemo(() => 
+        camera.id || camera.id_cctv,
+        [camera.id, camera.id_cctv]
+    );
+
+    // Reset state on camera change
     useEffect(() => {
-        setShowOverlay(true);
+        mountedRef.current = true;
         setPlayerState('idle');
-    }, [camera.id]);
+        loadStartTimeRef.current = null;
+        isTransitioningRef.current = false;
+        
+        return () => {
+            mountedRef.current = false;
+        };
+    }, [cameraKey]);
 
+ 
     const handleLoadStart = () => {
-         setPlayerState('loading');
+        if (!mountedRef.current) return;
+        
+ 
+        if (!isTransitioningRef.current) {
+            loadStartTimeRef.current = Date.now();
+            setPlayerState('loading');
+        }
     };
 
     const handleLoadComplete = (success) => {
-         if (success) {
-            setPlayerState('ready');
-            // Hide overlay after video loads
+        if (!mountedRef.current) return;
+        
+        if (success) {
+ 
+            isTransitioningRef.current = true;
+            
+ 
+            const elapsed = Date.now() - (loadStartTimeRef.current || 0);
+            const minDisplayTime = 500; // Minimum 500ms untuk stability
+            const delay = Math.max(0, minDisplayTime - elapsed);
+            
             setTimeout(() => {
-                setShowOverlay(false);
-            }, 1000);
+                if (mountedRef.current) {
+                    setPlayerState('ready');
+                    // Keep locked for another 200ms to prevent re-trigger
+                    setTimeout(() => {
+                        isTransitioningRef.current = false;
+                    }, 200);
+                }
+            }, delay);
+        } else {
+            setPlayerState('error');
+            isTransitioningRef.current = false;
         }
     };
 
     const handleError = (error) => {
-         setPlayerState('error');
-        setShowOverlay(true);
+        if (!mountedRef.current) return;
+        
+ 
+        if (!isTransitioningRef.current) {
+            setPlayerState('error');
+        }
     };
 
-    const getStatusInfo = () => {
+ 
+    const statusInfo = useMemo(() => {
         if (!hasStreamUrls) {
             return {
                 color: 'red',
@@ -70,9 +121,12 @@ const CameraFeedPlaceholder = ({ camera, onClick }) => {
                     dot: 'bg-yellow-500'
                 };
         }
-    };
+    }, [hasStreamUrls, playerState]);
 
-    const statusInfo = getStatusInfo();
+ 
+    const handleClick = () => {
+        onClick(camera);
+    };
 
     return (
         <motion.div
@@ -80,15 +134,16 @@ const CameraFeedPlaceholder = ({ camera, onClick }) => {
         >
             <div
                 className="bg-gray-100 dark:bg-gray-900 rounded-xl overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 dark:hover:ring-blue-400 transition-all aspect-video shadow-sm hover:shadow-md"
-                onClick={() => onClick(camera)}
+                onClick={handleClick}
             >
                 <div className="h-full flex flex-col">
                     {/* Video Container */}
                     <div className="flex-1 bg-black relative">
                         {hasStreamUrls ? (
                             <>
-                                {/* HLS Video Player */}
+                                {/* ✅ HLS Video Player dengan stable props */}
                                 <HLSVideoPlayer
+                                    key={`player-${cameraKey}`}
                                     streamUrls={{
                                         hls_url: streamUrl
                                     }}
@@ -102,15 +157,17 @@ const CameraFeedPlaceholder = ({ camera, onClick }) => {
                                     onError={handleError}
                                 />
                                 
-                                {/* Connecting Overlay - Only show when loading and overlay visible */}
-                                {showOverlay && playerState === 'loading' && (
-                                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-10">
+                                {/* ✅ Connecting Overlay - STABLE, NO FLICKER, NO CSS NEEDED */}
+                                {playerState === 'loading' && (
+                                    <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-10 transition-opacity duration-300">
                                         <div className="text-center">
-                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500 mx-auto mb-2"></div>
+                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-t-2 border-yellow-500 mx-auto mb-2"></div>
                                             <p className="text-yellow-400 text-sm font-medium">Connecting...</p>
                                         </div>
                                     </div>
                                 )}
+                                
+                                {/* ✅ NO "Connected" overlay - langsung muncul video saja */}
                             </>
                         ) : (
                             // No stream URL available
@@ -126,6 +183,9 @@ const CameraFeedPlaceholder = ({ camera, onClick }) => {
             </div>
         </motion.div>
     );
-};
+});
+
+ 
+CameraFeedPlaceholder.displayName = 'CameraFeedPlaceholder';
 
 export default CameraFeedPlaceholder;

@@ -18,50 +18,105 @@ const HLSVideoPlayer = forwardRef(({
   const retryTimeoutRef = useRef(null);
   const [playerStatus, setPlayerStatus] = useState('loading');
   const [errorMessage, setErrorMessage] = useState('');
+  
+ 
+  const isLoadingRef = useRef(false);
+  const mountedRef = useRef(true);
+  const currentUrlRef = useRef(null);
+  const hasLoadedRef = useRef(false);
+  const hasNotifiedParentRef = useRef(false); 
 
-   
   useImperativeHandle(ref, () => videoRef.current);
 
   useEffect(() => {
+    mountedRef.current = true;
+    
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
     const video = videoRef.current;
-    if (!video || !streamUrls?.hls_url) {
-      setPlayerStatus('no-stream');
+    const streamUrl = streamUrls?.hls_url;
+    
+ 
+    // 1. No video element
+    // 2. No stream URL
+    // 3. Component unmounted
+    if (!video || !streamUrl || !mountedRef.current) {
+      if (!streamUrl) {
+        setPlayerStatus('no-stream');
+      }
       return;
     }
-      setPlayerStatus('loading');
+
+ 
+    // This allows multiple different cameras to load simultaneously
+    if (currentUrlRef.current === streamUrl && hasLoadedRef.current && isLoadingRef.current) {
+      return;
+    }
+
+ 
+    if (isLoadingRef.current && currentUrlRef.current === streamUrl) {
+      return;
+    }
+
+    // Mark as loading
+    isLoadingRef.current = true;
+    currentUrlRef.current = streamUrl;
+    hasLoadedRef.current = false;
+    hasNotifiedParentRef.current = false; 
+
+    setPlayerStatus('loading');
     setErrorMessage('');
     onLoadStart && onLoadStart();
 
-    // Cleanup previous instance
+ 
     if (hlsRef.current) {
-      hlsRef.current.destroy();
+      try {
+        hlsRef.current.destroy();
+      } catch (e) {
+        // Ignore destroy errors
+      }
       hlsRef.current = null;
     }
 
+ 
     if (Hls.isSupported()) {
-       const hls = new Hls({
+      const hls = new Hls({
         debug: false,
         enableWorker: true,
         lowLatencyMode: true,
         backBufferLength: 90,
         maxBufferLength: 30,
         maxMaxBufferLength: 60,
-        manifestLoadingTimeOut: 5000,
-        manifestLoadingMaxRetry: 1,
-        levelLoadingTimeOut: 5000,
-        fragLoadingTimeOut: 5000,
-        manifestLoadingRetryDelay: 500,
-        levelLoadingRetryDelay: 500,
-        fragLoadingRetryDelay: 500,
+        manifestLoadingTimeOut: 10000, 
+        manifestLoadingMaxRetry: 2, 
+        levelLoadingTimeOut: 10000,
+        fragLoadingTimeOut: 10000,
+        manifestLoadingRetryDelay: 1000,
+        levelLoadingRetryDelay: 1000,
+        fragLoadingRetryDelay: 1000,
+ 
+        capLevelToPlayerSize: true,
+        maxMaxBufferLength: 60,
       });
 
       hlsRef.current = hls;
 
+ 
       hls.on(Hls.Events.MEDIA_ATTACHED, () => {
-       });
+        if (!mountedRef.current) return;
+      });
 
       hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
-         setPlayerStatus('playing');
+        if (!mountedRef.current) return;
+        
+        setPlayerStatus('playing');
+        hasLoadedRef.current = true;
+        isLoadingRef.current = false;
+        
         onLoadComplete && onLoadComplete(true);
         
         if (autoPlay) {
@@ -69,97 +124,167 @@ const HLSVideoPlayer = forwardRef(({
           if (playPromise !== undefined) {
             playPromise
               .then(() => {
-               })
+                // Video started playing
+              })
               .catch(e => {
-               });
+                // Autoplay prevented, user interaction needed
+              });
           }
         }
       });
 
       hls.on(Hls.Events.FRAG_LOADED, (event, data) => {
+        if (!mountedRef.current) return;
+        
         if (playerStatus === 'loading') {
-           setPlayerStatus('playing');
+          setPlayerStatus('playing');
+          hasLoadedRef.current = true;
+          isLoadingRef.current = false;
         }
       });
 
+ 
       hls.on(Hls.Events.ERROR, (event, data) => {
-        // console.error(`❌ [${cameraName}] HLS error:`, data.type, data.details, data.fatal); // Dihapus
+        if (!mountedRef.current) return;
         
         if (data.fatal) {
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
-               const errorMsg = 'Camera Offline';
+              const errorMsg = 'Camera Offline';
               setPlayerStatus('error');
               setErrorMessage(errorMsg);
-              onError && onError(errorMsg);
+              isLoadingRef.current = false;
               
+ 
+              if (!hasNotifiedParentRef.current) {
+                hasNotifiedParentRef.current = true;
+                onError && onError(errorMsg);
+              }
+              
+ 
               if (hlsRef.current) {
-                hlsRef.current.destroy();
+                try {
+                  hlsRef.current.destroy();
+                } catch (e) {
+                  // Ignore
+                }
                 hlsRef.current = null;
               }
               break;
               
             case Hls.ErrorTypes.MEDIA_ERROR:
-               hls.recoverMediaError();
+ 
+              try {
+                hls.recoverMediaError();
+              } catch (e) {
+                setPlayerStatus('error');
+                setErrorMessage('Media error');
+                isLoadingRef.current = false;
+              }
               break;
               
             default:
-               const defaultErrorMsg = getErrorMessage(data);
+              const defaultErrorMsg = getErrorMessage(data);
               setPlayerStatus('error');
               setErrorMessage(defaultErrorMsg);
-              onError && onError(defaultErrorMsg);
-              hls.destroy();
+              isLoadingRef.current = false;
+              
+ 
+              if (!hasNotifiedParentRef.current) {
+                hasNotifiedParentRef.current = true;
+                onError && onError(defaultErrorMsg);
+              }
+              
+              try {
+                hls.destroy();
+              } catch (e) {
+                // Ignore
+              }
               hlsRef.current = null;
               break;
           }
-        } else {
-          // console.warn(`⚠️ [${cameraName}] Non-fatal error:`, data.details); // Dihapus
         }
+ 
       });
 
-      hls.loadSource(streamUrls.hls_url);
-      hls.attachMedia(video);
+ 
+      try {
+        hls.loadSource(streamUrl);
+        hls.attachMedia(video);
+      } catch (error) {
+        setPlayerStatus('error');
+        setErrorMessage('Failed to load stream');
+        isLoadingRef.current = false;
+        onError && onError('Failed to load stream');
+      }
 
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-       video.src = streamUrls.hls_url;
+ 
+      video.src = streamUrl;
       
-      video.addEventListener('loadstart', () => {
+      const handleLoadStart = () => {
+        if (!mountedRef.current) return;
         setPlayerStatus('loading');
-      });
+      };
 
-      video.addEventListener('loadeddata', () => {
-         setPlayerStatus('playing');
+      const handleLoadedData = () => {
+        if (!mountedRef.current) return;
+        setPlayerStatus('playing');
+        hasLoadedRef.current = true;
+        isLoadingRef.current = false;
         onLoadComplete && onLoadComplete(true);
-      });
+      };
 
-      video.addEventListener('error', (e) => {
-        // console.error(`❌ [${cameraName}] Native video error:`, e); // Dihapus
+      const handleError = (e) => {
+        if (!mountedRef.current) return;
         setPlayerStatus('error');
         setErrorMessage('Camera Offline');
+        isLoadingRef.current = false;
         onError && onError('Camera Offline');
-      });
+      };
+
+      video.addEventListener('loadstart', handleLoadStart);
+      video.addEventListener('loadeddata', handleLoadedData);
+      video.addEventListener('error', handleError);
 
       if (autoPlay) {
         video.play().catch(e => {
-         });
+          // Autoplay prevented
+        });
       }
+
+ 
+      return () => {
+        video.removeEventListener('loadstart', handleLoadStart);
+        video.removeEventListener('loadeddata', handleLoadedData);
+        video.removeEventListener('error', handleError);
+      };
 
     } else {
       setPlayerStatus('error');
       setErrorMessage('Browser tidak mendukung HLS streaming');
+      isLoadingRef.current = false;
       onError && onError('Browser tidak mendukung HLS streaming');
     }
 
+ 
     return () => {
       if (retryTimeoutRef.current) {
         clearTimeout(retryTimeoutRef.current);
       }
+      
       if (hlsRef.current) {
-         hlsRef.current.destroy();
+        try {
+          hlsRef.current.destroy();
+        } catch (e) {
+          // Ignore destroy errors
+        }
         hlsRef.current = null;
       }
+      
+      isLoadingRef.current = false;
     };
-  }, [streamUrls?.hls_url, cameraName, autoPlay, onLoadStart, onLoadComplete, onError, playerStatus]);
+  }, [streamUrls?.hls_url, cameraName, autoPlay, onLoadStart, onLoadComplete, onError]);
 
   const getErrorMessage = (data) => {
     switch (data.type) {
@@ -179,12 +304,13 @@ const HLSVideoPlayer = forwardRef(({
     if (!video || !controls) return;
 
     if (video.paused) {
-      video.play().catch(e => {}); // Dihapus
+      video.play().catch(e => {});
     } else {
       video.pause();
     }
   };
 
+ 
   if (playerStatus === 'no-stream') {
     return (
       <div className={`relative bg-gray-900 flex items-center justify-center ${className}`}>
@@ -210,6 +336,7 @@ const HLSVideoPlayer = forwardRef(({
         crossOrigin="anonymous"
       />
       
+      {/* ✅ STABILIZED: Loading overlay */}
       {playerStatus === 'loading' && (
         <div className="absolute inset-0 bg-black flex items-center justify-center">
           <div className="text-center text-white">
@@ -219,6 +346,7 @@ const HLSVideoPlayer = forwardRef(({
         </div>
       )}
 
+      {/* ✅ STABILIZED: Error overlay */}
       {playerStatus === 'error' && (
         <div className="absolute inset-0 bg-black flex items-center justify-center">
           <div className="text-center text-white p-4 max-w-md">

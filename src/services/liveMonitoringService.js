@@ -183,7 +183,7 @@ class LiveMonitoringService {
         cctvData = response.data;
       }
       
-      // ✅ FILTER: Exclude cameras with location starting with "analog"
+ 
       const filteredCctvData = cctvData.filter(cctv => {
         const locationName = (cctv.cctv_location_name || '').toLowerCase();
         return !locationName.startsWith('analog');
@@ -335,7 +335,7 @@ class LiveMonitoringService {
        const locations = Array.isArray(response.data) ? response.data : 
                        response.data.data ? response.data.data : [];
       
-      // ✅ FILTER: Exclude locations starting with "analog"
+ 
       const filteredLocations = locations.filter(loc => {
         const namaLokasi = (loc.nama_lokasi || loc.location_name || loc.name || '').toLowerCase();
         return !namaLokasi.startsWith('analog');

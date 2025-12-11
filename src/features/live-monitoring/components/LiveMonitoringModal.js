@@ -1,22 +1,42 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import HLSVideoPlayer from './HLSVideoPlayer';
 import RecordingControls from './RecordingControls';
 
-const LiveMonitoringModal = ({ camera, onClose }) => {
+ 
+const LiveMonitoringModal = React.memo(({ camera, onClose }) => {
     const [playerState, setPlayerState] = useState('loading');
-    const videoRef = useRef(null);  
+    const videoRef = useRef(null);
+    const mountedRef = useRef(true);
+    
+ 
+    const streamUrl = useMemo(() => 
+        camera?.streamUrls?.hls_url || camera?.stream_urls?.hls_url,
+        [camera?.streamUrls, camera?.stream_urls]
+    );
+    
+    const hasStreamUrls = useMemo(() => 
+        Boolean(streamUrl),
+        [streamUrl]
+    );
 
-     
+ 
+    const cameraKey = useMemo(() => 
+        camera?.id || camera?.id_cctv,
+        [camera?.id, camera?.id_cctv]
+    );
+
     // Prevent body scroll when modal is open
     useEffect(() => {
-        // Hanya jalankan jika modalnya tampil (ada data camera)
+        mountedRef.current = true;
+        
         if (camera) {
             document.body.style.overflow = 'hidden';
             return () => {
                 document.body.style.overflow = 'unset';
+                mountedRef.current = false;
             };
         }
-    }, [camera]); // Tambahkan `camera` sebagai dependency
+    }, [camera]);
 
     // Handle ESC key to close modal
     useEffect(() => {
@@ -27,32 +47,39 @@ const LiveMonitoringModal = ({ camera, onClose }) => {
         return () => window.removeEventListener('keydown', handleEsc);
     }, [onClose]);
 
-     
+ 
+    const handleLoadStart = useCallback(() => {
+        if (!mountedRef.current) return;
+        setPlayerState('loading');
+    }, []);
+
+    const handleLoadComplete = useCallback((success) => {
+        if (!mountedRef.current) return;
+        setPlayerState(success ? 'ready' : 'error');
+    }, []);
+
+    const handleError = useCallback((error) => {
+        if (!mountedRef.current) return;
+        setPlayerState('error');
+    }, []);
+
+ 
+    const isPlayerReady = useMemo(() => 
+        playerState === 'ready' && hasStreamUrls,
+        [playerState, hasStreamUrls]
+    );
+
+ 
     if (!camera) {
         return null;
     }
-
-    const handleLoadStart = () => {
-         setPlayerState('loading');
-    };
-
-    const handleLoadComplete = (success) => {
-         setPlayerState(success ? 'ready' : 'error');
-    };
-
-    const handleError = (error) => {
-         setPlayerState('error');
-    };
-
-    const hasStreamUrls = camera?.streamUrls?.hls_url || camera?.stream_urls?.hls_url;
-    const streamUrl = camera?.streamUrls?.hls_url || camera?.stream_urls?.hls_url;
 
     return (
         <div
             className="fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center p-6"
             onClick={onClose}
         >
-            {/* Tombol Close - di luar modal */}
+            {/* Close Button */}
             <button
                 onClick={onClose}
                 className="fixed top-8 right-8 z-[60] bg-white/10 hover:bg-white/20 text-white p-3 rounded-full backdrop-blur-sm transition-all"
@@ -63,13 +90,13 @@ const LiveMonitoringModal = ({ camera, onClose }) => {
                 </svg>
             </button>
 
-            {/* Container utama modal - ukuran lebih kecil dan terkontrol */}
+            {/* Modal Container */}
             <div
                 className="relative w-full bg-gray-900 rounded-lg flex flex-col overflow-hidden shadow-2xl"
                 style={{ maxWidth: '1100px', maxHeight: '90vh' }}
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Video Container - aspect ratio 16:9 dengan max height */}
+                {/* Video Container */}
                 <div
                     className="bg-black relative w-full flex-shrink-0"
                     style={{
@@ -79,7 +106,7 @@ const LiveMonitoringModal = ({ camera, onClose }) => {
                 >
                     <div className="w-full h-full relative">
                         {!hasStreamUrls ? (
-                            // Tampilan untuk kamera offline
+                            // Offline camera display
                             <div className="w-full h-full flex items-center justify-center text-white bg-gray-900">
                                 <div className="text-center">
                                     <svg className="w-16 h-16 mx-auto mb-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -90,8 +117,10 @@ const LiveMonitoringModal = ({ camera, onClose }) => {
                                 </div>
                             </div>
                         ) : (
+ 
                             <HLSVideoPlayer
-                                ref={videoRef}  
+                                key={`modal-player-${cameraKey}`}
+                                ref={videoRef}
                                 streamUrls={{
                                     hls_url: streamUrl
                                 }}
@@ -108,10 +137,10 @@ const LiveMonitoringModal = ({ camera, onClose }) => {
                     </div>
                 </div>
 
-                {/* Info Panel - fixed height */}
+                {/* Info Panel */}
                 <div className="bg-gray-800 p-5 rounded-b-lg flex-shrink-0" style={{ height: '140px' }}>
                     <div className="flex justify-between items-center">
-                        {/* Kolom Kiri: Detail Teks */}
+                        {/* Left Column: Text Details */}
                         <div className="flex-1 pr-4">
                             <h3 className="text-lg font-semibold text-white mb-1.5">
                                 {camera?.name || camera?.titik_letak}
@@ -124,13 +153,13 @@ const LiveMonitoringModal = ({ camera, onClose }) => {
                             <p className="text-xs text-gray-500">IP: {camera?.ip_address || 'N/A'}</p>
                         </div>
 
-                        {/* Kolom Kanan: Status + Recording dalam 1 baris */}
+                        {/* Right Column: Status + Recording in one row */}
                         <div className="flex items-center space-x-3">
-                            {/* Recording Controls */}
+                            {/* ✅ Recording Controls dengan stable props */}
                             <RecordingControls
                                 videoRef={videoRef}
                                 cameraName={camera?.name || camera?.titik_letak}
-                                isPlayerReady={playerState === 'ready' && hasStreamUrls}
+                                isPlayerReady={isPlayerReady}
                             />
 
                             {/* Status Indicators */}
@@ -157,6 +186,9 @@ const LiveMonitoringModal = ({ camera, onClose }) => {
             </div>
         </div>
     );
-};
+});
+
+ 
+LiveMonitoringModal.displayName = 'LiveMonitoringModal';
 
 export default LiveMonitoringModal;
