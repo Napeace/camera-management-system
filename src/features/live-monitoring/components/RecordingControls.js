@@ -10,8 +10,10 @@ const RecordingControls = ({ videoRef, cameraName, isPlayerReady }) => {
     const recordedChunksRef = useRef([]);
     const recordingTimerRef = useRef(null);
     const streamRef = useRef(null);
+    const hasStoppedRef = useRef(false); // ✅ Flag untuk prevent double stop
+    const isRecordingRef = useRef(false); // ✅ Ref untuk track recording state
 
-    const MAX_DURATION = 600; // 10 menit dalam detik
+    const MAX_DURATION = 600;
 
     // Format waktu recording (MM:SS)
     const formatTime = (seconds) => {
@@ -39,7 +41,7 @@ const RecordingControls = ({ videoRef, cameraName, isPlayerReady }) => {
         }
 
         try {
-             // Capture stream dari video element
+            // Capture stream dari video element
             const video = videoRef.current;
             const stream = video.captureStream ? video.captureStream() : video.mozCaptureStream();
             streamRef.current = stream;
@@ -57,27 +59,29 @@ const RecordingControls = ({ videoRef, cameraName, isPlayerReady }) => {
             // Fallback jika VP9 tidak support
             if (!MediaRecorder.isTypeSupported(options.mimeType)) {
                 options.mimeType = 'video/webm;codecs=vp8';
-             }
+            }
 
             const mediaRecorder = new MediaRecorder(stream, options);
             mediaRecorderRef.current = mediaRecorder;
             recordedChunksRef.current = [];
+            hasStoppedRef.current = false; // ✅ Reset flag
 
             // Event: ketika ada data chunk
             mediaRecorder.ondataavailable = (event) => {
                 if (event.data && event.data.size > 0) {
                     recordedChunksRef.current.push(event.data);
-                 }
+                }
             };
 
             // Event: ketika recording berhenti
             mediaRecorder.onstop = () => {
-                 downloadRecording();
+                downloadRecording();
             };
 
             // Mulai recording
             mediaRecorder.start(1000); // Capture setiap 1 detik
             setIsRecording(true);
+            isRecordingRef.current = true; // ✅ Set ref
             setRecordingTime(0);
 
             // Timer untuk durasi
@@ -85,25 +89,41 @@ const RecordingControls = ({ videoRef, cameraName, isPlayerReady }) => {
                 setRecordingTime((prev) => {
                     const newTime = prev + 1;
                     
-                    // Auto-stop setelah 10 menit
-                    if (newTime >= MAX_DURATION) {
-                        stopRecording();
-                        alert('Rekaman otomatis berhenti setelah 10 menit');
+                    // ✅ Auto-stop setelah 10 menit dengan flag check
+                    if (newTime >= MAX_DURATION && !hasStoppedRef.current) {
+                        hasStoppedRef.current = true;
+                        
+                        // ✅ Stop recording dalam timeout untuk avoid race condition
+                        setTimeout(() => {
+                            stopRecording(true); // Pass flag bahwa ini auto-stop
+                        }, 0);
                     }
                     
                     return newTime;
                 });
             }, 1000);
-         } catch (error) {
+        } catch (error) {
             console.error('❌ Error starting recording:', error);
             alert('Gagal memulai rekaman. Pastikan stream sedang berjalan.');
             cleanupRecording();
         }
     };
 
-    const stopRecording = () => {
-        if (mediaRecorderRef.current && isRecording) {
-             mediaRecorderRef.current.stop();
+    const stopRecording = (isAutoStop = false) => {
+        // ✅ Prevent double execution
+        if (hasStoppedRef.current && !isAutoStop) {
+            return;
+        }
+        
+        if (!isAutoStop) {
+            hasStoppedRef.current = true;
+        }
+
+        // ✅ Gunakan ref untuk check, bukan state
+        if (mediaRecorderRef.current && isRecordingRef.current) {
+            console.log('🛑 Stopping recording...', { isAutoStop, time: recordingTime });
+            
+            mediaRecorderRef.current.stop();
             
             // Stop timer
             if (recordingTimerRef.current) {
@@ -117,13 +137,26 @@ const RecordingControls = ({ videoRef, cameraName, isPlayerReady }) => {
             }
 
             setIsRecording(false);
+            isRecordingRef.current = false; // ✅ Set ref
             setIsProcessing(true);
+
+            // ✅ Show alert hanya untuk auto-stop, setelah processing mulai
+            if (isAutoStop) {
+                setTimeout(() => {
+                    alert('Rekaman otomatis berhenti setelah mencapai durasi maksimum');
+                }, 100);
+            }
+        } else {
+            console.log('⚠️ Cannot stop - not recording', { 
+                hasMediaRecorder: !!mediaRecorderRef.current, 
+                isRecording: isRecordingRef.current 
+            });
         }
     };
 
     const downloadRecording = () => {
         try {
-             // Gabungkan semua chunks jadi satu blob
+            // Gabungkan semua chunks jadi satu blob
             const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
             const url = URL.createObjectURL(blob);
 
@@ -153,7 +186,8 @@ const RecordingControls = ({ videoRef, cameraName, isPlayerReady }) => {
                 URL.revokeObjectURL(url);
                 document.body.removeChild(a);
             }, 100);
-              // Reset state
+
+            // Reset state
             cleanupRecording();
 
         } catch (error) {
@@ -167,6 +201,8 @@ const RecordingControls = ({ videoRef, cameraName, isPlayerReady }) => {
         mediaRecorderRef.current = null;
         recordedChunksRef.current = [];
         streamRef.current = null;
+        hasStoppedRef.current = false; // ✅ Reset flag
+        isRecordingRef.current = false; // ✅ Reset ref
         setIsRecording(false);
         setIsProcessing(false);
         setRecordingTime(0);
@@ -197,7 +233,7 @@ const RecordingControls = ({ videoRef, cameraName, isPlayerReady }) => {
 
             {isRecording && (
                 <button
-                    onClick={stopRecording}
+                    onClick={() => stopRecording(false)}
                     className="flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded-lg transition-colors text-sm font-medium"
                     title="Stop Rekam"
                 >
